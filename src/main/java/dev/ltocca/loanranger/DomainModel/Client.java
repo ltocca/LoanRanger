@@ -10,3 +10,5 @@ public class Client extends User {
         super(name, email, password, "CLIENT");
     }
 }
+
+// NOTE: maybe change class to Member, as usually a person has a membership card to a public library
