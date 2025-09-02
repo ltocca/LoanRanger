@@ -1,12 +1,16 @@
 package dev.ltocca.loanranger.DomainModel;
 
+import dev.ltocca.loanranger.Util.LoanDueException;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.temporal.ChronoUnit;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
+
 
 public class Loan {
     private Long id;
@@ -30,4 +34,29 @@ public class Loan {
         this.userId = userId;
         this.libraryId = libraryId;
     }
+
+    public int getRemainingDays() {
+        LocalDate today = LocalDate.now();
+
+        if (isReturned) {
+            throw new LoanDueException("Loan already returned.");
+        }
+
+        if (dueDate == null) {
+            throw new LoanDueException("Due date is not set for this loan.");
+        }
+
+        long daysLeft = ChronoUnit.DAYS.between(today, dueDate);
+
+        if (daysLeft < 0) {
+            throw new LoanDueException("Loan is overdue by " + Math.abs(daysLeft) + " day(s).");
+        }
+
+        if (daysLeft == 0) {
+            throw new LoanDueException("Loan is due today.");
+        }
+
+        return (int) daysLeft;
+    }
+
 }

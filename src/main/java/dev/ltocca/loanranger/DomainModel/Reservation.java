@@ -31,6 +31,7 @@ public class Reservation implements Observer {
     @Override
     public void update(Book book) {
         if (book.getId().equals(this.bookId) && this.isActive) {
+            book.setAvailable(true);
             System.out.println("Notification: The book you requested: '" + book.getTitle() +
                     "' is now available for pickup at library ID: " + book.getLibraryId());
         }
