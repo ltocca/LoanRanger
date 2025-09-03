@@ -1,85 +1,108 @@
+-- Drop tables in reverse order of dependency to avoid foreign key constraints
+DROP TABLE IF EXISTS attendance, loans, reservations, book_copies, books, events, users, libraries CASCADE;
+DROP TYPE IF EXISTS user_role, book_status, event_type;
+
+
+CREATE TYPE user_role AS ENUM ('MEMBER', 'LIBRARIAN', 'ADMIN');
+CREATE TYPE book_status AS ENUM ('AVAILABLE', 'LOANED', 'RESERVED', 'UNDER_MAINTENANCE');
+CREATE TYPE event_type AS ENUM (
+    'BOOK_PRESENTATION',
+    'POETRY_READING',
+    'AUTHOR_TALK',
+    'WORKSHOP',
+    'BOOK_CLUB',
+    'STORYTELLING',
+    'LECTURE',
+    'EXHIBITION'
+);
+
 CREATE TABLE libraries
 (
-    id         SERIAL PRIMARY KEY,
+    library_id SERIAL PRIMARY KEY,
     name       VARCHAR(255) NOT NULL,
-    address    VARCHAR(500) NOT NULL,
-    phone      VARCHAR(50),
+    address    VARCHAR(500) NOT NULL phone      VARCHAR(50),
     email      VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE users
 (
-    id         SERIAL PRIMARY KEY,
-    name       VARCHAR(255)        NOT NULL,
+    user_id    SERIAL PRIMARY KEY,
+    first_name VARCHAR(100)        NOT NULL,
+    last_name  VARCHAR(100)        NOT NULL,
     email      VARCHAR(255) UNIQUE NOT NULL,
-    password   VARCHAR(512)        NOT NULL,
-    role       VARCHAR(50)         NOT NULL CHECK (role IN ('CLIENT', 'LIBRARIAN')), -- maybe add 'ADMIN'
-    library_id BIGINT REFERENCES libraries (id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    password   VARCHAR(512)        NOT NULL, -- Should be saved with a hash
+    role       user_role           NOT NULL,
+    library_id INT,                          -- Nullable, right now only relevant for Librarians;
+    FOREIGN KEY (library_id) REFERENCES libraries (library_id) ON DELETE SET NULL
 );
 
 CREATE TABLE books
 (
-    id           SERIAL PRIMARY KEY,
-    isbn         VARCHAR(13)  NOT NULL, -- updated to the last standard
-    title        VARCHAR(500) NOT NULL,
-    author       VARCHAR(255) NOT NULL,
-    is_available BOOLEAN   DEFAULT TRUE,
-    library_id   BIGINT REFERENCES libraries (id) ON DELETE CASCADE,
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    isbn             VARCHAR(13) PRIMARY KEY,
+    title            VARCHAR(255) NOT NULL,
+    author           VARCHAR(255) NOT NULL,
+    publication_year INT,
+    genre            VARCHAR(100)
+);
+
+CREATE TABLE book_copies
+(
+    copy_id    SERIAL PRIMARY KEY,
+    isbn       VARCHAR(13) NOT NULL,
+    library_id INT         NOT NULL,
+    status     book_status NOT NULL DEFAULT 'AVAILABLE',
+    FOREIGN KEY (isbn) REFERENCES books (isbn) ON DELETE CASCADE,
+    FOREIGN KEY (library_id) REFERENCES libraries (library_id) ON DELETE CASCADE
 );
 
 CREATE TABLE loans
 (
-    id          SERIAL PRIMARY KEY,
-    book_id     BIGINT NOT NULL REFERENCES books (id) ON DELETE CASCADE,
-    user_id     BIGINT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    library_id  BIGINT NOT NULL REFERENCES libraries (id) ON DELETE CASCADE,
-    loan_date   DATE   NOT NULL DEFAULT CURRENT_DATE,
-    due_date    DATE   NOT NULL,
+    loan_id     SERIAL PRIMARY KEY,
+    copy_id     INT  NOT NULL UNIQUE, -- A copy can only be on one loan at a time
+    member_id   INT  NOT NULL,
+    loan_date   DATE NOT NULL DEFAULT CURRENT_DATE,
+    due_date    DATE NOT NULL,
     return_date DATE,
-    is_returned BOOLEAN         DEFAULT FALSE,
-    created_at  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
+    created_at  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (copy_id) REFERENCES book_copies (copy_id) ON DELETE CASCADE,
+    FOREIGN KEY (member_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE reservations
 (
-    id               SERIAL PRIMARY KEY,
-    book_id          BIGINT NOT NULL REFERENCES books (id) ON DELETE CASCADE,
-    user_id          BIGINT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    library_id       BIGINT REFERENCES libraries (id) ON DELETE SET NULL,
-    reservation_date DATE   NOT NULL DEFAULT CURRENT_DATE,
-    is_active        BOOLEAN         DEFAULT TRUE,
-    created_at       TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
+    reservation_id   SERIAL PRIMARY KEY,
+    isbn             VARCHAR(13) NOT NULL,
+    member_id        INT         NOT NULL,
+    reservation_date DATE        NOT NULL DEFAULT CURRENT_DATE,
+    status           VARCHAR(50)          DEFAULT 'PENDING', -- PENDING, FULFILLED, CANCELED
+    library_id       INT,                                    -- Library where the member wants to pick up the book
+    FOREIGN KEY (isbn) REFERENCES books (isbn) ON DELETE CASCADE,
+    FOREIGN KEY (member_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (library_id) REFERENCES libraries (library_id) ON DELETE SET NULL,
+    UNIQUE (isbn, member_id)                                 -- A member can only have one reservation per book title
 );
 
 CREATE TABLE events
 (
-    id                SERIAL PRIMARY KEY,
-    library_id        BIGINT       NOT NULL REFERENCES libraries (id) ON DELETE CASCADE,
-    title             VARCHAR(255) NOT NULL,
-    description       TEXT,
-    event_type        VARCHAR(50)  NOT NULL CHECK (event_type IN
-                                                   ('BOOK_PRESENTATION', 'POETRY_READING', 'AUTHOR_TALK', 'WORKSHOP',
-                                                    'BOOK_CLUB', 'STORYTELLING', 'LECTURE', 'EXHIBITION')),
-    event_datetime    TIMESTAMP    NOT NULL,
-    location          VARCHAR(255),
-    max_capacity      INTEGER      NOT NULL CHECK (max_capacity > 0),
-    current_attendees INTEGER   DEFAULT 0 CHECK (current_attendees >= 0),
-    is_active         BOOLEAN   DEFAULT TRUE,
-    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    event_id     SERIAL PRIMARY KEY,
+    library_id   INT          NOT NULL,
+    title        VARCHAR(255) NOT NULL,
+    description  TEXT,
+    event_date   DATETIME    NOT NULL,
+    max_capacity INT CHECK (max_capacity > 0),
+    event_type   event_type   NOT NULL,
+    is_active    BOOLEAN   DEFAULT TRUE,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP FOREIGN KEY (library_id) REFERENCES libraries (library_id) ON DELETE CASCADE,
+
 );
 
-CREATE TABLE event_attendance
+CREATE TABLE attendance
 (
-    id                SERIAL PRIMARY KEY,
-    event_id          BIGINT NOT NULL REFERENCES events (id) ON DELETE CASCADE,
-    user_id           BIGINT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    attendance_id     SERIAL PRIMARY KEY,
+    event_id          INT NOT NULL,
+    member_id         INT NOT NULL,
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    attended          BOOLEAN   DEFAULT FALSE,
-    UNIQUE (event_id, user_id) -- Added in order to prevent duplicate registrations
+    FOREIGN KEY (event_id) REFERENCES events (event_id) ON DELETE CASCADE,
+    FOREIGN KEY (member_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    UNIQUE (event_id, member_id) -- A member can only register once for an event
 );
-
-
--- TODO: Connect to db file
