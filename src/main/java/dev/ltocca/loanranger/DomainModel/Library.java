@@ -1,10 +1,9 @@
 package dev.ltocca.loanranger.DomainModel;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
+
 
 public class Library {
     private Long id;
@@ -14,7 +13,15 @@ public class Library {
     private String email;
 
     public Library(){}
-    // TODO: implement a way to generate the id automatically
+
+    public Library(Long id, String name, String address, String phone, String email) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.phone = phone;
+        this.email = email;
+
+    }
     public Library(String name, String address, String phone, String email) {
         this.name = name;
         this.address = address;
