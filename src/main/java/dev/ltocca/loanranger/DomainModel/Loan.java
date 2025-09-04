@@ -14,13 +14,16 @@ import java.time.temporal.ChronoUnit;
 public class Loan {
     private Long id;
     private BookCopy bookCopy; // the reference to the library is here
+    private Member member;
+    private LoanedState loanedState;
     private LocalDate loanDate;
     private LocalDate dueDate;
     private LocalDate returnDate;
 
-    public Loan(BookCopy bookCopy, LocalDate dueDate, LocalDate returnDate) {
+    public Loan(BookCopy bookCopy, Member member, LocalDate dueDate, LocalDate returnDate) {
         setLoanDate(LocalDate.now());
         this.bookCopy = bookCopy;
+        this.member = member;
         this.dueDate = dueDate;
         this.returnDate = returnDate;
     }

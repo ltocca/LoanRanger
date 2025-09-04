@@ -1,6 +1,7 @@
 package dev.ltocca.loanranger.ORM;
 
 import dev.ltocca.loanranger.DomainModel.Library;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +69,7 @@ public class LibraryDAO implements ILibraryDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error finding libraries by name", e);
+            throw new RuntimeException(String.format("No library contains: %s", name), e);
         }
         return libraries;
     }

@@ -9,8 +9,14 @@ public class Book {
     private String isbn;
     private String title;
     private String author;
-    private int publicationYear;
+    private Integer publicationYear = null;
     private String genre = null;
+
+    public Book(String isbn, String title, String author) {
+        this.isbn = isbn;
+        this.title = title;
+        this.author = author;
+    }
 
     public Book(String isbn, String title, String author, int publicationYear) {
         this.isbn = isbn;
