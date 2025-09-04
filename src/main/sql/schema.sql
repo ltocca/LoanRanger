@@ -20,8 +20,9 @@ CREATE TABLE libraries
 (
     library_id SERIAL PRIMARY KEY,
     name       VARCHAR(255) NOT NULL,
-    address    VARCHAR(500) NOT NULL phone      VARCHAR(50),
-    email      VARCHAR(255),
+    address    VARCHAR(500) NOT NULL,
+    phone      VARCHAR(50),
+    email      VARCHAR(255)
 );
 
 CREATE TABLE users
