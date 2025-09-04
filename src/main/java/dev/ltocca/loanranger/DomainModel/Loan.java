@@ -1,62 +1,55 @@
 package dev.ltocca.loanranger.DomainModel;
 
-import dev.ltocca.loanranger.Util.LoanDueException;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.time.temporal.ChronoUnit;
+import dev.ltocca.loanranger.DomainModel.State.LoanedState;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
 
 
 public class Loan {
     private Long id;
-    private Long bookId;
-    private Long userId;
-    private Long libraryId; // Which library processed the loan
+    private BookCopy bookCopy; // the reference to the library is here
     private LocalDate loanDate;
     private LocalDate dueDate;
     private LocalDate returnDate;
-    private boolean isReturned;
 
-    public Loan() {
-        this.loanDate = LocalDate.now();
-        this.dueDate = LocalDate.now().plusDays(30);
-        this.isReturned = false;
+    public Loan(BookCopy bookCopy, LocalDate dueDate, LocalDate returnDate) {
+        setLoanDate(LocalDate.now());
+        this.bookCopy = bookCopy;
+        this.dueDate = dueDate;
+        this.returnDate = returnDate;
     }
 
-    public Loan(Long bookId, Long userId, Long libraryId) {
-        this();
-        this.bookId = bookId;
-        this.userId = userId;
-        this.libraryId = libraryId;
+    public void renewLoan() {
+        dueDate = LocalDate.now().plusDays(30);
+    }
+
+    public void renewLoan(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public void renewLoan(int days) {
+        dueDate = LocalDate.now().plusDays(days);
+    }
+
+    public Boolean isExpired() {
+        return !(getBookCopy().getState() instanceof LoanedState) || LocalDate.now().isAfter(getDueDate());
     }
 
     public int getRemainingDays() {
+        if (isExpired()) {
+            return 0;
+        } else if (dueDate == null) { // This indicates a data integrity problem, which is an unwanted case.
+            throw new IllegalStateException("ERROR: Due date is not set for this loan; possible data corruption");
+        }
         LocalDate today = LocalDate.now();
+        long days = ChronoUnit.DAYS.between(today, dueDate);
+        return (int) days;
 
-        if (isReturned) {
-            throw new LoanDueException("Loan already returned.");
-        }
-
-        if (dueDate == null) {
-            throw new LoanDueException("Due date is not set for this loan.");
-        }
-
-        long daysLeft = ChronoUnit.DAYS.between(today, dueDate);
-
-        if (daysLeft < 0) {
-            throw new LoanDueException("Loan is overdue by " + Math.abs(daysLeft) + " day(s).");
-        }
-
-        if (daysLeft == 0) {
-            throw new LoanDueException("Loan is due today.");
-        }
-
-        return (int) daysLeft;
     }
-
 }

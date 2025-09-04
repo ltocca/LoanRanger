@@ -8,32 +8,25 @@ import java.time.LocalDate;
 @Getter
 @Setter
 
-public class Reservation implements Observer {
+public class Reservation {
     private Long id;
-    private Long bookId;
-    private Long userId;
-    private Long libraryId; // Preferred library for pickup
+    private Book book;
+    private Member member;
     private LocalDate reservationDate;
-    private boolean isActive;
+    private ReservationStatus status;
 
-    public Reservation() {
+    public Reservation(Long id, Book book, Member member, LocalDate reservationDate) {
+        this.id = id;
+        this.book = book;
+        this.member = member;
+        this.reservationDate = reservationDate;
+        this.status = ReservationStatus.PENDING;
+    }
+
+    public Reservation(Book book, Member member) {
+        this.book = book;
+        this.member = member;
         this.reservationDate = LocalDate.now();
-        this.isActive = true;
-    }
-
-    public Reservation(Long bookId, Long userId, Long libraryId) {
-        this();
-        this.bookId = bookId;
-        this.userId = userId;
-        this.libraryId = libraryId;
-    }
-
-    @Override
-    public void update(Book book) {
-        if (book.getId().equals(this.bookId) && this.isActive) {
-            book.setAvailable(true);
-            System.out.println("Notification: The book you requested: '" + book.getTitle() +
-                    "' is now available for pickup at library ID: " + book.getLibraryId());
-        }
+        this.status = ReservationStatus.PENDING;
     }
 }
