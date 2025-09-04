@@ -6,7 +6,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConnectionManager {
-    private static ConnectionManager instance;
+    private static ConnectionManager instance; // singleton: beware of multiple dao connections
     private Connection connection;
     private String url = "jdbc:postgresql://localhost:5432/LoanRanger_db";
     private String username = "postgres";
