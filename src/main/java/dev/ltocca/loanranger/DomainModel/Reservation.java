@@ -27,6 +27,6 @@ public class Reservation {
         this.book = book;
         this.member = member;
         this.reservationDate = LocalDate.now();
-        this.status = ReservationStatus.PENDING;
+        setStatus(ReservationStatus.PENDING);
     }
 }
