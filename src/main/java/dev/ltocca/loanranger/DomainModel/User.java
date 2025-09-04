@@ -1,28 +1,31 @@
 package dev.ltocca.loanranger.DomainModel;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 
 public abstract class User {
     private Long id;
+    private String username;
     private String name;
     private String email;
     private String password;
-    private String role; // type of user
-    private Long libraryId;
+    private UserRole role;
 
-    public User() {}
-    public User(String name, String email, String password, String role) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.role = role;
+    public User(Long id, String username, String Password) {
+        this();
+        this.id = id;
+        this.username = username;
+        this.password = Password;
+        this.role = UserRole.MEMBER;
     }
 
-    // TODO: implement a way to generate the id automatically
-    // TODO: implement a way to add the password
-
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
 }
