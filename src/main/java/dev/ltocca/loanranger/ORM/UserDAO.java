@@ -138,6 +138,77 @@ public class UserDAO implements IUserDAO {
     }
 
     @Override
+    public void updateUsername(Long id, String newUsername) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("User ID must be a positive number.");
+        }
+        if (newUsername == null || newUsername.trim().isEmpty()) {
+            throw new IllegalArgumentException("New username cannot be null or empty.");
+        }
+        String sql = "UPDATE users SET username = ? WHERE user_id = ?";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, newUsername);
+            pstmt.setLong(2, id);
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                System.err.println("Warning: No user found with ID " + id + ". Username update had no effect.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating username for user with id: " + id, e);
+        }
+    }
+    @Override
+    public void updatePassword(Long id, String newPassword) {
+      if (id == null || id <= 0) {
+            throw new IllegalArgumentException("User ID must be a positive number.");
+        }
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("New username cannot be null or empty.");
+        }
+        String sql = "UPDATE users SET password = ? WHERE user_id = ?";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, newPassword);
+            pstmt.setLong(2, id);
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                System.err.println("Warning: No user found with ID " + id + ". Password update had no effect.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating password for user with id: " + id, e);
+        }
+    }
+
+    @Override
+    public void librarianUpdateLibrary(User user, Long libraryId) {
+        if (libraryId == null || libraryId <= 0) {
+            throw new IllegalArgumentException("Library ID must be a positive number.");
+        }
+        if (!(user instanceof Librarian)) {
+            throw new IllegalArgumentException("This operation is only valid for Librarian users.");
+        }
+        String sql = "UPDATE users SET library_id = ? WHERE user_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, libraryId);
+            pstmt.setLong(2, user.getId());
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                System.err.println("Warning: Update failed. No user found with ID " + user.getId() +
+                        " or the user is not a Librarian.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error assigning library " + libraryId + " to librarian " + user.getId(), e);
+        }
+    }
+
+    @Override
     public void updateUser(User user) {
         String sql = "UPDATE users SET username = ?, name = ?, email = ?, role = ?, library_id = ? WHERE user_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {

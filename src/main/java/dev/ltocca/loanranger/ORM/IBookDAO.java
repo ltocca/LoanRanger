@@ -19,4 +19,7 @@ public interface IBookDAO {
     List<Book> findBooksByPublicationYear(int publicationYear);
 
     List<Book> findBookByIsbn(String isbn); // parial isbn?
+
+    void deleteBook(String isbn);
+    void deleteBook(Book book);
 }

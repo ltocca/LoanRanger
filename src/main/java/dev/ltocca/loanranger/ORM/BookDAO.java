@@ -139,6 +139,28 @@ public class BookDAO implements IBookDAO {
         return books;
     }
 
+    @Override
+    public void deleteBook(String isbn) {
+        if (isbn == null || isbn.trim().isEmpty()) {
+            throw new IllegalArgumentException("ISBN cannot be null or empty.");
+        }
+        String sql = "DELETE FROM books WHERE isbn = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, isbn);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting book with ISBN: " + isbn, e);
+        }
+    }
+
+    @Override
+    public void deleteBook(Book book) {
+        if (book == null || book.getIsbn() == null) {
+            throw new IllegalArgumentException("Book and its ISBN cannot be null.");
+        }
+        deleteBook(book.getIsbn());
+    }
+
     private Book mapRowToBook(ResultSet rs) throws SQLException {
         String isbn = rs.getString("isbn");
         String title = rs.getString("title");

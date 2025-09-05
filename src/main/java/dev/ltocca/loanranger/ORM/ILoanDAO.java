@@ -29,4 +29,7 @@ public interface ILoanDAO {
     List<Loan> findOverdueLoans();
 
     List<Loan> findMemberOverdueLoans(Long id);
+
+    void deleteLoan(Long id);
+    void deleteLoan(Loan loan);
 }

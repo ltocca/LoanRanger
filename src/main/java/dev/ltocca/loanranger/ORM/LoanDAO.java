@@ -196,6 +196,28 @@ public class LoanDAO implements ILoanDAO {
         return loans;
     }
 
+    @Override
+    public void deleteLoan(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Loan ID must be a positive number.");
+        }
+        String sql = "DELETE FROM loans WHERE loan_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting loan with id: " + id, e);
+        }
+    }
+
+    @Override
+    public void deleteLoan(Loan loan) {
+        if (loan == null || loan.getId() == null) {
+            throw new IllegalArgumentException("Loan and its ID cannot be null.");
+        }
+        deleteLoan(loan.getId());
+    }
+
     private Loan mapRowToLoan(ResultSet rs) throws SQLException {
 
         Member member = new Member();

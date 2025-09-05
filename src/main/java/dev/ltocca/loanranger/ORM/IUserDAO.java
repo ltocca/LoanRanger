@@ -12,7 +12,10 @@ public interface IUserDAO {
     List<User> getUsersByRole(String role);
     Optional<User> findUserByUsername(String username);
 
+    void updateUsername(Long id, String newUsername);
+    void updatePassword(Long id, String newPassword);
+    void librarianUpdateLibrary(User user, Long libraryId);
+
     void updateUser(User user);
     void deleteUser(Long id);
-    // TODO: add update username, password, library
 }
