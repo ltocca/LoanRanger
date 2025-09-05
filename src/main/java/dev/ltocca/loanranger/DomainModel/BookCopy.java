@@ -10,14 +10,13 @@ import lombok.NoArgsConstructor;
 
 public class BookCopy {
     private int copyId;
-    private String isbn;
-    private int libraryId;
+    private Book book;
+    private Library library;
     private AvailabilityState state;
 
-    public BookCopy(String isbn, int libraryId) {
-        this();
-        this.isbn = isbn;
-        this.libraryId = libraryId;
+    public BookCopy(Book book, Library library, AvailabilityState state) {
+        this.book = book;
+        this.library = library;
         this.state = new AvailableState(); // when the copy is created the book is available
     }
 

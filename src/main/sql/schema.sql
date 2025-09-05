@@ -93,7 +93,8 @@ CREATE TABLE events
     max_capacity INT CHECK (max_capacity > 0),
     event_type   event_type   NOT NULL,
     is_active    BOOLEAN   DEFAULT TRUE,
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP FOREIGN KEY (library_id) REFERENCES libraries (library_id) ON DELETE CASCADE,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (library_id) REFERENCES libraries (library_id) ON DELETE CASCADE,
 
 );
 
