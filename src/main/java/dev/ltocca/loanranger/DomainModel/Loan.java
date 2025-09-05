@@ -1,5 +1,6 @@
 package dev.ltocca.loanranger.DomainModel;
 
+import dev.ltocca.loanranger.DomainModel.State.AvailableState;
 import dev.ltocca.loanranger.DomainModel.State.LoanedState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,10 +18,17 @@ public class Loan {
     private Long id;
     private BookCopy bookCopy; // the reference to the library is here
     private Member member;
-    private LoanedState loanedState;
     private LocalDate loanDate;
     private LocalDate dueDate;
-    private LocalDate returnDate;
+    private LocalDate returnDate = null;
+
+    public Loan(BookCopy bookCopy, Member member, LocalDate dueDate) {
+        setLoanDate(LocalDate.now());
+        this.bookCopy = bookCopy;
+        this.bookCopy.loan();
+        this.member = member;
+        this.dueDate = dueDate;
+    }
 
     public Loan(BookCopy bookCopy, Member member, LocalDate dueDate, LocalDate returnDate) {
         setLoanDate(LocalDate.now());
@@ -41,6 +49,8 @@ public class Loan {
     public void renewLoan(int days) {
         dueDate = LocalDate.now().plusDays(days);
     }
+
+    public void endLoan(){bookCopy.returnCopy();}
 
     public Boolean isExpired() {
         return !(getBookCopy().getState() instanceof LoanedState) || LocalDate.now().isAfter(getDueDate());
