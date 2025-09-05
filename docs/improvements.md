@@ -1,7 +1,17 @@
 # General
 
-Find how to have an admin, separated from the librarian.
-
+TODO: CLOSE EVERY STATEMENT IN ORDER TO PREVENT RUNS EVEN IF THROWN EXCEPTION
+to be done (usually) before the return statement
+```java
+finally{
+    if (pstmt != null){
+        pstmt.close();
+    }
+    if (rs != null){
+        rs.close();
+    }
+}
+```
 
 ### ConnectionManager.java
 

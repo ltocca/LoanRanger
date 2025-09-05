@@ -10,9 +10,24 @@ import lombok.NoArgsConstructor;
 
 public class Member extends User implements BookObserver, EventObserver {
 
-    public Member(String email, String password) {
-        super(email, password);
-        setRole(UserRole.MEMBER);
+    public Member(String username, String email, String password) {
+        super(username, password);
+        this.setEmail(email);
+        this.setRole(UserRole.MEMBER);
+    }
+
+    public Member(String username, String name, String email, String password) {
+        super(username, password);
+        this.setEmail(email);
+        this.setName(name);
+        this.setRole(UserRole.MEMBER);
+    }
+
+    public Member(Long id, String username, String name, String email, String password) {
+        super(id, username, password);
+        this.setEmail(email);
+        this.setName(name);
+        this.setRole(UserRole.MEMBER);
     }
 
     @Override
