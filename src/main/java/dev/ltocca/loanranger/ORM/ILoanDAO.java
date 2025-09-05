@@ -17,7 +17,9 @@ public interface ILoanDAO {
     Optional<Loan> getLoanById(Long id);
 
     void updateDueDate(Long id);
+
     void updateDueDate(Long id, int days);
+
     void updateDueDate(Long id, LocalDate dueDate);
 
     List<Loan> findLoansByMember(Member member);
@@ -25,4 +27,6 @@ public interface ILoanDAO {
     List<Loan> findActiveLoansByMember(Member member);
 
     List<Loan> findOverdueLoans();
+
+    List<Loan> findMemberOverdueLoans(Long id);
 }

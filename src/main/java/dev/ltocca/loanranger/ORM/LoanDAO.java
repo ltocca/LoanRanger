@@ -136,17 +136,64 @@ public class LoanDAO implements ILoanDAO {
 
     @Override
     public List<Loan> findLoansByMember(Member member) {
-        return List.of();
+        List<Loan> loans = new ArrayList<>();
+        String sql = LOAN_SELECT_SQL + " WHERE l.member_id = ? ORDER BY l.loan_date DESC";
+        return extractLoansMember(member, loans, sql);
     }
 
     @Override
     public List<Loan> findActiveLoansByMember(Member member) {
-        return List.of();
+        List<Loan> loans = new ArrayList<>();
+        String sql = LOAN_SELECT_SQL + " WHERE l.member_id = ? AND l.return_date IS NULL ORDER BY l.due_date ASC";
+        return extractLoansMember(member, loans, sql);
+    }
+
+    private List<Loan> extractLoansMember(Member member, List<Loan> loans, String sql) {
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, member.getId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    loans.add(mapRowToLoan(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding loans for member id " + member.getId(), e);
+        }
+        return loans;
     }
 
     @Override
     public List<Loan> findOverdueLoans() {
-        return List.of();
+        List<Loan> loans = new ArrayList<>();
+        String sql = LOAN_SELECT_SQL + " WHERE l.due_date < CURRENT_DATE AND l.return_date IS NULL ORDER BY l.due_date ASC";
+        try (Statement stmt = connection.createStatement(); // no ? in the sql string, statement is sufficient
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                loans.add(mapRowToLoan(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding overdue loans", e);
+        }
+        return loans;
+    }
+
+    @Override
+    public List<Loan> findMemberOverdueLoans(Long memberId) {
+        List<Loan> loans = new ArrayList<>();
+        String sql = LOAN_SELECT_SQL + " WHERE l.due_date < CURRENT_DATE AND l.member_id = ? AND l.return_date IS NULL ORDER BY l.due_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setLong(1, memberId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    loans.add(mapRowToLoan(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding overdue loans for member id: " + memberId, e);
+        }
+        return loans;
     }
 
     private Loan mapRowToLoan(ResultSet rs) throws SQLException {
@@ -195,10 +242,14 @@ public class LoanDAO implements ILoanDAO {
     private AvailabilityState mapStatusToState(String status) {
         if (status == null) return new AvailableState();
         switch (BookStatus.valueOf(status.toUpperCase())) {
-            case LOANED: return new LoanedState();
-            case RESERVED: return new ReservedState();
-            case UNDER_MAINTENANCE: return new UnderMaintenanceState();
-            default: return new AvailableState();
+            case LOANED:
+                return new LoanedState();
+            case RESERVED:
+                return new ReservedState();
+            case UNDER_MAINTENANCE:
+                return new UnderMaintenanceState();
+            default:
+                return new AvailableState();
         }
     }
 
