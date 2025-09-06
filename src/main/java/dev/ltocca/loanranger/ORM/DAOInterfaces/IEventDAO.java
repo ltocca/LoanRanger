@@ -1,4 +1,4 @@
-package dev.ltocca.loanranger.ORM;
+package dev.ltocca.loanranger.ORM.DAOInterfaces;
 
 import dev.ltocca.loanranger.DomainModel.Event;
 import dev.ltocca.loanranger.DomainModel.Library;

@@ -3,6 +3,7 @@ package dev.ltocca.loanranger.ORM;
 import dev.ltocca.loanranger.DomainModel.Event;
 import dev.ltocca.loanranger.DomainModel.EventType;
 import dev.ltocca.loanranger.DomainModel.Library;
+import dev.ltocca.loanranger.ORM.DAOInterfaces.IEventDAO;
 
 import java.sql.*;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package dev.ltocca.loanranger.ORM;
+package dev.ltocca.loanranger.ORM.DAOInterfaces;
 
 import dev.ltocca.loanranger.DomainModel.Event;
 import dev.ltocca.loanranger.DomainModel.Member;
@@ -16,5 +16,5 @@ public interface IAttendanceDAO {
 
     List<Member> findEventAttendees(Event event);
 
-    List<Event> findMemberPartecipation(Member member);
+    List<Event> findMemberParticipation(Member member);
 }

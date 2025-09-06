@@ -1,6 +1,7 @@
 package dev.ltocca.loanranger.ORM;
 
 import dev.ltocca.loanranger.DomainModel.Book;
+import dev.ltocca.loanranger.ORM.DAOInterfaces.IBookDAO;
 
 import java.sql.*;
 import java.util.ArrayList;

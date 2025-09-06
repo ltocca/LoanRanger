@@ -1,6 +1,7 @@
 package dev.ltocca.loanranger.ORM;
 
 import dev.ltocca.loanranger.DomainModel.*;
+import dev.ltocca.loanranger.ORM.DAOInterfaces.IAttendanceDAO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -122,7 +123,7 @@ public class AttendanceDAO implements IAttendanceDAO {
     }
 
     @Override
-    public List<Event> findMemberPartecipation(Member member) {
+    public List<Event> findMemberParticipation(Member member) {
         List<Event> events = new ArrayList<>();
         String sql = "SELECT e.event_id, e.title, e.description, e.event_type, e.event_date, e.location, e.max_capacity, " +
                 "l.library_id, l.name AS library_name, l.address, l.phone, l.email " +

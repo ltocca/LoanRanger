@@ -1,6 +1,7 @@
 package dev.ltocca.loanranger.ORM;
 
 import dev.ltocca.loanranger.DomainModel.*;
+import dev.ltocca.loanranger.ORM.DAOInterfaces.IReservationDAO;
 
 import java.util.ArrayList;
 import java.util.List;
