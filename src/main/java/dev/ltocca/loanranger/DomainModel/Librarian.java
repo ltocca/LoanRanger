@@ -11,12 +11,26 @@ public class Librarian extends User {
     // added constructor with no arguments for the DAO
     public Librarian() {
         super();
-        setRole(UserRole.LIBRARIAN);
+        this.setRole(UserRole.LIBRARIAN);
     }
 
-    public Librarian(Long userId, String firstName, String lastName, String email, String password, Library library) {
-        super(userId, firstName, lastName, email, password, UserRole.LIBRARIAN);
-        this.workLibrary = library;
+    public Librarian(String username, String password, String email, Library workLibrary) {
+        super(username, password);
+        this.setEmail(email);
+        this.setWorkLibrary(workLibrary);
+        this.setRole(UserRole.LIBRARIAN);
+    }
+    public Librarian(String username, String password, String name, String email, Library workLibrary) {
+        super(username, password);
+        this.setName(name);
+        this.setEmail(email);
+        this.setWorkLibrary(workLibrary);
+        this.setRole(UserRole.LIBRARIAN);
+    }
+
+    public Librarian(Long userId, String username, String name, String email, String password, Library workLibrary) {
+        super(userId, username, name, email, password, UserRole.LIBRARIAN);
+        this.workLibrary = workLibrary;
     }
 
     public void setWorkLibrary(Library workLibrary) {

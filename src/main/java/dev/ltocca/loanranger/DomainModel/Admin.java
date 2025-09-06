@@ -13,4 +13,10 @@ public class Admin extends User {
         super(id, username, Password);
         this.setRole(UserRole.ADMIN);
     }
+    public Admin(String username, String password, String name, String email) {
+        super(username, password);
+        this.setName(name);
+        this.setEmail(email);
+        this.setRole(UserRole.ADMIN);
+    }
 }
