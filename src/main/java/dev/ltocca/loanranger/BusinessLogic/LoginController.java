@@ -15,20 +15,50 @@ public class LoginController {
 
     public Optional<User> login(String email, String password) throws SQLException {
         UserDAO userDAO = new UserDAO();
-        Optional<User> userOptional = userDAO.getUserByEmail(email);
+        Optional<User> userOptional = userDAO.getUserByEmail(email.trim());
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            if (PasswordHasher.check(password, user.getPassword())) {
+            if (PasswordHasher.check(password.trim(), user.getPassword())) {
+                System.out.println("Login successful: welcome " + user.getName()+"!");
                 return Optional.of(user);
             }
+            System.err.println("Login error: Invalid password!");
         }
-        // TODO: print exception/error to signal that the user is not found
+        System.err.println("Login error: User not found!");
         return Optional.empty();
     }
 
     public User register(UserRole role, String username, String name, String email, String password, Library workLibrary) throws SQLException {
+        validateRegistrationParameters(role, username, email, password, workLibrary);
         UserDAO userDAO = new UserDAO();
         User newUser = UserFactory.createUser(role, username, name, email, password, workLibrary);
         return userDAO.createUser(newUser);
+    }
+
+
+    /**
+     * @param role
+     * @param username
+     * @param email
+     * @param password
+     * @param workLibrary
+     * <h1>Simple validation for registration parameters</h1>
+     *
+     * Added to try registration limitation. Using trim to remove excess space. Inspired by spring boot validation!
+     * TODO: first javadoc added, to be modified or removed
+     */
+    private void validateRegistrationParameters(UserRole role, String username, String email, String password, Library workLibrary) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be empty");
+        }
+        if (email == null || !email.contains("@")) {
+            throw new IllegalArgumentException("Invalid email address");
+        }
+        if (password == null || password.length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters");
+        }
+        if (role == UserRole.LIBRARIAN && workLibrary == null) {
+            throw new IllegalArgumentException("Librarian must be assigned to a library");
+        }
     }
 }
