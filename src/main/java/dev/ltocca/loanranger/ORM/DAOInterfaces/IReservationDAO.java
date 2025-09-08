@@ -18,3 +18,5 @@ public interface IReservationDAO {
     List<Reservation> findBookPendingReservations(Book book);
     List<Reservation> findBookPendingReservations(String bookIsbn);
 }
+
+// FIXME(STATE:BookCopy): modify this class to manage the change from Book to BookCopy in order to be coherent with the State pattern

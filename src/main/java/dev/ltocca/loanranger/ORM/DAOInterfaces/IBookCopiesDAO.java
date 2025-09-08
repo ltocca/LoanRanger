@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface IBookCopiesDAO {
     BookCopy createCopy(BookCopy bookCopy);
-    Optional<BookCopy> getCopyById(int id);
+    Optional<BookCopy> getCopyById(Long id);
     void updateCopyStatus(BookCopy bookCopy);
-    void deleteCopy(int id);
+    void deleteCopy(Long id);
 
     List<BookCopy> findAllBookCopies(Book book);
     List<BookCopy> findLibraryCopies(Library library);

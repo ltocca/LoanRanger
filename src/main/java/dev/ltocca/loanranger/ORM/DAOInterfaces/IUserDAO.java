@@ -13,8 +13,6 @@ public interface IUserDAO {
     List<User> getUsersByRole(String role);
     Optional<User> findUserByUsername(String username);
 
-    //TODO: ADD LOGIN FUNCTION and password hash
-
     void updateUsername(Long id, String newUsername);
     void updatePassword(Long id, String newPassword);
     void librarianUpdateLibrary(User user, Long libraryId);

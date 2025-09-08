@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+// TODO: revisit class, missing implementation
+
 public class BookCopiesDAO implements IBookCopiesDAO {
     private final Connection connection;
 
@@ -47,11 +49,11 @@ public class BookCopiesDAO implements IBookCopiesDAO {
         }
     }
 
-    @Override // AI generated
-    public Optional<BookCopy> getCopyById(int id) {
+    @Override
+    public Optional<BookCopy> getCopyById(Long id) {
         String sql = BOOK_COPY_SELECT_SQL + " WHERE bc.copy_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
+            pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapRowToBookCopy(rs));
@@ -76,10 +78,10 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     }
 
     @Override
-    public void deleteCopy(int id) {
+    public void deleteCopy(Long id) {
         String sql = "DELETE FROM book_copies WHERE copy_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
+            pstmt.setLong(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error deleting book copy with id " + id, e);

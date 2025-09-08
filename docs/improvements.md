@@ -9,7 +9,12 @@
 
 ~~Password Hashing~~, done!
 
-### DAO Classes
+## Domain model 
+
+Edit Reservation class to modify the Book member to BookCopy,
+then
+
+## DAO Classes
 - TODO: CLOSE EVERY STATEMENT IN ORDER TO PREVENT RUNS EVEN IF THROWN EXCEPTION
 to be done (usually) before the return statement
     ```java
