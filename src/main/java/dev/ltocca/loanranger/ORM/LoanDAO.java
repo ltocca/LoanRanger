@@ -88,7 +88,7 @@ public class LoanDAO implements ILoanDAO {
 
     @Override
     public Optional<Loan> getLoanById(Long id) {
-        String sql = LOAN_SELECT_SQL + " WHERE l.loan_id = ?";
+        String sql = LOAN_SELECT_SQL + "WHERE l.loan_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, id);
@@ -101,6 +101,62 @@ public class LoanDAO implements ILoanDAO {
             throw new RuntimeException(String.format("Loan not found: id %s does not exist", id), e);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<Loan> getLoanByBookCopy(BookCopy bookCopy) {
+        String sql = LOAN_SELECT_SQL + "WHERE l.book_copy_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setLong(1, bookCopy.getCopyId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRowToLoan(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(String.format("Loan not found: no loans with book copy id %s", bookCopy.getCopyId()), e);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Loan> getLoanByBookCopyId(Long bookCopyId) {
+        String sql = LOAN_SELECT_SQL + "WHERE l.book_copy_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setLong(1, bookCopyId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRowToLoan(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(String.format("Loan not found: no loans with book copy id %s", bookCopyId), e);
+        }
+        return Optional.empty();
+    }
+
+
+    @Override
+    public void updateLoan(Loan loan) {
+        String sql = "UPDATE loans SET book_copy_id = ?, member_id = ?, loan_date = ?, due_date = ?, return_date = ? WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            try {
+                pstmt.setLong(1, loan.getBookCopy().getCopyId());
+                pstmt.setLong(2, loan.getMember().getId());
+                pstmt.setDate(3, Date.valueOf(loan.getLoanDate()));
+                pstmt.setDate(4, Date.valueOf(loan.getDueDate()));
+                pstmt.setDate(5, loan.getReturnDate() != null ? Date.valueOf(loan.getReturnDate()) : null);
+                pstmt.setLong(6, loan.getId());
+                pstmt.executeUpdate();
+
+            } catch (SQLException e) {
+                throw new RuntimeException("Error updating loan with id " + loan.getId(), e);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error closing resources: " + e.getMessage());
+        }
     }
 
     @Override

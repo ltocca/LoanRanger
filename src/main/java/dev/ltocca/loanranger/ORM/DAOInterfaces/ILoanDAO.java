@@ -15,6 +15,12 @@ public interface ILoanDAO {
     Loan createLoan(BookCopy bookCopy, Member member);
 
     Optional<Loan> getLoanById(Long id);
+    
+    Optional<Loan> getLoanByBookCopy(BookCopy bookCopy);
+
+    Optional<Loan> getLoanByBookCopyId(Long bookCopyId);
+
+    void updateLoan(Loan loan);
 
     void updateDueDate(Long id);
 

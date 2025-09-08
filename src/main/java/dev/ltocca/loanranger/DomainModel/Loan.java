@@ -22,10 +22,18 @@ public class Loan {
     private LocalDate dueDate;
     private LocalDate returnDate = null;
 
-    public Loan(BookCopy bookCopy, Member member, LocalDate dueDate) {
-        setLoanDate(LocalDate.now());
+    public Loan(BookCopy bookCopy, Member member) {
+        this.setLoanDate(LocalDate.now());
+        this.setDueDate(LocalDate.now().plusDays(30));
         this.bookCopy = bookCopy;
-        this.bookCopy.loan();
+        //this.bookCopy.loan();
+        this.member = member;
+    }
+
+    public Loan(BookCopy bookCopy, Member member, LocalDate dueDate) {
+        this.setLoanDate(LocalDate.now());
+        this.bookCopy = bookCopy;
+        //this.bookCopy.loan();
         this.member = member;
         this.dueDate = dueDate;
     }
@@ -38,6 +46,7 @@ public class Loan {
         this.returnDate = returnDate;
     }
 
+    // TODO: Should I move this methods in another package?
     public void renewLoan() {
         dueDate = LocalDate.now().plusDays(30);
     }
