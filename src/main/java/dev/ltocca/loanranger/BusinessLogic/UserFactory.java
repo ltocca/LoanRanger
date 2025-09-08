@@ -9,8 +9,8 @@ public class UserFactory {
         return switch (role) { // suggested by IntelliJ IDE, enhanced switch
             case MEMBER -> new Member(username, name, email, hashedPassword);
             case LIBRARIAN -> {
-                if (workLibrary.getId() == null) {
-                    throw new IllegalArgumentException("WorkingLibraryId is null: you must provide a correct Library!");
+                if (workLibrary == null ||workLibrary.getId() == null) {
+                    throw new IllegalArgumentException("WorkingLibrary or its ID is null: you must provide a correct Library!");
                 }
                 yield new Librarian(username, hashedPassword, name, email, workLibrary);
             }
