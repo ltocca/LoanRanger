@@ -10,7 +10,7 @@ import java.time.LocalDate;
 
 public class Reservation {
     private Long id;
-    private BookCopy bookCopy; // FIXME(STATE:BookCopy): modify this member to BookCopy in order to be coherent with the State pattern
+    private BookCopy bookCopy;
     private Member member;
     private LocalDate reservationDate;
     private ReservationStatus status;

@@ -1,23 +1,32 @@
 package dev.ltocca.loanranger.ORM;
 
 import dev.ltocca.loanranger.DomainModel.*;
+import dev.ltocca.loanranger.DomainModel.State.AvailabilityState;
+import dev.ltocca.loanranger.DomainModel.State.AvailableState;
+import dev.ltocca.loanranger.DomainModel.State.LoanedState;
+import dev.ltocca.loanranger.DomainModel.State.ReservedState;
+import dev.ltocca.loanranger.DomainModel.State.UnderMaintenanceState;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IReservationDAO;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.sql.*;
 
 public class ReservationDAO implements IReservationDAO {
     private final Connection connection;
-
     private static final String RESERVATION_SELECT_SQL =
-            "SELECT r.reservation_id, r.reservation_date, r.status, " +
-                    "b.isbn, b.title, b.author, b.publication_year, b.genre, " +
-                    "u.user_id, u.username, u.name, u.email, u.password, u.role " +
+            "SELECT r.reservation_id, r.reservation_date, r.status AS reservation_status, " +
+                    "       u.user_id, u.username, u.name AS user_name, u.email AS user_email, u.password, u.role, " +
+                    "       bc.copy_id, bc.status AS book_copy_status, " +
+                    "       b.isbn, b.title, b.author, b.publication_year, b.genre, " +
+                    "       l.library_id, l.name AS library_name, l.address AS library_address, " +
+                    "       l.phone AS library_phone, l.email AS library_email " +
                     "FROM reservations r " +
-                    "JOIN books b ON r.book_isbn = b.isbn " +
-                    "JOIN users u ON r.member_id = u.user_id";
+                    "JOIN users u ON r.member_id = u.user_id " +
+                    "JOIN book_copies bc ON r.copy_id = bc.copy_id " +
+                    "JOIN books b ON bc.isbn = b.isbn " +
+                    "JOIN libraries l ON bc.library_id = l.library_id";
 
     public ReservationDAO() throws SQLException {
         this.connection = ConnectionManager.getInstance().getConnection();
@@ -25,9 +34,9 @@ public class ReservationDAO implements IReservationDAO {
 
     @Override
     public Reservation createReservation(Reservation reservation) {
-        String sql = "INSERT INTO reservations (book_isbn, member_id, reservation_date, status) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO reservations (copy_id, member_id, reservation_date, status) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setString(1, reservation.getBook().getIsbn());
+            pstmt.setLong(1, reservation.getBookCopy().getCopyId());
             pstmt.setLong(2, reservation.getMember().getId());
             pstmt.setDate(3, Date.valueOf(reservation.getReservationDate()));
             pstmt.setString(4, reservation.getStatus().name());
@@ -63,10 +72,10 @@ public class ReservationDAO implements IReservationDAO {
     }
 
     @Override
-    public void updateReservation(Reservation reservation){
-        String sql = "UPDATE reservations SET book_isbn = ?, member_id = ?, reservation_date = ?, status = ? WHERE reservation_id = ?";
+    public void updateReservation(Reservation reservation) {
+        String sql = "UPDATE reservations SET copy_id = ?, member_id = ?, reservation_date = ?, status = ? WHERE reservation_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, reservation.getBook().getIsbn());
+            pstmt.setLong(1, reservation.getBookCopy().getCopyId());
             pstmt.setLong(2, reservation.getMember().getId());
             pstmt.setDate(3, Date.valueOf(reservation.getReservationDate()));
             pstmt.setString(4, reservation.getStatus().name());
@@ -76,7 +85,6 @@ public class ReservationDAO implements IReservationDAO {
             throw new RuntimeException("Error updating reservation with id " + reservation.getId(), e);
         }
     }
-
 
     @Override
     public void updateStatus(Reservation reservation, ReservationStatus status) {
@@ -120,7 +128,7 @@ public class ReservationDAO implements IReservationDAO {
     @Override
     public List<Reservation> findMemberReservations(Member member) {
         if (member == null || member.getId() == null) {
-            throw new IllegalArgumentException("Member or their ID cannot be null.");
+            throw new IllegalArgumentException("Member and its ID cannot be null.");
         }
         return findMemberReservations(member.getId());
     }
@@ -128,7 +136,7 @@ public class ReservationDAO implements IReservationDAO {
     @Override
     public List<Reservation> findMemberReservations(Long memberId) {
         List<Reservation> reservations = new ArrayList<>();
-        String sql = RESERVATION_SELECT_SQL + " WHERE r.member_id = ? ORDER BY r.reservation_date DESC"; // the more recent are shown first
+        String sql = RESERVATION_SELECT_SQL + " WHERE r.member_id = ? ORDER BY r.reservation_date DESC";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, memberId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -139,63 +147,60 @@ public class ReservationDAO implements IReservationDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Error finding reservations for member id " + memberId, e);
         }
-        return reservations;    }
-
-    @Override
-    public List<Reservation> findBookPendingReservations(Book book) {
-        if (book == null || book.getIsbn() == null) {
-            throw new IllegalArgumentException("Book and its ISBN cannot be null.");
-        }
-        return findBookPendingReservations(book.getIsbn());
-    }
-
-    @Override
-    public List<Reservation> findBookPendingReservations(String bookIsbn) {
-        if (bookIsbn == null || bookIsbn.trim().isEmpty()) {
-            throw new IllegalArgumentException("Book ISBN cannot be null or empty.");
-        }
-        List<Reservation> reservations = new ArrayList<>();
-        String sql = RESERVATION_SELECT_SQL + " WHERE r.book_isbn = ? AND r.status = 'PENDING' ORDER BY r.reservation_date ASC"; // in this case the order must show the first reservations
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, bookIsbn);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    reservations.add(mapRowToReservation(rs));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error finding pending reservations for book isbn " + bookIsbn, e);
-        }
         return reservations;
     }
 
     private Reservation mapRowToReservation(ResultSet rs) throws SQLException {
-        Book book = new Book(
-                rs.getString("isbn"),
-                rs.getString("title"),
-                rs.getString("author"),
-                rs.getInt("publication_year"),
-                rs.getString("genre")
-        );
-
         Member member = new Member(
-                rs.getLong("id"),
+                rs.getLong("user_id"),
                 rs.getString("username"),
-                rs.getString("name"),
-                rs.getString("email"),
+                rs.getString("user_name"),
+                rs.getString("user_email"),
                 rs.getString("password")
         );
 
+        Library library = new Library(
+                rs.getLong("library_id"), rs.getString("library_name"),
+                rs.getString("library_address"), rs.getString("library_phone"),
+                rs.getString("library_email")
+        );
 
-        Reservation reservation = new Reservation(book, member);
-        reservation.setId(rs.getLong("reservation_id"));
-        reservation.setReservationDate(rs.getDate("reservation_date").toLocalDate());
-        reservation.setStatus(ReservationStatus.valueOf(rs.getString("status")));
+        Book book = new Book(
+                rs.getString("isbn"), rs.getString("title"),
+                rs.getString("author"), rs.getInt("publication_year"),
+                rs.getString("genre")
+        );
 
-        reservation.setBook(book);
-        reservation.setMember(member);
+        BookCopy bookCopy = new BookCopy();
+        bookCopy.setCopyId(rs.getLong("copy_id"));
+        bookCopy.setBook(book);
+        bookCopy.setLibrary(library);
+        bookCopy.setState(mapStatusToState(rs.getString("book_copy_status")));
+
+        Reservation reservation = new Reservation(
+                rs.getLong("reservation_id"),
+                bookCopy,
+                member,
+                rs.getDate("reservation_date").toLocalDate()
+        );
+        reservation.setStatus(ReservationStatus.valueOf(rs.getString("reservation_status")));
 
         return reservation;
+    }
+
+    // needed to build the BookCopy object
+    private AvailabilityState mapStatusToState(String status) {
+        if (status == null) return new AvailableState();
+        switch (BookStatus.valueOf(status.toUpperCase())) {
+            case LOANED:
+                return new LoanedState();
+            case RESERVED:
+                return new ReservedState();
+            case UNDER_MAINTENANCE:
+                return new UnderMaintenanceState();
+            case AVAILABLE:
+            default:
+                return new AvailableState();
+        }
     }
 }
