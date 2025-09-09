@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 public class BookCopy {
-    private int copyId;
+    private Long copyId;
     private Book book;
     private Library library;
     private AvailabilityState state;
