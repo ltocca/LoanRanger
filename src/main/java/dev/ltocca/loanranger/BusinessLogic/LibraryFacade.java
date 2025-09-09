@@ -34,20 +34,28 @@ public class LibraryFacade {
                 return false;
             }
 
-            if (!(bookCopy.getState() instanceof AvailableState)) {
+            if (bookCopy.getState() instanceof ReservedState) {
+                System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved for another member.");
+                return false;
+            } else if (!(bookCopy.getState() instanceof AvailableState)) {
                 System.err.println("Book copy " + bookCopy.getCopyId() + " is not available.");
                 return false;
             }
+
 
             // Create loan object
             Loan loan = new Loan(bookCopy, member);
             loanDAO.createLoan(loan);
 
-            // Update DB state
+            // Update DB table and the state of the book
             bookCopy.loan(); // now it is the BusinessLogic that manages the loan() method call
             bookCopiesDAO.updateCopyStatus(bookCopy);
 
-            // TODO, find reservation and if present set to fulfilled
+            Optional<Reservation> reservationOptional = reservationDAO.getReservationMemberBook(member, bookCopy);
+            if (reservationOptional.isPresent()) {
+                System.out.println("Book copy " + bookCopy.getCopyId() + " reserved to member " + member.getUsername() + " is now ready to be Loaned!");
+                reservationOptional.get().setStatus(ReservationStatus.FULFILLED);
+            }
 
             System.out.println("Book copy " + bookCopy.getCopyId() + " loaned to member " + member.getUsername());
             return true;
@@ -68,7 +76,10 @@ public class LibraryFacade {
                 return false;
             }
 
-            if (!(bookCopy.getState() instanceof AvailableState)) {
+            if (bookCopy.getState() instanceof ReservedState) {
+                System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved for another member.");
+                return false;
+            } else if (!(bookCopy.getState() instanceof AvailableState)) {
                 System.err.println("Book copy " + bookCopy.getCopyId() + " is not available.");
                 return false;
             }
@@ -80,6 +91,12 @@ public class LibraryFacade {
             // Update DB state
             bookCopy.loan();
             bookCopiesDAO.updateCopyStatus(bookCopy);
+
+            Optional<Reservation> reservationOptional = reservationDAO.getReservationMemberBook(member, bookCopy);
+            if (reservationOptional.isPresent()) {
+                System.out.println("Book copy " + bookCopy.getCopyId() + " reserved to member " + member.getUsername() + " is now ready to be Loaned!");
+                reservationOptional.get().setStatus(ReservationStatus.FULFILLED);
+            }
 
             System.out.println("Book copy " + bookCopy.getCopyId() + " loaned to member " + member.getUsername());
             return true;
@@ -124,16 +141,16 @@ public class LibraryFacade {
     }
 
     /** Place a reservation for a book, it will be a copy */
-    public void placeReservation(Member member, Book book) {
+    public void placeReservation(Member member, BookCopy bookCopy) {
         try {
-            Reservation reservation = new Reservation(book, member);
+            Reservation reservation = new Reservation(bookCopy, member);
             reservationDAO.createReservation(reservation);
 
             //TODO(STATE:BookCopy) finish this method when fixed the DomainModel, DAO
 
             // Register as observer for book availability
             if (member instanceof BookObserver) {
-                System.out.println("Member " + member.getUsername() + " observing availability of book " + book.getTitle());
+                System.out.println("Member " + member.getUsername() + " observing availability of book " + bookCopy.getBook().getTitle());
             }
         } catch (Exception e) {
             throw new RuntimeException("Error placing reservation for member " + member.getId(), e);
