@@ -36,7 +36,7 @@ public class LoanDAO implements ILoanDAO {
     public Loan createLoan(Loan loan) {
         String sql = "INSERT INTO loans (book_copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setInt(1, loan.getBookCopy().getCopyId());
+            pstmt.setLong(1, loan.getBookCopy().getCopyId());
             pstmt.setLong(2, loan.getMember().getId());
             pstmt.setDate(3, Date.valueOf(loan.getLoanDate()));
             pstmt.setDate(4, Date.valueOf(loan.getDueDate()));
@@ -66,7 +66,7 @@ public class LoanDAO implements ILoanDAO {
         String sql = "INSERT INTO loans (book_copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             Loan loan = new Loan(bookCopy, member, LocalDate.now());
-            pstmt.setInt(1, loan.getBookCopy().getCopyId());
+            pstmt.setLong(1, loan.getBookCopy().getCopyId());
             pstmt.setLong(2, loan.getMember().getId());
             pstmt.setDate(3, Date.valueOf(loan.getLoanDate()));
             pstmt.setDate(4, Date.valueOf(LocalDate.now().plusDays(30)));
@@ -298,7 +298,7 @@ public class LoanDAO implements ILoanDAO {
         );
 
         BookCopy bookCopy = new BookCopy();
-        bookCopy.setCopyId(rs.getInt("copy_id"));
+        bookCopy.setCopyId(rs.getLong("copy_id"));
         bookCopy.setBook(book); // Associate the Book
         bookCopy.setLibrary(library); // Associate the Library
         bookCopy.setState(mapStatusToState(rs.getString("book_copy_status")));

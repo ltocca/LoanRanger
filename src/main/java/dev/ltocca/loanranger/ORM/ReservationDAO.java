@@ -72,6 +72,24 @@ public class ReservationDAO implements IReservationDAO {
     }
 
     @Override
+    public Optional<Reservation> getReservationMemberBook(Member member, BookCopy bookCopy) {
+        String sql = RESERVATION_SELECT_SQL + " WHERE r.member_id = ? AND r.copy_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, member.getId());
+            pstmt.setLong(2, bookCopy.getCopyId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching reservation with member id: " + member.getId() + " and book copy id: " + bookCopy.getCopyId(), e);
+        }
+        System.err.println("Reservation with  member id: " + member.getId() + " and book copy id: " + bookCopy.getCopyId() + " not found, try again!");
+        return Optional.empty();
+    }
+
+    @Override
     public void updateReservation(Reservation reservation) {
         String sql = "UPDATE reservations SET copy_id = ?, member_id = ?, reservation_date = ?, status = ? WHERE reservation_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
