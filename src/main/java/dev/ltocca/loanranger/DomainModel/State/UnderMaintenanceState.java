@@ -13,8 +13,7 @@ public class UnderMaintenanceState implements AvailabilityState {
 
     @Override
     public void returnCopy(BookCopy copy) {
-        System.out.println("Book maintenance complete. Now the copy is available.");
-        copy.changeState(new AvailableState());
+        System.err.println("Error. This copy is not loaned.");
     }
 
     @Override
@@ -25,6 +24,12 @@ public class UnderMaintenanceState implements AvailabilityState {
     @Override
     public void placeUnderMaintenance(BookCopy copy) {
         System.out.println("Book is already under maintenance.");
+    }
+
+    @Override
+    public void markAsAvailable(BookCopy copy) {
+        System.out.println("Book maintenance complete. Now the copy is available.");
+        copy.changeState(new AvailableState());
     }
 
     @Override

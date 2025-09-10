@@ -14,5 +14,7 @@ public interface AvailabilityState {
 
     void placeUnderMaintenance(BookCopy copy);
 
+    void markAsAvailable(BookCopy copy);
+
     String getStatus();
 }

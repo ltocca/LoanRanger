@@ -14,17 +14,23 @@ public class ReservedState implements AvailabilityState {
 
     @Override
     public void returnCopy(BookCopy copy) {
-        System.out.println("Error: Cannot return a book that is reserved (it is not yet loaned).");
+        System.err.println("Error: Cannot return a book that is reserved (it is not yet loaned).");
     }
 
     @Override
     public void reserve(BookCopy copy) {
-        System.out.println("Error: This copy is already reserved.");
+        System.err.println("Error: This copy is already reserved.");
     }
 
     @Override
     public void placeUnderMaintenance(BookCopy copy) {
-        System.out.println("Error: Cannot place a reserved book under maintenance.");
+        System.err.println("Error: Cannot place a reserved book under maintenance.");
+    }
+
+    @Override
+    public void markAsAvailable(BookCopy copy) {
+        copy.changeState(new AvailableState());
+        System.out.println("Now the book is again available");
     }
 
     @Override

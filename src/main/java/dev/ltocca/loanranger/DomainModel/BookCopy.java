@@ -42,5 +42,9 @@ public class BookCopy {
         state.placeUnderMaintenance(this);
     }
 
+    public void markAsAvailable() {
+        state.markAsAvailable(this);
+    }
+
 
 }

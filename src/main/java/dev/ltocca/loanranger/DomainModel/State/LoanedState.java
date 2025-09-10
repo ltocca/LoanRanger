@@ -8,7 +8,7 @@ public class LoanedState implements AvailabilityState {
 
     @Override
     public void loan(BookCopy copy) {
-        System.out.println("Error: Book is already loaned out.");
+        System.err.println("Error: Book is already loaned out.");
     }
 
     @Override
@@ -19,12 +19,17 @@ public class LoanedState implements AvailabilityState {
 
     @Override
     public void reserve(BookCopy copy) {
-        System.out.println("Error: Cannot reserve a book that is already loaned out.");
+        System.err.println("Error: Cannot reserve a book that is already loaned out.");
     }
 
     @Override
     public void placeUnderMaintenance(BookCopy copy) {
-        System.out.println("Error: Cannot place a loaned book under maintenance.");
+        System.err.println("Error: Cannot place a loaned book under maintenance.");
+    }
+
+    @Override
+    public void markAsAvailable(BookCopy copy) {
+        System.err.println("Error: Cannot mark loaned book as available (after maintenance method).");
     }
 
     @Override

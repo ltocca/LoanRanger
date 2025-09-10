@@ -14,7 +14,7 @@ public class AvailableState implements AvailabilityState {
 
     @Override
     public void returnCopy(BookCopy copy) {
-        System.out.println("Error: Cannot return a book that is already available.");
+        System.err.println("Error: Cannot return a book that is already available.");
     }
 
     @Override
@@ -27,6 +27,12 @@ public class AvailableState implements AvailabilityState {
     public void placeUnderMaintenance(BookCopy copy) {
         System.out.println("Placing book under maintenance.");
         copy.changeState(new UnderMaintenanceState());
+    }
+
+    @Override
+    public void markAsAvailable(BookCopy copy) {
+        System.err.println("Error: The copy is already available.");
+
     }
 
     @Override
