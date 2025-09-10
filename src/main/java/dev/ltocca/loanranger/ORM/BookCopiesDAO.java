@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-// TODO: revisit class, missing implementation
-
 public class BookCopiesDAO implements IBookCopiesDAO {
     private final Connection connection;
 
@@ -39,7 +37,7 @@ public class BookCopiesDAO implements IBookCopiesDAO {
             if (affectedRows > 0) {
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
-                        bookCopy.setCopyId(rs.getInt("copy_id"));
+                        bookCopy.setCopyId(rs.getLong("copy_id"));
                     }
                 }
             }
@@ -70,10 +68,22 @@ public class BookCopiesDAO implements IBookCopiesDAO {
         String sql = "UPDATE book_copies SET status = ? WHERE copy_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, bookCopy.getState().getStatus());
-            pstmt.setInt(2, bookCopy.getCopyId());
+            pstmt.setLong(2, bookCopy.getCopyId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error updating book copy status for id " + bookCopy.getCopyId(), e);
+        }
+    }
+
+    @Override
+    public void updateCopyStatus(Long copyId, BookStatus status) {
+        String sql = "UPDATE book_copies SET status = ? WHERE copy_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, status.toString());
+            pstmt.setLong(2, copyId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating book copy status for id " + copyId, e);
         }
     }
 
@@ -88,7 +98,11 @@ public class BookCopiesDAO implements IBookCopiesDAO {
         }
     }
 
-    // Next is all AI generated, i'm too tired right now
+    @Override
+    public void deleteCopy(BookCopy bookCopy) {
+        deleteCopy(bookCopy.getCopyId());
+    }
+
     @Override
     public List<BookCopy> findAllBookCopies(Book book) {
         List<BookCopy> copies = new ArrayList<>();
@@ -109,7 +123,15 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> findLibraryCopies(Library library) {
         List<BookCopy> copies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE bc.library_id = ?";
-        // ... implementation ...
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, library.getId());
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                copies.add(mapRowToBookCopy(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(String.format("Error finding copies for this Library id: %s", library.getId()), e);
+        }
         return copies;
     }
 
@@ -117,7 +139,15 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> findAvailableBookCopies(Book book) {
         List<BookCopy> copies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE bc.isbn = ? AND bc.status = 'AVAILABLE'";
-        // ... implementation ...
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, book.getIsbn());
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                copies.add(mapRowToBookCopy(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(String.format("Error finding available copies for this isbn: %s", book.getIsbn()), e);
+        }
         return copies;
     }
 
@@ -142,7 +172,7 @@ public class BookCopiesDAO implements IBookCopiesDAO {
 
         // 3. Build the main BookCopy object
         BookCopy copy = new BookCopy();
-        copy.setCopyId(rs.getInt("copy_id"));
+        copy.setCopyId(rs.getLong("copy_id"));
 
         // 4. Assemble the object graph
         copy.setBook(book);
