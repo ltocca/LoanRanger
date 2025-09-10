@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+//TODO/FIXME: need to understand if i need to close each time the connection
+
 public class EventDAO implements IEventDAO {
 
     private static final String EVENT_SELECT_SQL =

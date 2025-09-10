@@ -31,6 +31,7 @@ public interface ILoanDAO {
     List<Loan> findLoansByMember(Member member);
 
     List<Loan> findActiveLoansByMember(Member member);
+    // TODO: implement findActiveLoansByLibrary
 
     List<Loan> findOverdueLoans();
 
