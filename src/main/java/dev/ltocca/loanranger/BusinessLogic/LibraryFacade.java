@@ -25,23 +25,7 @@ public class LibraryFacade {
     /** Borrow a book copy */
     public boolean borrowBook(Member member, BookCopy bookCopy) {
         try {
-            if (member == null){
-                System.err.println("No user found");
-                return false;
-            }
-            if (bookCopy ==  null) {
-                System.err.println("No book copy found");
-                return false;
-            }
-
-            if (bookCopy.getState() instanceof ReservedState) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved for another member.");
-                return false;
-            } else if (!(bookCopy.getState() instanceof AvailableState)) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is not available.");
-                return false;
-            }
-
+            if (parameterCheck(member, bookCopy)) return false;
 
             // Create loan object
             Loan loan = new Loan(bookCopy, member);
@@ -65,24 +49,30 @@ public class LibraryFacade {
         }
     }
 
+    // helper method to check if parameters ar correct
+    private boolean parameterCheck(Member member, BookCopy bookCopy) {
+        if (member == null) {
+            System.err.println("No user found");
+            return true;
+        }
+        if (bookCopy == null) {
+            System.err.println("No book copy found");
+            return true;
+        }
+
+        if (bookCopy.getState() instanceof ReservedState) {
+            System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved for another member.");
+            return true;
+        } else if (!(bookCopy.getState() instanceof AvailableState)) {
+            System.err.println("Book copy " + bookCopy.getCopyId() + " is not available.");
+            return true;
+        }
+        return false;
+    }
+
     public boolean borrowBook(Member member, BookCopy bookCopy, LocalDate dueDate) {
         try {
-            if (member == null){
-                System.err.println("No user found");
-                return false;
-            }
-            if (bookCopy ==  null) {
-                System.err.println("No book copy found");
-                return false;
-            }
-
-            if (bookCopy.getState() instanceof ReservedState) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved for another member.");
-                return false;
-            } else if (!(bookCopy.getState() instanceof AvailableState)) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is not available.");
-                return false;
-            }
+            if (parameterCheck(member, bookCopy)) return false;
 
             // Create loan record
             Loan loan = new Loan(bookCopy, member, dueDate);
@@ -143,26 +133,72 @@ public class LibraryFacade {
     /** Place a reservation for a book, it will be a copy */
     public void placeReservation(Member member, BookCopy bookCopy) {
         try {
+            if (member == null) {
+                System.err.println("No user found");
+                return;
+            }
+            if (bookCopy == null) {
+                System.err.println("No book copy found");
+                return;
+            }
+            if (bookCopy.getState() instanceof UnderMaintenanceState) {
+                System.err.println("Book copy " + bookCopy.getCopyId() + " is under maintenance.");
+                return;
+            }
+            if (bookCopy.getState() instanceof AvailableState) {
+                System.out.println("Book copy " + bookCopy.getCopyId() + " is available! You can directly proceed to loan the book.");
+                return;
+            }
+
             Reservation reservation = new Reservation(bookCopy, member);
             reservationDAO.createReservation(reservation);
 
-            //TODO(STATE:BookCopy) finish this method when fixed the DomainModel, DAO
+            reservation.getBookCopy().reserve();
 
             // Register as observer for book availability
             if (member instanceof BookObserver) {
                 System.out.println("Member " + member.getUsername() + " observing availability of book " + bookCopy.getBook().getTitle());
             }
         } catch (Exception e) {
+            assert member != null; // suggested by ide -- Method invocation 'getId' may produce 'NullPointerException'
             throw new RuntimeException("Error placing reservation for member " + member.getId(), e);
         }
     }
 
     public void putUnderMaintenance(BookCopy bookCopy) {
         try{
+            if (bookCopy.getState() instanceof ReservedState) {
+                System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved. The copy needs to be available");
+                return;
+            }
+            if (bookCopy.getState() instanceof LoanedState) {
+                System.err.println("Book copy " + bookCopy.getCopyId() + " is already loaned. The copy needs to be available");
+                return;
+            }
+            if (bookCopy.getState() instanceof UnderMaintenanceState) {
+                System.err.println("Book copy " + bookCopy.getCopyId() + " is already under maintenance.");
+                return;
+            }
             bookCopy.placeUnderMaintenance();
             bookCopiesDAO.updateCopyStatus(bookCopy);
+            System.out.println("Book copy " + bookCopy.getCopyId() + " placed under maintenance.");
         } catch (Exception e) {
             throw new RuntimeException("Error placing book copy " + bookCopy.getCopyId()+ " under maintenance!", e);
+        }
+    }
+
+    public void removeFromMaintenance(BookCopy bookCopy) {
+        try {
+            if (!(bookCopy.getState() instanceof UnderMaintenanceState)) {
+                System.err.println("Book copy " + bookCopy.getCopyId() + " is not under maintenance.");
+                return;
+            }
+            bookCopy.markAsAvailable(); // ipotetico metodo per tornare allo stato disponibile
+            bookCopiesDAO.updateCopyStatus(bookCopy);
+            System.out.println("Book copy " + bookCopy.getCopyId() + " removed from maintenance and is now available again.");
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Error removing book copy %s from maintenance!", bookCopy.getCopyId()), e);
+
         }
     }
 
