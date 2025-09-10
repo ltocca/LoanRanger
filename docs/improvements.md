@@ -2,6 +2,10 @@
 
 # ORM package
 
+## all
+
+when the method returns optional print a 'System.err.println()' with more info.
+
 ### ConnectionManager.java
 
 - Instead of using the simple ConnectionManager implementation, maybe use Hikari to create a connection pool;
@@ -11,8 +15,7 @@
 
 ## Domain model 
 
-Edit Reservation class to modify the Book member to BookCopy,
-then
+~~Edit Reservation class to modify the Book member to BookCopy~~
 
 ## DAO Classes
 - TODO: CLOSE EVERY STATEMENT IN ORDER TO PREVENT RUNS EVEN IF THROWN EXCEPTION

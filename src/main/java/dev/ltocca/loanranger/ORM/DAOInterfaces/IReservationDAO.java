@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface IReservationDAO {
     Reservation createReservation(Reservation reservation);
     Optional<Reservation> getReservationById(Long id);
+
+    Optional<Reservation> getReservationMemberBook(Member member, BookCopy bookCopy); // temporary name
     void updateReservation(Reservation reservation);
     void updateStatus(Reservation reservation, ReservationStatus status);
     void updateStatus(Long id, ReservationStatus status);
