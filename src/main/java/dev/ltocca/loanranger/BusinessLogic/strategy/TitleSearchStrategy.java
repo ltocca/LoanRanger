@@ -8,11 +8,15 @@ import java.util.List;
 public final class TitleSearchStrategy implements BookCopySearchStrategy {
     @Override
     public List<BookCopy> search(String query, BookCopiesDAO bookCopiesDAO) {
-        return List.of();
-    }
+        if (query == null || query.trim().isEmpty()) {
+            System.err.println("Error: the query is null or empty");
+            return List.of();
+        }
 
-    @Override
-    public int getMinQueryLength() {
-        return BookCopySearchStrategy.super.getMinQueryLength();
+        try { // Use database-level search for better performance, instead of implementing less performant code.
+            return bookCopiesDAO.searchByTitle(query.trim());
+        } catch (Exception e) { // broad exception check
+            throw new RuntimeException("Error searching book copies by title", e);
+        }
     }
 }
