@@ -25,7 +25,7 @@ public class LibraryFacade {
     /** Borrow a book copy */
     public boolean borrowBook(Member member, BookCopy bookCopy) {
         try {
-            if (parameterCheck(member, bookCopy)) return false;
+            if (isCopyBorrowable(member, bookCopy)) return false;
 
             // Create loan object
             Loan loan = new Loan(bookCopy, member);
@@ -36,9 +36,11 @@ public class LibraryFacade {
             bookCopiesDAO.updateCopyStatus(bookCopy);
 
             Optional<Reservation> reservationOptional = reservationDAO.getReservationMemberBook(member, bookCopy);
-            if (reservationOptional.isPresent()) {
+            if (reservationOptional.isPresent() && reservationOptional.get().getStatus() == ReservationStatus.PENDING) {
+                Reservation reservation = reservationOptional.get();
+                reservation.setStatus(ReservationStatus.FULFILLED);
+                reservationDAO.updateReservation(reservation);
                 System.out.println("Book copy " + bookCopy.getCopyId() + " reserved to member " + member.getUsername() + " is now ready to be Loaned!");
-                reservationOptional.get().setStatus(ReservationStatus.FULFILLED);
             }
 
             System.out.println("Book copy " + bookCopy.getCopyId() + " loaned to member " + member.getUsername());
@@ -49,30 +51,9 @@ public class LibraryFacade {
         }
     }
 
-    // helper method to check if parameters ar correct
-    private boolean parameterCheck(Member member, BookCopy bookCopy) {
-        if (member == null) {
-            System.err.println("No user found");
-            return true;
-        }
-        if (bookCopy == null) {
-            System.err.println("No book copy found");
-            return true;
-        }
-
-        if (bookCopy.getState() instanceof ReservedState) {
-            System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved for another member.");
-            return true;
-        } else if (!(bookCopy.getState() instanceof AvailableState)) {
-            System.err.println("Book copy " + bookCopy.getCopyId() + " is not available.");
-            return true;
-        }
-        return false;
-    }
-
     public boolean borrowBook(Member member, BookCopy bookCopy, LocalDate dueDate) {
         try {
-            if (parameterCheck(member, bookCopy)) return false;
+            if (isCopyBorrowable(member, bookCopy)) return false;
 
             // Create loan record
             Loan loan = new Loan(bookCopy, member, dueDate);
@@ -209,5 +190,52 @@ public class LibraryFacade {
         } catch (Exception e) {
             System.err.println("Error notifying observers for ISBN " + isbn);
         }
+    }
+
+    // helper method to check if parameters ar correct
+    private boolean isCopyBorrowable(Member member, BookCopy bookCopy) {
+        if (member == null) {
+            System.err.println("No user found");
+            return false;
+        }
+        if (bookCopy == null) {
+            System.err.println("No book copy found");
+            return false;
+        }
+
+        return switch (bookCopy.getState()) { // enhanced switch proposed by Intellij
+            case AvailableState s -> {
+                System.out.println("Book is available, can be borrowed.");
+                yield true;
+            }
+            case ReservedState s -> isCopyReservedByThisMember(member, bookCopy);
+            case LoanedState s -> {
+                System.err.printf("Book copy %s is already on loan.%n", bookCopy.getCopyId());
+                yield false;
+            }
+            case UnderMaintenanceState s -> {
+                System.err.printf("Book copy %s is under maintenance.%n", bookCopy.getCopyId());
+                yield false;
+            }
+            default -> {
+                System.err.println("Book copy " + bookCopy.getCopyId() + " is in an unknown state and cannot be borrowed.");
+                yield false;
+            }
+        };
+    }
+
+    private boolean isCopyReservedByThisMember(Member member, BookCopy bookCopy) {
+        Optional<Reservation> reservationOpt = reservationDAO.getReservationMemberBook(member, bookCopy);
+        if (reservationOpt.isPresent()) {
+            Reservation reservation = reservationOpt.get();
+            if (reservation.getStatus() == ReservationStatus.PENDING) {
+                System.out.println("Book is reserved by this member, so they are allowed to borrow it.");
+                return true;
+            }
+        }
+        System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved for another member or the reservation is not pending.");
+        return false;
+
+        //TODO: maybe check if the copy has been reserved first by the member
     }
 }

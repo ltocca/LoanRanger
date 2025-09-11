@@ -34,6 +34,6 @@ to be done (usually) before the return statement
 also modify ALL THE DAO CLASSES to create and then close each connection to the db
 [1](https://jenkov.com/tutorials/jdbc/connection.html)
 [2](https://stackoverflow.com/questions/2225221/closing-database-connections-in-java)
-[3](https://blog.jooq.org/how-to-prevent-jdbc-resource-leaks-with-jdbc-and-with-jooq/)
+[3](https://blog.jooq.org/how-to-prevent-jdbc-resource-leaks-with-jdbc-and-with-jooq/ )
 
 - add trim() method to the string input to "sanitize" the strings 

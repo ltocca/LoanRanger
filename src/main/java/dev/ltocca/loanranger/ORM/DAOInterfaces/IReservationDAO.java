@@ -17,6 +17,10 @@ public interface IReservationDAO {
 
     List<Reservation> findMemberReservations(Member member);
     List<Reservation> findMemberReservations(Long memberId);
+
+    List<Reservation> findCopyReservation(Long copyId);
+
+    List<Reservation> findCopyReservation(BookCopy bookCopy);
 }
 
 // TODO maybe add other methods to obtain information from the table

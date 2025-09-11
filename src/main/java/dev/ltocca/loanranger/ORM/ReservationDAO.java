@@ -168,6 +168,31 @@ public class ReservationDAO implements IReservationDAO {
         return reservations;
     }
 
+    @Override
+    public List<Reservation> findCopyReservation(Long copyId){
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL + " WHERE r.copy_id = ? ORDER BY r.reservation_date DESC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, copyId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding reservations for member id " + copyId, e);
+        }
+        return reservations;
+    }
+
+    @Override
+    public List<Reservation> findCopyReservation(BookCopy bookCopy){
+        if (bookCopy == null || bookCopy.getCopyId() == null) {
+            throw new IllegalArgumentException("The book copy and its ID cannot be null.");
+        }
+        return findCopyReservation(bookCopy.getCopyId());
+    }
+
     private Reservation mapRowToReservation(ResultSet rs) throws SQLException {
         Member member = new Member(
                 rs.getLong("user_id"),
