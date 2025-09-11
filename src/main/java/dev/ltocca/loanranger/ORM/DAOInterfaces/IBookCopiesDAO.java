@@ -13,6 +13,14 @@ public interface IBookCopiesDAO {
 
     Optional<BookCopy> getCopyById(Long id);
 
+    List<BookCopy> getAllBookCopies();
+
+    List<BookCopy> searchByTitle(String titleFragment);
+
+    List<BookCopy> searchByAuthor(String authorFragment);
+
+    List<BookCopy> searchByIsbn(String isbnFragment);
+
     void updateCopyStatus(BookCopy bookCopy);
 
     void updateCopyStatus(Long copyId, BookStatus status);

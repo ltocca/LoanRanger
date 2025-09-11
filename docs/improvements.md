@@ -39,5 +39,7 @@ also modify ALL THE DAO CLASSES to create and then close each connection to the 
 [2](https://stackoverflow.com/questions/2225221/closing-database-connections-in-java)
 [3](https://blog.jooq.org/how-to-prevent-jdbc-resource-leaks-with-jdbc-and-with-jooq/ )
 
+but [here](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html) it is written that from Java 8 the JDBC classes are AutoCloseable, and its `close()` method is called 
+
 - add trim() method to the string input to "sanitize" the strings 
 

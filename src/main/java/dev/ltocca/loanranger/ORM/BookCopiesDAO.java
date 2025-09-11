@@ -64,6 +64,76 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     }
 
     @Override
+    public List<BookCopy> getAllBookCopies(){
+        List<BookCopy> bookCopies = new ArrayList<>();
+        String sql = BOOK_COPY_SELECT_SQL;
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)){
+            while(rs.next()){
+                bookCopies.add(mapRowToBookCopy(rs));
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException("Error fetching all book copies.");
+        }
+        return bookCopies;
+    }
+
+
+    @Override
+    public List<BookCopy> searchByTitle(String titleFragment) {
+        List<BookCopy> bookCopies = new ArrayList<>();
+        String sql = BOOK_COPY_SELECT_SQL + " WHERE b.title ILIKE ?"; // using ILIKE to take advantage (again) of postrgresql to lowercase the text inserted
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)){
+            pstmt.setString(1, "%" + titleFragment+ "%"); // partial string search
+            try (ResultSet rs = pstmt.executeQuery(sql)){
+                while (rs.next()){
+                    bookCopies.add(mapRowToBookCopy(rs));
+                }
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException("Error: cannot search for partial title: " + titleFragment, e);
+        }
+        return bookCopies;
+    }
+
+    @Override
+    public List<BookCopy> searchByAuthor(String authorFragment) {
+        List<BookCopy> copies = new ArrayList<>();
+        String sql = BOOK_COPY_SELECT_SQL + " WHERE b.author ILIKE ?";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + authorFragment + "%");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    copies.add(mapRowToBookCopy(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error searching book copies by author", e);
+        }
+        return copies;
+    }
+
+
+    @Override
+    public List<BookCopy> searchByIsbn(String isbnFragment) {
+        List<BookCopy> copies = new ArrayList<>();
+        String sql = BOOK_COPY_SELECT_SQL + " WHERE b.isbn LIKE ?"; // all numbers, no need to lowercase
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + isbnFragment + "%");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    copies.add(mapRowToBookCopy(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error searching book copies by ISBN", e);
+        }
+        return copies;
+    }
+
+    @Override
     public void updateCopyStatus(BookCopy bookCopy) {
         String sql = "UPDATE book_copies SET status = ? WHERE copy_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
