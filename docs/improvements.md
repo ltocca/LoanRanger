@@ -1,5 +1,8 @@
 # General
 
+when development of the packages is complete rename them to lowercase, following Google Java style
+guide [5.2.1](https://google.github.io/styleguide/javaguide.html#s5.2.1-package-names)
+
 # ORM package
 
 ## all
@@ -37,3 +40,4 @@ also modify ALL THE DAO CLASSES to create and then close each connection to the 
 [3](https://blog.jooq.org/how-to-prevent-jdbc-resource-leaks-with-jdbc-and-with-jooq/ )
 
 - add trim() method to the string input to "sanitize" the strings 
+
