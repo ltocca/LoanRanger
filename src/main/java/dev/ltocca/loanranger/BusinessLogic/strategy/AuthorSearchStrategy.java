@@ -15,12 +15,17 @@ public final class AuthorSearchStrategy implements BookCopySearchStrategy {
         try {
             return bookCopiesDAO.searchByTitle(query.trim());
         } catch (Exception e) { // broad exception check
-            throw new RuntimeException("Error searching book copies by title", e);
+            throw new RuntimeException("Error searching book copies by author", e);
         }
     }
 
     @Override
+    public String getDescription() {
+        return "Search for book author name";
+    }
+
+    @Override
     public int getMinQueryLength() {
-        return BookCopySearchStrategy.super.getMinQueryLength();
+        return 2;
     }
 }

@@ -19,4 +19,15 @@ public final class TitleSearchStrategy implements BookCopySearchStrategy {
             throw new RuntimeException("Error searching book copies by title", e);
         }
     }
+
+    @Override
+    public String getDescription() {
+        return "Search for book title";
+    }
+
+
+    @Override
+    public int getMinQueryLength() {
+        return 2;
+    }
 }

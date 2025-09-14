@@ -27,7 +27,7 @@ public final class AvailableOnlySearchStrategy implements BookCopySearchStrategy
     }
 
     @Override
-    public int getMinQueryLength() {
-        return BookCopySearchStrategy.super.getMinQueryLength();
+    public String getDescription() {
+        return strategy.getDescription() + " (only available copies)";
     }
 }

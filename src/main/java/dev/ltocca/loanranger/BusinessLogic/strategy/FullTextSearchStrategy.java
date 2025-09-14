@@ -45,6 +45,11 @@ public final class FullTextSearchStrategy implements BookCopySearchStrategy {
     }
 
     @Override
+    public String getDescription() {
+        return "Full text search";
+    }
+
+    @Override
     public int getMinQueryLength() {
         return BookCopySearchStrategy.super.getMinQueryLength();
     }

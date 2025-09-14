@@ -10,9 +10,9 @@ public sealed interface BookCopySearchStrategy
 
     List<BookCopy> search(String query, BookCopiesDAO bookCopiesDAO);
 
+    String getDescription();
+
     default int getMinQueryLength() {
         return 1;
     }
 }
-
-// TODO: Probably need to implement more methods in the BookCopiesDAO

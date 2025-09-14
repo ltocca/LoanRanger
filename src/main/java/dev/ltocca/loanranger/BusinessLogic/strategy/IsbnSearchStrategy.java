@@ -22,7 +22,13 @@ public final class IsbnSearchStrategy implements BookCopySearchStrategy {
     }
 
     @Override
+    public String getDescription() {
+        return "Search for book ISBN code";
+    }
+
+
+    @Override
     public int getMinQueryLength() {
-        return BookCopySearchStrategy.super.getMinQueryLength();
+        return 3;
     }
 }
