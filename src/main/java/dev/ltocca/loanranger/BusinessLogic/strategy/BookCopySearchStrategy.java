@@ -6,7 +6,7 @@ import dev.ltocca.loanranger.ORM.BookCopiesDAO;
 import java.util.List;
 
 public sealed interface BookCopySearchStrategy
-        permits TitleSearchStrategy, AuthorSearchStrategy, IsbnSearchStrategy, FullTextSearchStrategy { // suggested bu IDE
+        permits TitleSearchStrategy, AuthorSearchStrategy, IsbnSearchStrategy, FullTextSearchStrategy, AvailableOnlySearchStrategy { // suggested bu IDE
 
     List<BookCopy> search(String query, BookCopiesDAO bookCopiesDAO);
 
