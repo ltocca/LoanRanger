@@ -4,7 +4,6 @@ import dev.ltocca.loanranger.BusinessLogic.strategy.*;
 import dev.ltocca.loanranger.DomainModel.BookCopy;
 import dev.ltocca.loanranger.ORM.BookCopiesDAO;
 
-
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +41,19 @@ public class BookCopySearchService {
         return List.of();
     }
 
+    public List<BookCopy> searchAvailableOnly(String query, SearchType baseSearchType) {
+        BookCopySearchStrategy baseStrategy = searchStrategies.get(baseSearchType);
+        if (baseStrategy == null) {
+            throw new IllegalArgumentException("Unsupported base search strategy: " + baseSearchType);
+        }
+
+        BookCopySearchStrategy availableOnlyStrategy = new AvailableOnlySearchStrategy(baseStrategy);
+
+        validateQuery(query, availableOnlyStrategy);
+
+        return availableOnlyStrategy.search(query, bookCopiesDAO);
+    }
+
     public void setSearchStrategy(SearchType searchType) {
         if (searchType == null) {
             throw new IllegalArgumentException("Search Type cannot be null.");
@@ -62,7 +74,48 @@ public class BookCopySearchService {
         );
     }
 
-    //TODO implement smart search that detects the type
+    public List<BookCopy> smartSearch(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+
+        SearchType detectedType = detectSearchType(query.trim());
+        return search(query, detectedType);
+    }
+
+    public List<BookCopy> smartSearchAvailableOnly(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+
+        SearchType detectedType = detectSearchType(query.trim());
+        return searchAvailableOnly(query, detectedType);
+    }
+
+    private SearchType detectSearchType(String query) {
+        if (looksLikeISBN(query)) {
+            return SearchType.ISBN;
+        }
+        if (looksLikeAuthorName(query)) {
+            return SearchType.AUTHOR;
+        }
+        if (looksLikeTitle(query)) {
+            return SearchType.TITLE;
+        }
+        return SearchType.FULL_TEXT; // fallback for complex or ambiguous queries
+    }
+
+    private boolean looksLikeISBN(String query) {
+        return query.matches("^[0-9X\\-\\s]{10,17}$");
+    }
+
+    private boolean looksLikeAuthorName(String query) {
+        return query.contains(",") || query.split("\\s+").length >= 2;
+    }
+
+    private boolean looksLikeTitle(String query) {
+        return query.length() <= 50 && !query.contains(" ");
+    }
 
     private boolean validateQuery(String query, BookCopySearchStrategy searchStrategy) {
         boolean valid = true;

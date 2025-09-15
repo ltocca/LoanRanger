@@ -43,3 +43,12 @@ but [here](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResou
 
 - add trim() method to the string input to "sanitize" the strings 
 
+## Presentation package
+
+Simple cli to use the program
+
+## BusinessLogic
+
+[//]: # (TODO: find more appropriate names for the controller classes, and make a separate facade for the events) 
+
+

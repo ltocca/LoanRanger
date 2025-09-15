@@ -7,6 +7,7 @@ import dev.ltocca.loanranger.ORM.*;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public class LibraryFacade {
@@ -183,7 +184,14 @@ public class LibraryFacade {
         }
     }
 
-    private void notifyReservations(String isbn) { // temporary implementation, to be improved
+    public List<Reservation> getMemberReservations(Member member) {
+        if (member == null || member.getId() == null) {
+            throw new IllegalArgumentException("Member cannot be null.");
+        }
+        return reservationDAO.findMemberReservations(member.getId());
+    }
+
+    private void notifyReservations(String isbn) { // TODO: temporary implementation, to be improved
         try {
             // In a real system, we would fetch reservations and notify observers
             System.out.println("Notifying members: book with ISBN " + isbn + " is available.");

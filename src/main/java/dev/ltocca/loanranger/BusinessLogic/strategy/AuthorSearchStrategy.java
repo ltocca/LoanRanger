@@ -13,7 +13,7 @@ public final class AuthorSearchStrategy implements BookCopySearchStrategy {
             return List.of();
         }
         try {
-            return bookCopiesDAO.searchByTitle(query.trim());
+            return bookCopiesDAO.searchByAuthor(query.trim());
         } catch (Exception e) { // broad exception check
             throw new RuntimeException("Error searching book copies by author", e);
         }

@@ -128,7 +128,7 @@ public class BookDAO implements IBookDAO {
         String sql = "SELECT * FROM books WHERE isbn = ? ORDER BY title";
         List<Book> books = new ArrayList<>();
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, isbn);
+            pstmt.setString(1, "%" + isbn+ "%"); // partial string search
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     books.add(mapRowToBook(rs));
