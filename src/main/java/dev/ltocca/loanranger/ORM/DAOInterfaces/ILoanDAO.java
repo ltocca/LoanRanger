@@ -1,6 +1,7 @@
 package dev.ltocca.loanranger.ORM.DAOInterfaces;
 
 import dev.ltocca.loanranger.DomainModel.BookCopy;
+import dev.ltocca.loanranger.DomainModel.Library;
 import dev.ltocca.loanranger.DomainModel.Loan;
 import dev.ltocca.loanranger.DomainModel.Member;
 
@@ -31,7 +32,8 @@ public interface ILoanDAO {
     List<Loan> findLoansByMember(Member member);
 
     List<Loan> findActiveLoansByMember(Member member);
-    // TODO: implement findActiveLoansByLibrary
+
+    List<Loan> findActiveLoansByLibrary(Library library);
 
     List<Loan> findOverdueLoans();
 

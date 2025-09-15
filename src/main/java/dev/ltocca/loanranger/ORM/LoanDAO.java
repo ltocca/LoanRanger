@@ -205,6 +205,23 @@ public class LoanDAO implements ILoanDAO {
         return extractLoansMember(member, loans, sql);
     }
 
+    @Override
+    public List<Loan> findActiveLoansByLibrary(Library library) {
+        List<Loan> loans = new ArrayList<>();
+        String sql = LOAN_SELECT_SQL + " WHERE lib.library_id = ? AND l.return_date IS NULL ORDER BY l.due_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, library.getId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    loans.add(mapRowToLoan(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding loans for library id " + library.getId(), e);
+        }
+        return loans;
+    }
+
     private List<Loan> extractLoansMember(Member member, List<Loan> loans, String sql) {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, member.getId());
