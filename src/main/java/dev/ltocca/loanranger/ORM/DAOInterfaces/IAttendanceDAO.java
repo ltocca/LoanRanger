@@ -1,5 +1,6 @@
 package dev.ltocca.loanranger.ORM.DAOInterfaces;
 
+import dev.ltocca.loanranger.DomainModel.Attendance;
 import dev.ltocca.loanranger.DomainModel.Event;
 import dev.ltocca.loanranger.DomainModel.Member;
 
@@ -7,6 +8,8 @@ import java.util.List;
 
 public interface IAttendanceDAO {
     void addAttendance(Event event, Member member);
+
+    Attendance createAttendance(Event event, Member member);
 
     void deleteAttendance(Event event, Member member);
 

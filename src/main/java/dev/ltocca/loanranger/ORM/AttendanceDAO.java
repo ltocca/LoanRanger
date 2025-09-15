@@ -1,41 +1,49 @@
 package dev.ltocca.loanranger.ORM;
-
 import dev.ltocca.loanranger.DomainModel.*;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IAttendanceDAO;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 public class AttendanceDAO implements IAttendanceDAO {
-
     private final Connection connection;
-
     public AttendanceDAO() throws SQLException {
         this.connection = ConnectionManager.getInstance().getConnection();
     }
-
     @Override
     public void addAttendance(Event event, Member member) {
         String sql = "INSERT INTO attendances (event_id, member_id) VALUES (?, ?)";
-        PreparedStatement pstmt = null;
-        try {
-            pstmt = connection.prepareStatement(sql);
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, event.getId());
             pstmt.setLong(2, member.getId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Error adding attendance: " + e.getMessage());
             throw new RuntimeException("Failed to add attendance", e);
-        } finally {
-            try {
-                if (pstmt != null) pstmt.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing resources: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Attendance createAttendance(Event event, Member member) {
+        String sql = "INSERT INTO attendances (event_id, member_id) VALUES (?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            pstmt.setLong(1, event.getId());
+            pstmt.setLong(2, member.getId());
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        Long attendanceId = rs.getLong(1);
+                        return new Attendance(attendanceId, event, member);
+                    }
+                }
             }
+            throw new RuntimeException("Failed to create attendance record for event: " + event.getId() + " and member: " + member.getId());
+        } catch (SQLException e) {
+            System.err.println("Error creating attendance: " + e.getMessage());
+            throw new RuntimeException("Failed to create attendance", e);
         }
     }
 
@@ -43,85 +51,54 @@ public class AttendanceDAO implements IAttendanceDAO {
     public void deleteAttendance(Event event, Member member) {
         deleteAttendance(event.getId(), member.getId());
     }
-
     @Override
     public void deleteAttendance(Long eventId, Long memberId) {
         String sql = "DELETE FROM attendances WHERE event_id = ? AND member_id = ?";
-        PreparedStatement pstmt = null;
-        try {
-            pstmt = connection.prepareStatement(sql);
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, eventId);
             pstmt.setLong(2, memberId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Error deleting attendance: " + e.getMessage());
             throw new RuntimeException("Failed to delete attendance", e);
-        } finally {
-            try {
-                if (pstmt != null) pstmt.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing resources: " + e.getMessage());
-            }
         }
     }
-
     @Override
     public boolean isMemberAttending(Event event, Member member) {
         String sql = "SELECT COUNT(*) FROM attendances WHERE event_id = ? AND member_id = ?";
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        boolean isAttending = false;
-        try {
-            pstmt = connection.prepareStatement(sql);
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, event.getId());
             pstmt.setLong(2, member.getId());
-            rs = pstmt.executeQuery();
-            if (rs.next()) {
-                isAttending = rs.getInt(1) > 0;
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error checking attendance: " + e.getMessage());
             throw new RuntimeException("Failed to check attendance", e);
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (pstmt != null) pstmt.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing resources: " + e.getMessage());
-            }
         }
-        return isAttending;
+        return false;
     }
-
     @Override
     public List<Member> findEventAttendees(Event event) {
         List<Member> attendees = new ArrayList<>();
         String sql = "SELECT u.user_id, u.username, u.name, u.email, u.password, u.role " +
                 "FROM users u JOIN attendances a ON u.user_id = a.member_id " +
                 "WHERE a.event_id = ?";
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            pstmt = connection.prepareStatement(sql);
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, event.getId());
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                attendees.add(mapRowToMember(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    attendees.add(mapRowToMember(rs));
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error finding event attendees: " + e.getMessage());
             throw new RuntimeException("Failed to find attendees for event id " + event.getId(), e);
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (pstmt != null) pstmt.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing resources: " + e.getMessage());
-            }
         }
         return attendees;
     }
-
     @Override
     public List<Event> findMemberParticipation(Member member) {
         List<Event> events = new ArrayList<>();
@@ -131,25 +108,16 @@ public class AttendanceDAO implements IAttendanceDAO {
                 "JOIN libraries l ON e.library_id = l.library_id " +
                 "JOIN attendances a ON e.event_id = a.event_id " +
                 "WHERE a.member_id = ?";
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            pstmt = connection.prepareStatement(sql);
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, member.getId());
-            rs = pstmt.executeQuery();
-            while (rs.next()) {
-                events.add(mapRowToEvent(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error finding member participation: " + e.getMessage());
             throw new RuntimeException("Failed to find events for member id " + member.getId(), e);
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (pstmt != null) pstmt.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing resources: " + e.getMessage());
-            }
         }
         return events;
     }
@@ -164,7 +132,6 @@ public class AttendanceDAO implements IAttendanceDAO {
         member.setRole(UserRole.valueOf(rs.getString("role")));
         return member;
     }
-
     private Event mapRowToEvent(ResultSet rs) throws SQLException {
         Library library = new Library(
                 rs.getLong("library_id"),
@@ -173,7 +140,6 @@ public class AttendanceDAO implements IAttendanceDAO {
                 rs.getString("phone"),
                 rs.getString("email")
         );
-
         Event event = new Event();
         event.setId(rs.getLong("event_id"));
         event.setTitle(rs.getString("title"));
@@ -183,7 +149,6 @@ public class AttendanceDAO implements IAttendanceDAO {
         event.setLocation(rs.getString("location"));
         event.setMaxCapacity(rs.getInt("max_capacity"));
         event.setLibrary(library);
-
         return event;
     }
 }
