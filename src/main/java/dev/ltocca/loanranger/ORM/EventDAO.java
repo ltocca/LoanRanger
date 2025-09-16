@@ -4,6 +4,7 @@ import dev.ltocca.loanranger.DomainModel.EventType;
 import dev.ltocca.loanranger.DomainModel.Library;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IEventDAO;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -140,6 +141,109 @@ public class EventDAO implements IEventDAO {
         }
         return events;
     }
+
+    @Override
+    public List<Event> findEventsByEventType(EventType eventType) {
+        List<Event> events = new ArrayList<>();
+        String sql = EVENT_SELECT_SQL + " WHERE e.event_type = ? AND e.event_date >= CURRENT_TIMESTAMP ORDER BY e.event_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, eventType.name());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding events by type: " + eventType, e);
+        }
+        return events;
+    }
+
+    @Override
+    public List<Event> findEventsByDateRange(LocalDateTime start, LocalDateTime end) {
+        List<Event> events = new ArrayList<>();
+        String sql = EVENT_SELECT_SQL + " WHERE e.event_date >= ? AND e.event_date < ? ORDER BY e.event_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setTimestamp(1, Timestamp.valueOf(start));
+            pstmt.setTimestamp(2, Timestamp.valueOf(end));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding events by date range", e);
+        }
+        return events;
+    }
+
+    @Override
+    public List<Event> findEventsByDateRange(LocalDateTime start) {
+        List<Event> events = new ArrayList<>();
+        String sql = EVENT_SELECT_SQL + " WHERE e.event_date >= ? ORDER BY e.event_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setTimestamp(1, Timestamp.valueOf(start));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding events by start date", e);
+        }
+        return events;
+    }
+
+    @Override
+    public List<Event> findEventsByLibraryName(String libraryName) {
+        List<Event> events = new ArrayList<>();
+        String sql = EVENT_SELECT_SQL + " WHERE l.name ILIKE ? AND e.event_date >= CURRENT_TIMESTAMP ORDER BY e.event_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + libraryName + "%");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding events by library name", e);
+        }
+        return events;
+    }
+    @Override
+    public List<Event> findUpcomingEvents(int limit) {
+        List<Event> events = new ArrayList<>();
+        String sql = EVENT_SELECT_SQL + " WHERE e.event_date >= CURRENT_TIMESTAMP ORDER BY e.event_date ASC LIMIT ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, limit);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding upcoming events with limit", e);
+        }
+        return events;
+    }
+
+    @Override
+    public List<Event> findEventsByDescription(String description) {
+        List<Event> events = new ArrayList<>();
+        String sql = EVENT_SELECT_SQL + " WHERE e.description ILIKE ? AND e.event_date >= CURRENT_TIMESTAMP ORDER BY e.event_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + description + "%");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding events by description", e);
+        }
+        return events;
+    }
+
     private Event mapRowToEvent(ResultSet rs) throws SQLException {
         Library library = new Library(
                 rs.getLong("library_id"),
