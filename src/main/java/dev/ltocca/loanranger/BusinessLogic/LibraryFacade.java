@@ -103,7 +103,8 @@ public class LibraryFacade {
             // Update copy status
             bookCopiesDAO.updateCopyStatus(copy);
 
-            System.out.println("Book copy " + copyId + " returned.");
+            //System.out.println("Book copy " + copyId + " returned.");
+            System.out.printf("Book copy %d returned %n", copyId);
             notifyReservations(copy.getBook().getIsbn());
 
             return true;
@@ -113,38 +114,60 @@ public class LibraryFacade {
     }
 
     /** Place a reservation for a book, it will be a copy */
-    public void placeReservation(Member member, BookCopy bookCopy) {
+    public Boolean placeReservation(Member member, BookCopy bookCopy) {
         try {
             if (member == null) {
                 System.err.println("No user found");
-                return;
+                return false;
             }
             if (bookCopy == null) {
                 System.err.println("No book copy found");
-                return;
+                return false;
             }
             if (bookCopy.getState() instanceof UnderMaintenanceState) {
                 System.err.println("Book copy " + bookCopy.getCopyId() + " is under maintenance.");
-                return;
+                return false;
             }
             if (bookCopy.getState() instanceof AvailableState) {
                 System.out.println("Book copy " + bookCopy.getCopyId() + " is available! You can directly proceed to loan the book.");
-                return;
+                return false;
             }
 
             Reservation reservation = new Reservation(bookCopy, member);
             reservationDAO.createReservation(reservation);
 
-            reservation.getBookCopy().reserve();
+            bookCopy.reserve();
 
             // Register as observer for book availability
             if (member instanceof BookObserver) {
+                ((BookObserver) member).onBookAvailable(bookCopy.getBook());
                 System.out.println("Member " + member.getUsername() + " observing availability of book " + bookCopy.getBook().getTitle());
             }
+
+            return true; // Success
+
         } catch (Exception e) {
             assert member != null; // suggested by ide -- Method invocation 'getId' may produce 'NullPointerException'
-            throw new RuntimeException("Error placing reservation for member " + member.getId(), e);
+            System.err.println("Error placing reservation for member " + member.getId());
+            return false;
         }
+    }
+
+    public boolean placeReservation(long memberId, long copyId) {
+        Optional<User> memberOpt = userDAO.getUserById(memberId);
+        if (memberOpt.isEmpty()) {
+            System.err.println("No member found with ID: " + memberId);
+            return false;
+        }
+
+        Optional<BookCopy> bookCopyOpt = bookCopiesDAO.getCopyById(copyId);
+        if (bookCopyOpt.isEmpty()) {
+            System.err.println("No book copy found with ID: " + copyId);
+            return false;
+        }
+        Member member = (Member) memberOpt.get();
+        BookCopy bookCopy = bookCopyOpt.get();
+        return placeReservation(member, bookCopy);
     }
 
     public void putUnderMaintenance(BookCopy bookCopy) {
@@ -190,6 +213,7 @@ public class LibraryFacade {
         }
         return reservationDAO.findMemberReservations(member.getId());
     }
+
 
     private void notifyReservations(String isbn) { // TODO: temporary implementation, to be improved
         try {
