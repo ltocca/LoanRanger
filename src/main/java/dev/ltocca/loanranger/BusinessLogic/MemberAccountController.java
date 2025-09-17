@@ -1,19 +1,25 @@
 package dev.ltocca.loanranger.BusinessLogic;
 
-import dev.ltocca.loanranger.DomainModel.Member;
-import dev.ltocca.loanranger.DomainModel.User;
-import dev.ltocca.loanranger.ORM.UserDAO;
+import dev.ltocca.loanranger.DomainModel.*;
+import dev.ltocca.loanranger.ORM.*;
 import dev.ltocca.loanranger.Util.PasswordHasher;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class MemberAccountController {
     private final Member member;
     private final UserDAO userDAO;
+    private final LoanDAO loanDAO;
+    private final ReservationDAO reservationDAO;
+    private final AttendanceDAO attendanceDAO;
 
     public MemberAccountController(Member member) throws SQLException {
         this.member = member;
         this.userDAO = new UserDAO();
+        this.loanDAO = new LoanDAO();
+        this.reservationDAO = new ReservationDAO();
+        this.attendanceDAO = new AttendanceDAO();
     }
 
     public void changeUsername(String newUsername) {
@@ -77,6 +83,32 @@ public class MemberAccountController {
     }
 
     public void deleteAccount(String password){
-        // TODO: finish delete account method, probably need to check if reservations placed and loans are active
+        // FIXME: maybe it is too risky
+        try{
+            if (!PasswordHasher.check(password, member.getPassword())) {
+                System.err.println("Incorrect password");
+                return;
+            }
+            List<Loan> activeLoans = loanDAO.findActiveLoansByMember(this.member);
+            if (!activeLoans.isEmpty()) {
+                System.err.println("Account cannot be deleted. You have active loans.");
+                return;
+            }
+            // Check for pending reservations
+            List<Reservation> reservations = reservationDAO.findMemberReservations(this.member);
+            for (Reservation reservation : reservations) {
+                if (reservation.getStatus() == ReservationStatus.PENDING) {
+                    System.err.println("Account cannot be deleted. You have pending reservations. Please cancel them first.");
+                    return; // Exit early, no deletion
+                }
+            }
+            attendanceDAO.deleteAllMemberAttendances(this.member);
+
+            userDAO.deleteUser(this.member.getId());
+            System.err.println("Account has been deleted.");
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
