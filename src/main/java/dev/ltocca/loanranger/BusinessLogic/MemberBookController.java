@@ -3,9 +3,11 @@ package dev.ltocca.loanranger.BusinessLogic;
 import dev.ltocca.loanranger.DomainModel.Member;
 import dev.ltocca.loanranger.DomainModel.BookCopy;
 import dev.ltocca.loanranger.DomainModel.Reservation;
+import dev.ltocca.loanranger.DomainModel.ReservationStatus;
 import dev.ltocca.loanranger.ORM.BookCopiesDAO;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,6 +88,33 @@ public class MemberBookController {
             System.err.println("Reservation failed for book copy ID " + copyId);
         } else {
             System.out.println("Reservation successful for book copy ID " + copyId);
+        }
+    }
+
+    public List<Reservation> getActiveReservations() {
+        try {
+            List<Reservation> allReservations = facade.getMemberReservations(member);
+            List<Reservation> activeReservations = new ArrayList<>();
+
+            for (Reservation reservation : allReservations) {
+                if (reservation.getStatus() == ReservationStatus.PENDING) {
+                    activeReservations.add(reservation);
+                }
+            }
+
+            return activeReservations;
+        } catch (Exception e) {
+            System.err.println("Error fetching active reservations: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    public List<Reservation> getAllReservations() {
+        try {
+            return facade.getMemberReservations(member);
+        } catch (Exception e) {
+            System.err.println("Error fetching reservation history: " + e.getMessage());
+            return List.of();
         }
     }
 

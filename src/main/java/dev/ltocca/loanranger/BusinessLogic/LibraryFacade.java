@@ -26,9 +26,8 @@ public class LibraryFacade {
     /** Borrow a book copy */
     public boolean borrowBook(Member member, BookCopy bookCopy) {
         try {
-            if (isCopyBorrowable(member, bookCopy)) return false;
+            if (!isCopyBorrowable(member, bookCopy)) return false;
 
-            // Create loan object
             Loan loan = new Loan(bookCopy, member);
             loanDAO.createLoan(loan);
 
@@ -41,53 +40,48 @@ public class LibraryFacade {
                 Reservation reservation = reservationOptional.get();
                 reservation.setStatus(ReservationStatus.FULFILLED);
                 reservationDAO.updateReservation(reservation);
-                System.out.println("Book copy " + bookCopy.getCopyId() + " reserved to member " + member.getUsername() + " is now ready to be Loaned!");
+                System.out.printf("Book copy %d reserved to member %s marked as fulfilled.%n",
+                        bookCopy.getCopyId(), member.getUsername());
             }
 
-            System.out.println("Book copy " + bookCopy.getCopyId() + " loaned to member " + member.getUsername());
+            System.out.printf("Book copy %d loaned to member %s%n", bookCopy.getCopyId(), member.getUsername());
             return true;
         } catch (Exception e) {
-            assert bookCopy != null;
-            throw new RuntimeException("Error borrowing book copy " + bookCopy.getCopyId(), e);
+            throw new RuntimeException("Error borrowing book copy " + (bookCopy != null ? bookCopy.getCopyId() : "unknown"), e);
         }
     }
 
     public boolean borrowBook(Member member, BookCopy bookCopy, LocalDate dueDate) {
         try {
-            if (isCopyBorrowable(member, bookCopy)) return false;
+            if (!isCopyBorrowable(member, bookCopy)) return false;
 
-            // Create loan record
             Loan loan = new Loan(bookCopy, member, dueDate);
             loanDAO.createLoan(loan);
 
-            // Update DB state
             bookCopy.loan();
             bookCopiesDAO.updateCopyStatus(bookCopy);
 
             Optional<Reservation> reservationOptional = reservationDAO.getReservationMemberBook(member, bookCopy);
-            if (reservationOptional.isPresent()) {
-                System.out.println("Book copy " + bookCopy.getCopyId() + " reserved to member " + member.getUsername() + " is now ready to be Loaned!");
-                reservationOptional.get().setStatus(ReservationStatus.FULFILLED);
+            if (reservationOptional.isPresent() && reservationOptional.get().getStatus() == ReservationStatus.PENDING) {
+                Reservation reservation = reservationOptional.get();
+                reservation.setStatus(ReservationStatus.FULFILLED);
+                reservationDAO.updateReservation(reservation);
+                System.out.printf("Book copy %d reserved to member %s marked as fulfilled.%n",
+                        bookCopy.getCopyId(), member.getUsername());
             }
 
-            System.out.println("Book copy " + bookCopy.getCopyId() + " loaned to member " + member.getUsername());
+            System.out.printf("Book copy %d loaned to member %s%n", bookCopy.getCopyId(), member.getUsername());
             return true;
         } catch (Exception e) {
-            assert bookCopy != null;
-            throw new RuntimeException("Error borrowing book copy " + bookCopy.getCopyId(), e);
+            throw new RuntimeException("Error borrowing book copy " + (bookCopy != null ? bookCopy.getCopyId() : "unknown"), e);
         }
     }
 
     public boolean renewLoan(Loan loan, int days) {
         try {
-            LocalDate currentDueDate = loan.getDueDate();
-
-            LocalDate newDueDate = currentDueDate.plusDays(days);
-
+            LocalDate newDueDate = loan.getDueDate().plusDays(days);
             loan.setDueDate(newDueDate);
-
             loanDAO.updateDueDate(loan.getId(), newDueDate);
-
             return true;
         } catch (Exception e) {
             System.err.println("Error renewing loan: " + e.getMessage());
@@ -98,7 +92,6 @@ public class LibraryFacade {
     public boolean renewLoan(Loan loan) {
         return renewLoan(loan, 30);
     }
-
 
     /** Return a book copy */
     public boolean returnBook(Long copyId) {
@@ -117,16 +110,13 @@ public class LibraryFacade {
             }
             Loan loan = loanOpt.get();
 
-            // Update loan
             loan.setReturnDate(LocalDate.now());
             loan.endLoan();
             loanDAO.updateLoan(loan);
 
-            // Update copy status
             bookCopiesDAO.updateCopyStatus(copy);
 
-            //System.out.println("Book copy " + copyId + " returned.");
-            System.out.printf("Book copy %d returned %n", copyId);
+            System.out.printf("Book copy %d returned%n", copyId);
             notifyReservations(copy.getBook().getIsbn());
 
             return true;
@@ -135,8 +125,8 @@ public class LibraryFacade {
         }
     }
 
-    /** Place a reservation for a book, it will be a copy */
-    public Boolean placeReservation(Member member, BookCopy bookCopy) {
+    /** Place a reservation for a book copy */
+    public boolean placeReservation(Member member, BookCopy bookCopy) {
         try {
             if (member == null) {
                 System.err.println("No user found");
@@ -147,11 +137,11 @@ public class LibraryFacade {
                 return false;
             }
             if (bookCopy.getState() instanceof UnderMaintenanceState) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is under maintenance.");
+                System.err.printf("Book copy %d is under maintenance.%n", bookCopy.getCopyId());
                 return false;
             }
             if (bookCopy.getState() instanceof AvailableState) {
-                System.out.println("Book copy " + bookCopy.getCopyId() + " is available! You can directly proceed to loan the book.");
+                System.out.printf("Book copy %d is available. Direct loan is possible.%n", bookCopy.getCopyId());
                 return false;
             }
 
@@ -159,25 +149,25 @@ public class LibraryFacade {
             reservationDAO.createReservation(reservation);
 
             bookCopy.reserve();
+            bookCopiesDAO.updateCopyStatus(bookCopy);
 
-            // Register as observer for book availability
-            if (member instanceof BookObserver) {
-                ((BookObserver) member).onBookAvailable(bookCopy.getBook());
-                System.out.println("Member " + member.getUsername() + " observing availability of book " + bookCopy.getBook().getTitle());
+            if (member instanceof BookObserver observer) {
+                observer.onBookAvailable(bookCopy.getBook());
+                System.out.printf("Member %s observing availability of book %s%n",
+                        member.getUsername(), bookCopy.getBook().getTitle());
             }
 
-            return true; // Success
-
+            return true;
         } catch (Exception e) {
-            assert member != null; // suggested by ide -- Method invocation 'getId' may produce 'NullPointerException'
-            System.err.println("Error placing reservation for member " + member.getId());
+            System.err.println("Error placing reservation for member " +
+                    (member != null ? member.getId() : "unknown"));
             return false;
         }
     }
 
     public boolean placeReservation(long memberId, long copyId) {
         Optional<User> memberOpt = userDAO.getUserById(memberId);
-        if (memberOpt.isEmpty()) {
+        if (memberOpt.isEmpty() || !(memberOpt.get() instanceof Member member)) {
             System.err.println("No member found with ID: " + memberId);
             return false;
         }
@@ -187,45 +177,43 @@ public class LibraryFacade {
             System.err.println("No book copy found with ID: " + copyId);
             return false;
         }
-        Member member = (Member) memberOpt.get();
-        BookCopy bookCopy = bookCopyOpt.get();
-        return placeReservation(member, bookCopy);
+
+        return placeReservation(member, bookCopyOpt.get());
     }
 
     public void putUnderMaintenance(BookCopy bookCopy) {
-        try{
+        try {
             if (bookCopy.getState() instanceof ReservedState) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved. The copy needs to be available");
+                System.err.printf("Book copy %d is reserved. Must be available.%n", bookCopy.getCopyId());
                 return;
             }
             if (bookCopy.getState() instanceof LoanedState) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is already loaned. The copy needs to be available");
+                System.err.printf("Book copy %d is already loaned. Must be available.%n", bookCopy.getCopyId());
                 return;
             }
             if (bookCopy.getState() instanceof UnderMaintenanceState) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is already under maintenance.");
+                System.err.printf("Book copy %d is already under maintenance.%n", bookCopy.getCopyId());
                 return;
             }
             bookCopy.placeUnderMaintenance();
             bookCopiesDAO.updateCopyStatus(bookCopy);
-            System.out.println("Book copy " + bookCopy.getCopyId() + " placed under maintenance.");
+            System.out.printf("Book copy %d placed under maintenance.%n", bookCopy.getCopyId());
         } catch (Exception e) {
-            throw new RuntimeException("Error placing book copy " + bookCopy.getCopyId()+ " under maintenance!", e);
+            throw new RuntimeException("Error placing book copy " + bookCopy.getCopyId() + " under maintenance", e);
         }
     }
 
     public void removeFromMaintenance(BookCopy bookCopy) {
         try {
             if (!(bookCopy.getState() instanceof UnderMaintenanceState)) {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is not under maintenance.");
+                System.err.printf("Book copy %d is not under maintenance.%n", bookCopy.getCopyId());
                 return;
             }
-            bookCopy.markAsAvailable(); // ipotetico metodo per tornare allo stato disponibile
+            bookCopy.markAsAvailable(); // ensure implemented in BookCopy
             bookCopiesDAO.updateCopyStatus(bookCopy);
-            System.out.println("Book copy " + bookCopy.getCopyId() + " removed from maintenance and is now available again.");
+            System.out.printf("Book copy %d removed from maintenance and available.%n", bookCopy.getCopyId());
         } catch (Exception e) {
             throw new RuntimeException(String.format("Error removing book copy %s from maintenance!", bookCopy.getCopyId()), e);
-
         }
     }
 
@@ -236,17 +224,14 @@ public class LibraryFacade {
         return reservationDAO.findMemberReservations(member.getId());
     }
 
-
-    private void notifyReservations(String isbn) { // TODO: temporary implementation, to be improved
+    private void notifyReservations(String isbn) {
         try {
-            // In a real system, we would fetch reservations and notify observers
             System.out.println("Notifying members: book with ISBN " + isbn + " is available.");
         } catch (Exception e) {
             System.err.println("Error notifying observers for ISBN " + isbn);
         }
     }
 
-    // helper method to check if parameters ar correct
     private boolean isCopyBorrowable(Member member, BookCopy bookCopy) {
         if (member == null) {
             System.err.println("No user found");
@@ -257,22 +242,19 @@ public class LibraryFacade {
             return false;
         }
 
-        return switch (bookCopy.getState()) { // enhanced switch proposed by Intellij
-            case AvailableState s -> {
-                System.out.println("Book is available, can be borrowed.");
-                yield true;
-            }
+        return switch (bookCopy.getState()) {
+            case AvailableState s -> true;
             case ReservedState s -> isCopyReservedByThisMember(member, bookCopy);
             case LoanedState s -> {
-                System.err.printf("Book copy %s is already on loan.%n", bookCopy.getCopyId());
+                System.err.printf("Book copy %d is already on loan.%n", bookCopy.getCopyId());
                 yield false;
             }
             case UnderMaintenanceState s -> {
-                System.err.printf("Book copy %s is under maintenance.%n", bookCopy.getCopyId());
+                System.err.printf("Book copy %d is under maintenance.%n", bookCopy.getCopyId());
                 yield false;
             }
             default -> {
-                System.err.println("Book copy " + bookCopy.getCopyId() + " is in an unknown state and cannot be borrowed.");
+                System.err.printf("Book copy %d is in an unknown state.%n", bookCopy.getCopyId());
                 yield false;
             }
         };
