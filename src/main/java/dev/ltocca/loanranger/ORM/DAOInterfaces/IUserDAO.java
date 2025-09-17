@@ -15,6 +15,7 @@ public interface IUserDAO {
 
     void updateUsername(Long id, String newUsername);
     void updatePassword(Long id, String newPassword);
+    void updateEmail(Long id, String newEmail);
     void librarianUpdateLibrary(User user, Long libraryId);
 
     void updateUser(User user);

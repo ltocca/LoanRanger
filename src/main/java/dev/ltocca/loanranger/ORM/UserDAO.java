@@ -168,7 +168,7 @@ public class UserDAO implements IUserDAO {
             throw new IllegalArgumentException("User ID must be a positive number.");
         }
         if (newPassword == null || newPassword.trim().isEmpty()) {
-            throw new IllegalArgumentException("New username cannot be null or empty.");
+            throw new IllegalArgumentException("New password cannot be null or empty.");
         }
         String sql = "UPDATE users SET password = ? WHERE user_id = ?";
 
@@ -183,6 +183,30 @@ public class UserDAO implements IUserDAO {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error updating password for user with id: " + id, e);
+        }
+    }
+
+    @Override
+    public void updateEmail(Long id, String newEmail) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("User ID must be a positive number.");
+        }
+        if (newEmail == null || newEmail.trim().isEmpty()) {
+            throw new IllegalArgumentException("New email cannot be null or empty.");
+        }
+        String sql = "UPDATE users SET email = ? WHERE user_id = ?";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, newEmail);
+            pstmt.setLong(2, id);
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                System.err.println("Warning: No user found with ID " + id + ". Email update had no effect.");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating email for user with id: " + id, e);
         }
     }
 
