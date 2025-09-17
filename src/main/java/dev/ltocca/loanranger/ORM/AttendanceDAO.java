@@ -122,6 +122,62 @@ public class AttendanceDAO implements IAttendanceDAO {
         return events;
     }
 
+    @Override
+    public List<Attendance> findMemberAttendances(Member member) throws SQLException {
+        List<Attendance> attendances = new ArrayList<>();
+        String sql = "SELECT a.id, a.event_id, a.member_id, " +
+                "e.title AS event_title, e.description AS event_description, " +
+                "e.event_type, e.event_date, e.location, e.max_capacity, " +
+                "l.library_id, l.name AS library_name, l.address, l.phone, l.email " +
+                "FROM attendances a " +
+                "JOIN events e ON a.event_id = e.event_id " +
+                "JOIN libraries l ON e.library_id = l.library_id " +
+                "WHERE a.member_id = ?";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, member.getId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Library library = new Library(
+                            rs.getLong("library_id"),
+                            rs.getString("library_name"),
+                            rs.getString("address"),
+                            rs.getString("phone"),
+                            rs.getString("email")
+                    );
+
+                    Event event = new Event();
+                    event.setId(rs.getLong("event_id"));
+                    event.setTitle(rs.getString("event_title"));
+                    event.setDescription(rs.getString("event_description"));
+                    event.setEventType(EventType.valueOf(rs.getString("event_type")));
+                    event.setEventDate(rs.getTimestamp("event_date").toLocalDateTime());
+                    event.setLocation(rs.getString("location"));
+                    event.setMaxCapacity(rs.getInt("max_capacity"));
+                    event.setLibrary(library);
+
+                    Attendance attendance = new Attendance(
+                            rs.getLong("id"),
+                            event,
+                            member
+                    );
+
+                    attendances.add(attendance);
+                }
+            }
+        }
+        return attendances;
+    }
+
+
+    public void deleteAllMemberAttendances(Member member) throws SQLException {
+        String sql = "DELETE FROM attendances WHERE member_id = ?";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, member.getId());
+            pstmt.executeUpdate();
+        }
+    }
     private Member mapRowToMember(ResultSet rs) throws SQLException {
         Member member = new Member();
         member.setId(rs.getLong("user_id"));

@@ -4,6 +4,7 @@ import dev.ltocca.loanranger.DomainModel.Attendance;
 import dev.ltocca.loanranger.DomainModel.Event;
 import dev.ltocca.loanranger.DomainModel.Member;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public interface IAttendanceDAO {
@@ -20,4 +21,6 @@ public interface IAttendanceDAO {
     List<Member> findEventAttendees(Event event);
 
     List<Event> findMemberParticipation(Member member);
+
+    List<Attendance> findMemberAttendances(Member member) throws SQLException;
 }
