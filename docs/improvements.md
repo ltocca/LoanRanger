@@ -1,7 +1,11 @@
 # General
 
-when development of the packages is complete rename them to lowercase, following Google Java style
+- when development of the packages is complete rename them to lowercase, following Google Java style
 guide [5.2.1](https://google.github.io/styleguide/javaguide.html#s5.2.1-package-names)
+
+- NEED TO UNDERSTAND WHERE DO I NEED TO CHECK THE INPUT AND TRIM IT
+    
+   - for example when a user updates the email right now I have two checks
 
 # ORM package
 
