@@ -78,6 +78,28 @@ public class LibraryFacade {
         }
     }
 
+    public boolean renewLoan(Loan loan, int days) {
+        try {
+            LocalDate currentDueDate = loan.getDueDate();
+
+            LocalDate newDueDate = currentDueDate.plusDays(days);
+
+            loan.setDueDate(newDueDate);
+
+            loanDAO.updateDueDate(loan.getId(), newDueDate);
+
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error renewing loan: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean renewLoan(Loan loan) {
+        return renewLoan(loan, 30);
+    }
+
+
     /** Return a book copy */
     public boolean returnBook(Long copyId) {
         try {
