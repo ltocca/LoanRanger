@@ -71,7 +71,6 @@ CREATE TABLE loans
 CREATE TABLE reservations
 (
     reservation_id   BIGSERIAL PRIMARY KEY,
-    -- isbn             VARCHAR(13) NOT NULL, -- FIXME(STATE:BookCopy) modify this to connect to the book_copies table
     copy_id          BIGINT NOT NULL,
     member_id        BIGINT NOT NULL,
     reservation_date DATE   NOT NULL DEFAULT CURRENT_DATE,
