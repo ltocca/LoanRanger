@@ -25,9 +25,10 @@ when the method returns optional print a 'System.err.println()' with more info.
 ~~Edit Reservation class to modify the Book member to BookCopy~~
 
 ## DAO Classes
-- TODO: CLOSE EVERY STATEMENT IN ORDER TO PREVENT RUNS EVEN IF THROWN EXCEPTION
-to be done (usually) before the return statement
-    ```java
+~~- TODO: CLOSE EVERY STATEMENT IN ORDER TO PREVENT RUNS EVEN IF THROWN EXCEPTION
+to be done (usually) before the return statement~~
+    
+```
     finally{
         if (pstmt != null){
             pstmt.close();
@@ -36,14 +37,18 @@ to be done (usually) before the return statement
             rs.close();
         }
     }
-    ```
-
-also modify ALL THE DAO CLASSES to create and then close each connection to the db
+```
+    
+~~also modify ALL THE DAO CLASSES to create and then close each connection to the db~~
 [1](https://jenkov.com/tutorials/jdbc/connection.html)
 [2](https://stackoverflow.com/questions/2225221/closing-database-connections-in-java)
 [3](https://blog.jooq.org/how-to-prevent-jdbc-resource-leaks-with-jdbc-and-with-jooq/ )
 
-but [here](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html) it is written that from Java 8 the JDBC classes are AutoCloseable, and its `close()` method is called 
+~~but [here](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html) it is written that from Java 8 the JDBC classes are AutoCloseable, and its `close()` method is called~~ 
+
+IMPORTANT
+maybe it is necessary to refactor the database code in order to improve transactions implementation
+
 
 - add trim() method to the string input to "sanitize" the strings 
 
