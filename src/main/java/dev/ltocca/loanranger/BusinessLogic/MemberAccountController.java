@@ -12,14 +12,12 @@ public class MemberAccountController {
     private final UserDAO userDAO;
     private final LoanDAO loanDAO;
     private final ReservationDAO reservationDAO;
-    private final AttendanceDAO attendanceDAO;
 
     public MemberAccountController(Member member) throws SQLException {
         this.member = member;
         this.userDAO = new UserDAO();
         this.loanDAO = new LoanDAO();
         this.reservationDAO = new ReservationDAO();
-        this.attendanceDAO = new AttendanceDAO();
     }
 
     public void changeUsername(String newUsername) {
@@ -102,8 +100,6 @@ public class MemberAccountController {
                     return; // Exit early, no deletion
                 }
             }
-            attendanceDAO.deleteAllMemberAttendances(this.member);
-
             userDAO.deleteUser(this.member.getId());
             System.err.println("Account has been deleted.");
 
