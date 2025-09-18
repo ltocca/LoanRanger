@@ -1,19 +1,9 @@
 -- Drop tables in reverse order of dependency to avoid foreign key constraints
-DROP TABLE IF EXISTS attendance, loans, reservations, book_copies, books, events, users, libraries CASCADE;
-DROP TYPE IF EXISTS user_role, book_status, event_type;
+DROP TABLE IF EXISTS loans, reservations, book_copies, books, users, libraries CASCADE;
+DROP TYPE IF EXISTS user_role, book_status;
 
 CREATE TYPE user_role AS ENUM ('MEMBER', 'LIBRARIAN', 'ADMIN');
 CREATE TYPE book_status AS ENUM ('AVAILABLE', 'LOANED', 'RESERVED', 'UNDER_MAINTENANCE');
-CREATE TYPE event_type AS ENUM (
-    'BOOK_PRESENTATION',
-    'POETRY_READING',
-    'AUTHOR_TALK',
-    'WORKSHOP',
-    'BOOK_CLUB',
-    'STORYTELLING',
-    'LECTURE',
-    'EXHIBITION'
-);
 
 CREATE TABLE libraries
 (
@@ -76,30 +66,5 @@ CREATE TABLE reservations
     reservation_date DATE   NOT NULL DEFAULT CURRENT_DATE,
     status           VARCHAR(50)     DEFAULT 'PENDING', -- PENDING, FULFILLED, CANCELED
     FOREIGN KEY (copy_id) REFERENCES book_copies (copy_id) ON DELETE CASCADE,
-    FOREIGN KEY (member_id) REFERENCES users (user_id) ON DELETE CASCADE,
-);
-
-CREATE TABLE events
-(
-    event_id     BIGSERIAL PRIMARY KEY,
-    library_id   BIGINT       NOT NULL,
-    title        VARCHAR(255) NOT NULL,
-    description  TEXT,
-    event_date   TIMESTAMP    NOT NULL,
-    max_capacity INT CHECK (max_capacity > 0),
-    event_type   event_type   NOT NULL,
-    is_active    BOOLEAN   DEFAULT TRUE,
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (library_id) REFERENCES libraries (library_id) ON DELETE CASCADE
-);
-
-CREATE TABLE attendance
-(
-    attendance_id     BIGSERIAL PRIMARY KEY,
-    event_id          BIGINT NOT NULL,
-    member_id         BIGINT NOT NULL,
-    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (event_id) REFERENCES events (event_id) ON DELETE CASCADE,
-    FOREIGN KEY (member_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    UNIQUE (event_id, member_id) -- A member can only register once for an event
+    FOREIGN KEY (member_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
