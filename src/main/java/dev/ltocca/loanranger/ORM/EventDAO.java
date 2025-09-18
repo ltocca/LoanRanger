@@ -211,7 +211,7 @@ public class EventDAO implements IEventDAO {
         return events;
     }
     @Override
-    public List<Event> findUpcomingEvents(int limit) {
+    public List<Event> findUpcomingEvents(Integer limit) {
         List<Event> events = new ArrayList<>();
         String sql = EVENT_SELECT_SQL + " WHERE e.event_date >= CURRENT_TIMESTAMP ORDER BY e.event_date ASC LIMIT ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -240,6 +240,23 @@ public class EventDAO implements IEventDAO {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error finding events by description", e);
+        }
+        return events;
+    }
+
+    @Override
+    public List<Event> findUpcomingEventsByLibrary(Long libraryId) {
+        List<Event> events = new ArrayList<>();
+        String sql = EVENT_SELECT_SQL + " WHERE e.library_id = ? AND e.event_date >= CURRENT_TIMESTAMP ORDER BY e.event_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, libraryId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding upcoming events for library " + libraryId, e);
         }
         return events;
     }

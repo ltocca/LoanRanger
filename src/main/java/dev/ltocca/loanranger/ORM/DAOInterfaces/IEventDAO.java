@@ -23,6 +23,8 @@ public interface IEventDAO {
     List<Event> findEventsByDateRange(LocalDateTime start, LocalDateTime end);
     List<Event> findEventsByDateRange(LocalDateTime start);
     List<Event> findEventsByLibraryName(String libraryName);
-    List<Event> findUpcomingEvents(int limit);
+    List<Event> findUpcomingEvents(Integer limit);
     List<Event> findEventsByDescription(String description);
+    List<Event> findUpcomingEventsByLibrary(Long libraryId);
+
 }
