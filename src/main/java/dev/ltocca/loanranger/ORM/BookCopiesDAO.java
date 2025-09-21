@@ -27,7 +27,7 @@ public class BookCopiesDAO implements IBookCopiesDAO {
 
     @Override
     public BookCopy createCopy(BookCopy bookCopy) {
-        String sql = "INSERT INTO book_copies (isbn, library_id, status) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO book_copies (isbn, library_id, status) VALUES (?, ?, ?::book_status)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, bookCopy.getBook().getIsbn());
             pstmt.setLong(2, bookCopy.getLibrary().getId());
@@ -83,10 +83,10 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> searchByTitle(String titleFragment) {
         List<BookCopy> bookCopies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE b.title ILIKE ?"; // using ILIKE to take advantage (again) of postrgresql to lowercase the text inserted
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)){
-            pstmt.setString(1, "%" + titleFragment+ "%"); // partial string search
-            try (ResultSet rs = pstmt.executeQuery(sql)){
-                while (rs.next()){
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + titleFragment + "%"); // partial string search
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
                     bookCopies.add(mapRowToBookCopy(rs));
                 }
             }
@@ -135,7 +135,7 @@ public class BookCopiesDAO implements IBookCopiesDAO {
 
     @Override
     public void updateCopyStatus(BookCopy bookCopy) {
-        String sql = "UPDATE book_copies SET status = ? WHERE copy_id = ?";
+        String sql = "UPDATE book_copies SET status = ?::book_status WHERE copy_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, bookCopy.getState().getStatus());
             pstmt.setLong(2, bookCopy.getCopyId());

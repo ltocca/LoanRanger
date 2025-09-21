@@ -42,7 +42,7 @@ public class LibraryDAO implements ILibraryDAO {
 
     @Override
     public Optional<Library> getLibraryById(Long id) {
-        String sql = "SELECT * FROM libraries WHERE id = ?";
+        String sql = "SELECT * FROM libraries WHERE library_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, id);
@@ -93,7 +93,7 @@ public class LibraryDAO implements ILibraryDAO {
 
     @Override
     public void updateLibrary(Library library) {
-        String sql = "UPDATE libraries SET name = ?, address = ?, phone = ?, email = ? WHERE id = ?";
+        String sql = "UPDATE libraries SET name = ?, address = ?, phone = ?, email = ? WHERE library_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, library.getName());
@@ -110,7 +110,7 @@ public class LibraryDAO implements ILibraryDAO {
 
     @Override
     public void deleteLibrary(Long id) {
-        String sql = "DELETE FROM libraries WHERE id = ?";
+        String sql = "DELETE FROM libraries WHERE library_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, id);
@@ -124,7 +124,7 @@ public class LibraryDAO implements ILibraryDAO {
     @Override
     public void deleteLibrary(Library library) {
         Long id = library.getId();
-        String sql = "DELETE FROM libraries WHERE id = ?";
+        String sql = "DELETE FROM libraries WHERE library_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, id);
@@ -138,7 +138,7 @@ public class LibraryDAO implements ILibraryDAO {
     // helper function to generate object from row
     private Library mapRowToLibrary(ResultSet rs) throws SQLException {
         Library library = new Library();
-        library.setId(rs.getLong("id"));
+        library.setId(rs.getLong("library_id"));
         library.setName(rs.getString("name"));
         library.setAddress(rs.getString("address"));
         library.setPhone(rs.getString("phone"));
