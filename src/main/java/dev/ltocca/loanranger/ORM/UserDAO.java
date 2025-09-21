@@ -20,7 +20,7 @@ public class UserDAO implements IUserDAO {
 
     @Override
     public User createUser(User user) {
-        String sql = "INSERT INTO users (username, name, email, password, role, library_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, name, email, password, role, library_id) VALUES (?, ?, ?, ?, ?::user_role, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             pstmt.setString(1, user.getUsername());
@@ -87,6 +87,22 @@ public class UserDAO implements IUserDAO {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching user with email " + email, e);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<User> getUserByUsername(String username) {
+        String sql = "SELECT * FROM users WHERE username ILIKE ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRowToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error fetching user with username " + username, e);
         }
         return Optional.empty();
     }
