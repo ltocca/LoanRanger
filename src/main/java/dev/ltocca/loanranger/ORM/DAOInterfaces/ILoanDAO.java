@@ -16,7 +16,7 @@ public interface ILoanDAO {
     Loan createLoan(BookCopy bookCopy, Member member);
 
     Optional<Loan> getLoanById(Long id);
-    
+
     Optional<Loan> getLoanByBookCopy(BookCopy bookCopy);
 
     Optional<Loan> getLoanByBookCopyId(Long bookCopyId);
@@ -39,6 +39,10 @@ public interface ILoanDAO {
 
     List<Loan> findMemberOverdueLoans(Long id);
 
+    List<Loan> listAllLoansByLibrary(Library workLibrary);
+
     void deleteLoan(Long id);
+
     void deleteLoan(Loan loan);
+
 }

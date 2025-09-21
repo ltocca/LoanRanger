@@ -24,7 +24,7 @@ public class LoanDAO implements ILoanDAO {
                     "lib.phone AS library_phone, lib.email AS library_email " +
                     "FROM loans l " +
                     "JOIN users u ON l.member_id = u.user_id " +
-                    "JOIN book_copies bc ON l.book_copy_id = bc.copy_id " +
+                    "JOIN book_copies bc ON l.copy_id = bc.copy_id " +
                     "JOIN books b ON bc.isbn = b.isbn " +
                     "JOIN libraries lib ON bc.library_id = lib.library_id";
 
@@ -34,7 +34,7 @@ public class LoanDAO implements ILoanDAO {
 
     @Override
     public Loan createLoan(Loan loan) {
-        String sql = "INSERT INTO loans (book_copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO loans (copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setLong(1, loan.getBookCopy().getCopyId());
             pstmt.setLong(2, loan.getMember().getId());
@@ -63,7 +63,7 @@ public class LoanDAO implements ILoanDAO {
 
     @Override
     public Loan createLoan(BookCopy bookCopy, Member member) {
-        String sql = "INSERT INTO loans (book_copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO loans (copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             Loan loan = new Loan(bookCopy, member, LocalDate.now());
             pstmt.setLong(1, loan.getBookCopy().getCopyId());
@@ -88,7 +88,7 @@ public class LoanDAO implements ILoanDAO {
 
     @Override
     public Optional<Loan> getLoanById(Long id) {
-        String sql = LOAN_SELECT_SQL + "WHERE l.loan_id = ?";
+        String sql = LOAN_SELECT_SQL + " WHERE l.loan_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, id);
@@ -105,7 +105,7 @@ public class LoanDAO implements ILoanDAO {
 
     @Override
     public Optional<Loan> getLoanByBookCopy(BookCopy bookCopy) {
-        String sql = LOAN_SELECT_SQL + "WHERE l.book_copy_id = ?";
+        String sql = LOAN_SELECT_SQL + " WHERE l.copy_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, bookCopy.getCopyId());
@@ -122,7 +122,7 @@ public class LoanDAO implements ILoanDAO {
 
     @Override
     public Optional<Loan> getLoanByBookCopyId(Long bookCopyId) {
-        String sql = LOAN_SELECT_SQL + "WHERE l.book_copy_id = ?";
+        String sql = LOAN_SELECT_SQL + " WHERE l.copy_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, bookCopyId);
@@ -140,7 +140,7 @@ public class LoanDAO implements ILoanDAO {
 
     @Override
     public void updateLoan(Loan loan) {
-        String sql = "UPDATE loans SET book_copy_id = ?, member_id = ?, loan_date = ?, due_date = ?, return_date = ? WHERE id = ?";
+        String sql = "UPDATE loans SET copy_id = ?, member_id = ?, loan_date = ?, due_date = ?, return_date = ? WHERE loan_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             try {
                 pstmt.setLong(1, loan.getBookCopy().getCopyId());
@@ -266,6 +266,23 @@ public class LoanDAO implements ILoanDAO {
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error finding overdue loans for member id: " + memberId, e);
+        }
+        return loans;
+    }
+
+    @Override
+    public List<Loan> listAllLoansByLibrary(Library workLibrary) {
+        List<Loan> loans = new ArrayList<>();
+        String sql = LOAN_SELECT_SQL + " WHERE lib.library_id = ? ORDER BY l.loan_date DESC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, workLibrary.getId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    loans.add(mapRowToLoan(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding full loan history for library id " + workLibrary.getId(), e);
         }
         return loans;
     }
