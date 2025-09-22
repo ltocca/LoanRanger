@@ -15,12 +15,34 @@ public class LibraryFacade {
     private final BookCopiesDAO bookCopiesDAO;
     private final LoanDAO loanDAO;
     private final ReservationDAO reservationDAO;
+    private final BookDAO bookDAO;
 
     public LibraryFacade() throws SQLException {
         this.userDAO = new UserDAO();
         this.bookCopiesDAO = new BookCopiesDAO();
         this.loanDAO = new LoanDAO();
         this.reservationDAO = new ReservationDAO();
+        try {
+            this.bookDAO = new BookDAO(); // Initialize BookDAO
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("Database driver not found", e);
+        }
+    }
+
+    public BookCopy createBookCopy(String isbn, Library library) {
+        try {
+            Optional<Book> bookOpt = bookDAO.getBookByIsbn(isbn);
+            if (bookOpt.isEmpty()) {
+                System.err.println("Cannot create copy: Book with ISBN " + isbn + " not found.");
+                return null;
+            }
+            Book book = bookOpt.get();
+            BookCopy newCopy = new BookCopy(book, library, new AvailableState());
+            return bookCopiesDAO.createCopy(newCopy);
+        } catch (Exception e) {
+            System.err.println("Error creating book copy: " + e.getMessage());
+            return null;
+        }
     }
 
     /** Borrow a book copy */
@@ -110,8 +132,15 @@ public class LibraryFacade {
             }
             Loan loan = loanOpt.get();
 
+            if (!(loan.getBookCopy().getState() instanceof LoanedState)) {
+                System.out.println("This copy isn't Loaned");
+                return false;
+            }
+
+            copy.returnCopy(); // FIXME: THIS METHOD IS CALLED TWO TIMES INSTEAD OF ONE
+
             loan.setReturnDate(LocalDate.now());
-            loan.endLoan();
+            //loan.endLoan();
             loanDAO.updateLoan(loan);
 
             bookCopiesDAO.updateCopyStatus(copy);
@@ -140,8 +169,12 @@ public class LibraryFacade {
                 System.err.printf("Book copy %d is under maintenance.%n", bookCopy.getCopyId());
                 return false;
             }
-            if (bookCopy.getState() instanceof AvailableState) {
-                System.out.printf("Book copy %d is available. Direct loan is possible.%n", bookCopy.getCopyId());
+            if (bookCopy.getState() instanceof ReservedState) {
+                System.err.printf("Book copy %d is already reserved.%n", bookCopy.getCopyId());
+                return false;
+            }
+            if (bookCopy.getState() instanceof LoanedState) {
+                System.err.printf("Book copy %d is loaned right now.%n", bookCopy.getCopyId());
                 return false;
             }
 
@@ -165,6 +198,54 @@ public class LibraryFacade {
         }
     }
 
+    public boolean cancelReservation(Long reservationId, Member member) {
+        try {
+            Optional<Reservation> resOpt = reservationDAO.getReservationById(reservationId);
+            if (resOpt.isEmpty()) {
+                System.err.println("Reservation with ID " + reservationId + " not found.");
+                return false;
+            }
+
+            Reservation reservation = resOpt.get();
+
+            if (!reservation.getMember().getId().equals(member.getId())) {
+                System.err.println("Error: You do not have permission to cancel this reservation.");
+                return false;
+            }
+
+            if (reservation.getStatus() != ReservationStatus.PENDING) {
+                System.err.println("Error: This reservation cannot be cancelled (Status: " + reservation.getStatus() + ").");
+                return false;
+            }
+
+            // Update the reservation status to CANCELLED
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservationDAO.updateStatus(reservationId, ReservationStatus.CANCELLED);
+
+            // Update the associated BookCopy's state if it's no longer reserved
+            BookCopy bookCopy = reservation.getBookCopy();
+            List<Reservation> otherReservations = reservationDAO.findCopyReservation(bookCopy.getCopyId());
+
+            // Check if there are any other PENDING reservations for this copy
+            boolean isStillReserved = otherReservations.stream()
+                    .anyMatch(r -> r.getStatus() == ReservationStatus.PENDING && !r.getId().equals(reservationId));
+
+            if (!isStillReserved && bookCopy.getState() instanceof ReservedState) {
+                bookCopy.markAsAvailable();
+                bookCopiesDAO.updateCopyStatus(bookCopy);
+                System.out.println("Book copy " + bookCopy.getCopyId() + " is now available.");
+            }
+
+            System.out.println("Reservation " + reservationId + " cancelled successfully.");
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("An error occurred while cancelling the reservation: " + e.getMessage());
+            return false;
+        }
+    }
+
+
     public boolean placeReservation(long memberId, long copyId) {
         Optional<User> memberOpt = userDAO.getUserById(memberId);
         if (memberOpt.isEmpty() || !(memberOpt.get() instanceof Member member)) {
@@ -180,6 +261,7 @@ public class LibraryFacade {
 
         return placeReservation(member, bookCopyOpt.get());
     }
+
 
     public void putUnderMaintenance(BookCopy bookCopy) {
         try {
@@ -271,7 +353,5 @@ public class LibraryFacade {
         }
         System.err.println("Book copy " + bookCopy.getCopyId() + " is reserved for another member or the reservation is not pending.");
         return false;
-
-        //TODO: maybe check if the copy has been reserved first by the member
     }
 }
