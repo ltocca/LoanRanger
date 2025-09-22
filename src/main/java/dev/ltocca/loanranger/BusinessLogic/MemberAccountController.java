@@ -59,18 +59,18 @@ public class MemberAccountController {
         }
     }
 
-    public void changePassword(String currentPassword, String newPassword){
+    public void changePassword(String currentPassword, String newPassword) {
         if (newPassword == null || newPassword.trim().length() < 8) {
             throw new IllegalArgumentException("Error: the new password cannot be null or empty, at least 8 characters");
         }
         if (newPassword.equals(this.member.getPassword())) {
-            throw new IllegalArgumentException("Error: the new email cannot be the old one");
+            throw new IllegalArgumentException("Error: the new password  cannot be the old one");
         }
         try {
             if (!PasswordHasher.check(currentPassword, this.member.getPassword()) || currentPassword == null) {
                 throw new IllegalArgumentException("Error: inserted incorrect current password");
             }
-            if (!PasswordHasher.check(newPassword, this.member.getPassword())){
+            if (PasswordHasher.check(newPassword, this.member.getPassword())) {
                 throw new IllegalArgumentException("Error: you have inserted your old password as the new one");
             }
             String hashedPassword = PasswordHasher.hash(newPassword);
