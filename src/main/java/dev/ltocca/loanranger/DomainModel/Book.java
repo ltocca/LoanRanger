@@ -18,14 +18,14 @@ public class Book {
         this.author = author;
     }
 
-    public Book(String isbn, String title, String author, int publicationYear) {
+    public Book(String isbn, String title, String author, Integer publicationYear) {
         this.isbn = isbn;
         this.title = title;
         this.author = author;
         this.publicationYear = publicationYear;
     }
 
-    public Book(String isbn, String title, String author, int publicationYear, String genre) {
+    public Book(String isbn, String title, String author, Integer publicationYear, String genre) {
         this.isbn = isbn;
         this.title = title;
         this.author = author;
