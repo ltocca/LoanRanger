@@ -29,6 +29,6 @@ public final class IsbnSearchStrategy implements BookCopySearchStrategy {
 
     @Override
     public int getMinQueryLength() {
-        return 3;
+        return 6;
     }
 }
