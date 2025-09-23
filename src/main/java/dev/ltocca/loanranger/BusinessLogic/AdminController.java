@@ -1,11 +1,20 @@
 package dev.ltocca.loanranger.BusinessLogic;
 
 import dev.ltocca.loanranger.DomainModel.*;
+import dev.ltocca.loanranger.ORM.ConnectionManager;
 import dev.ltocca.loanranger.ORM.LibraryDAO;
 import dev.ltocca.loanranger.ORM.UserDAO;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.sql.Statement;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AdminController {
     private final Admin admin;
@@ -35,6 +44,26 @@ public class AdminController {
         try {
             libraryDAO.updateLibrary(library);
             System.out.println("Library " + library.getId() + " updated successfully.");
+        } catch (Exception e) {
+            System.err.println("Error updating library: " + e.getMessage());
+        }
+    }
+
+    public void updateLibrary(Long libraryId, String name, String address, String phone, String email) {
+        try {
+            Optional<Library> libOpt = libraryDAO.getLibraryById(libraryId);
+            if (libOpt.isEmpty()) {
+                System.err.println("Library with ID " + libraryId + " not found.");
+                return;
+            }
+            Library library = libOpt.get();
+            if (name != null && !name.trim().isEmpty()) library.setName(name);
+            if (address != null && !address.trim().isEmpty()) library.setAddress(address);
+            if (phone != null && !phone.trim().isEmpty()) library.setPhone(phone);
+            if (email != null && !email.trim().isEmpty()) library.setEmail(email);
+
+            libraryDAO.updateLibrary(library);
+            System.out.println("Library " + library.getName() + "'s information updated successfully.");
         } catch (Exception e) {
             System.err.println("Error updating library: " + e.getMessage());
         }
@@ -91,6 +120,58 @@ public class AdminController {
         }
     }
 
-    // TODO resetDatabase()
-    // TODO generateDefaultDatabase
+    public List<Library> listAllLibraries() {
+        try {
+            return libraryDAO.getAllLibraries();
+        } catch (Exception e) {
+            System.err.println("Error fetching all libraries: " + e.getMessage());
+            return List.of(); // Return an empty list on failure
+        }
+    }
+
+    public List<User> listAllUsers() {
+        try {
+            return userDAO.getAllUsers();
+        } catch (Exception e) {
+            System.err.println("Error fetching all users: " + e.getMessage());
+            return List.of(); // Return an empty list on failure
+        }
+    }
+
+    public void recreateSchemaAndAdmin() {
+        System.out.println("Executing database reset...");
+        try {
+            executeSqlScript("sql/reset.sql");
+            System.out.println("Database schema has been recreated successfully with a default admin.");
+        } catch (Exception e) {
+            System.err.println("Failed to reset the database: " + e.getMessage());
+        }
+    }
+
+    public void generateDefaultDatabase() {
+        System.out.println("Generating default database...");
+        try {
+            executeSqlScript("sql/default.sql");
+            System.out.println("Default database generated successfully.");
+        } catch (Exception e) {
+            System.err.println("Failed to generate the default database: " + e.getMessage());
+        }
+    }
+
+    private void executeSqlScript(String sqlPath) throws Exception {
+        String scriptContent;
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(sqlPath)) {
+            if (is == null) {
+                throw new RuntimeException("Cannot find script file: " + sqlPath);
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                scriptContent = reader.lines().collect(Collectors.joining("\n"));
+            }
+        }
+
+        try (Connection conn = ConnectionManager.getInstance().getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(scriptContent);
+        }
+    }
 }
