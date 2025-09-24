@@ -125,7 +125,7 @@ public class AdminController {
             return libraryDAO.getAllLibraries();
         } catch (Exception e) {
             System.err.println("Error fetching all libraries: " + e.getMessage());
-            return List.of(); // Return an empty list on failure
+            return List.of();
         }
     }
 
@@ -134,7 +134,7 @@ public class AdminController {
             return userDAO.getAllUsers();
         } catch (Exception e) {
             System.err.println("Error fetching all users: " + e.getMessage());
-            return List.of(); // Return an empty list on failure
+            return List.of();
         }
     }
 
