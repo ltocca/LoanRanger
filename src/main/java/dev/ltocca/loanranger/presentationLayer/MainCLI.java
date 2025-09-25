@@ -516,8 +516,8 @@ public class MainCLI {
         if (loans.isEmpty()) {
             System.out.println("No loans found for this category.");
         } else {
-            String format = "%-7s | %-7s | %-20.20s | %-30.30s | %-12s | %-10s%n";
-            System.out.printf(format, "Loan ID", "Copy ID", "Member Name", "Title", "Due Date", "Status");
+            String format = "%-7s | %-7s | %-20.20s | %-30.30s | %-12s | %-15s | %-10s%n";
+            System.out.printf(format, "Loan ID", "Copy ID", "Member Name", "Title", "Due Date", "Days remaining", "Status");
             System.out.println(String.join("", Collections.nCopies(95, "-")));
             for (Loan loan : loans) {
                 String status;
@@ -533,7 +533,7 @@ public class MainCLI {
                         loan.getBookCopy().getCopyId(),
                         loan.getMember().getName(),
                         loan.getBookCopy().getBook().getTitle(),
-                        loan.getDueDate(),
+                        loan.getDueDate(), loan.getRemainingDays(),
                         status);
             }
         }

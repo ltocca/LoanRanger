@@ -1,0 +1,21 @@
+digraph "reservations" {
+
+splines  = ortho;
+fontname = "Inconsolata";
+
+node [colorscheme = ylgnbu4];
+edge [colorscheme = dark28, dir = both];
+
+book_copies  [shape = record, pos = "-3.085,5.361!"    , label = "{ book_copies |  isbn : varchar(13)\l  library_id : bigint\l  status : book_status\l| copy_id : bigint\l }"];
+books        [shape = record, pos = "-1.215,3.167!"    , label = "{ books |  title : varchar(255)\l  author : varchar(255)\l  publication_year : integer\l  genre : varchar(100)\l| isbn : varchar(13)\l }"];
+libraries    [shape = record, pos = "-2.497,8.642!"    , label = "{ libraries |  name : varchar(255)\l  address : varchar(500)\l  phone : varchar(50)\l  email : varchar(255)\l| library_id : bigint\l }"];
+reservations [shape = record, pos = "1.907,5.115!"     , label = "{ reservations |  copy_id : bigint\l  member_id : bigint\l  reservation_date : date\l  status : varchar(50)\l| reservation_id : bigint\l }"];
+users        [shape = record, pos = "2.622,8.642!"     , label = "{ users |  username : varchar(100)\l  name : varchar(200)\l  email : varchar(255)\l  password : varchar(512)\l  role : user_role\l  library_id : bigint\l| user_id : bigint\l }"];
+
+book_copies  -> books        [color = "#595959", style = solid , arrowtail = none    , arrowhead = normal  , taillabel = "", label = "isbn", headlabel = ""];
+book_copies  -> libraries    [color = "#595959", style = solid , arrowtail = none    , arrowhead = normal  , taillabel = "", label = "library_id", headlabel = ""];
+reservations -> book_copies  [color = "#595959", style = solid , arrowtail = none    , arrowhead = normal  , taillabel = "", label = "copy_id", headlabel = ""];
+reservations -> users        [color = "#595959", style = solid , arrowtail = none    , arrowhead = normal  , taillabel = "", label = "member_id:user_id", headlabel = ""];
+users        -> libraries    [color = "#595959", style = solid , arrowtail = none    , arrowhead = normal  , taillabel = "", label = "library_id", headlabel = ""];
+
+}

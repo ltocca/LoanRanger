@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>DATABASE</ID>
+  <OriginalElement>f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.reservations</OriginalElement>
+  <nodes>
+    <node x="-179.76895306859205" y="-85.25270758122744">f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.libraries</node>
+    <node x="-87.5" y="309.0">f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.books</node>
+    <node x="188.81768953068593" y="-85.25270758122743">f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.users</node>
+    <node x="137.3249097472924" y="168.7039711191336">f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.reservations</node>
+    <node x="-222.13537906137174" y="151.0">f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.book_copies</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.book_copies" target="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.books" relationship="REFERENCES">
+      <point x="0.0" y="60.0" />
+      <point x="-148.63537906137174" y="284.5" />
+      <point x="0.0" y="284.5" />
+      <point x="0.0" y="-71.0" />
+    </edge>
+    <edge source="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.book_copies" target="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.libraries" relationship="REFERENCES">
+      <point x="0.0" y="-60.0" />
+      <point x="-148.63537906137174" y="105.5" />
+      <point x="-99.76895306859205" y="105.5" />
+      <point x="0.0" y="71.0" />
+    </edge>
+    <edge source="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.users" target="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.libraries" relationship="REFERENCES">
+      <point x="-85.5" y="0.0" />
+      <point x="97.25" y="7.747292418772574" />
+      <point x="97.25" y="-14.25270758122744" />
+      <point x="80.0" y="0.0" />
+    </edge>
+    <edge source="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.reservations" target="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.users" relationship="REFERENCES">
+      <point x="0.0" y="-71.0" />
+      <point x="218.3249097472924" y="111.0" />
+      <point x="274.3176895306859" y="111.0" />
+      <point x="0.0" y="93.0" />
+    </edge>
+    <edge source="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.reservations" target="f9a93940-c7fd-4cd3-91a0-96e60209b891.TABLE:loanranger_db.public.book_copies" relationship="REFERENCES">
+      <point x="-81.0" y="0.0" />
+      <point x="96.25" y="239.7039711191336" />
+      <point x="96.25" y="211.0" />
+      <point x="73.5" y="0.0" />
+    </edge>
+  </edges>
+  <settings layout="Compact" zoom="0.9822695035460993" showDependencies="false" x="109.0" y="188.99999999999994" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Columns</Category>
+    <Category>Comments</Category>
+    <Category>Key columns</Category>
+    <Category>Virtual foreign keys</Category>
+  </Categories>
+</Diagram>
+
