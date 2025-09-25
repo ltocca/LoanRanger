@@ -550,7 +550,7 @@ public class MainCLI {
         }
     }
 
-    private static void handleLibrarianBookSearch(LibrarianBookController bookCtrl) {
+    private static void handleLibrarianBookSearch(LibrarianBookController bookCtrl) { // TODO: add way to add copy to library
         System.out.println("\n--- Choose Search Scope ---");
         System.out.println("1. Search in My Library Only");
         System.out.println("2. Search System-wide");
@@ -652,7 +652,7 @@ public class MainCLI {
 
 
     // --- ADMIN ACTION HANDLERS ---
-    private static void handleAdminActions(Admin admin, String choice) throws SQLException {
+    private static void handleAdminActions(Admin admin, String choice) throws SQLException { // TODO: handle possible credential updating
         AdminController adminCtrl = new AdminController(admin);
         switch (choice) {
             case "1":

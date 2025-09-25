@@ -30,6 +30,7 @@ public class ReservedState implements AvailabilityState {
     @Override
     public void markAsAvailable(BookCopy copy) {
         copy.changeState(new AvailableState());
+        copy.notifyAvailabilityToWatchers();
         System.out.println("Now the book is again available");
     }
 

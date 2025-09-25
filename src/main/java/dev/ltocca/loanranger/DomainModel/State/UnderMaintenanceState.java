@@ -28,8 +28,9 @@ public class UnderMaintenanceState implements AvailabilityState {
 
     @Override
     public void markAsAvailable(BookCopy copy) {
-        System.out.println("Book maintenance complete. Now the copy is available.");
         copy.changeState(new AvailableState());
+        copy.notifyAvailabilityToWatchers();
+        System.out.println("Book maintenance complete. Now the copy is available.");
     }
 
     @Override

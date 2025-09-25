@@ -97,7 +97,7 @@ public class LibrarianBookController {
             return false;
         }
         if (!checkLoanBelongsToLibrary(loan)) {
-            System.err.printf("This loan with id %d is has not been processed in this Library, but it is form %s!%n", loanId, loan.getBookCopy().getLibrary().getName() + " id: " + loan.getBookCopy().getLibrary().getId());
+            System.err.printf("This loan with id %d is has not been processed in this Library, but it is from %s!%n", loanId, loan.getBookCopy().getLibrary().getName() + " id: " + loan.getBookCopy().getLibrary().getId());
             return false;
         }
         if (days == null) {

@@ -10,6 +10,7 @@ public class AvailableState implements AvailabilityState {
     public void loan(BookCopy copy) {
         System.out.println("Book is available. Loaning...");
         copy.changeState(new LoanedState());
+        copy.notifyAvailabilityToWatchers();
     }
 
     @Override

@@ -1,7 +1,7 @@
 package dev.ltocca.loanranger.BusinessLogic.Observer;
 
-import dev.ltocca.loanranger.DomainModel.Book;
+import dev.ltocca.loanranger.DomainModel.BookCopy;
 
-public interface BookObserver {
-    void onBookAvailable(Book book);
+public interface BookCopyObserver {
+    void onBookCopyAvailable(BookCopy bookCopy);
 }

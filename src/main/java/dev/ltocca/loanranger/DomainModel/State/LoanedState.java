@@ -13,8 +13,9 @@ public class LoanedState implements AvailabilityState {
 
     @Override
     public void returnCopy(BookCopy copy) {
-        System.out.println("Book returned successfully.");
         copy.changeState(new AvailableState());
+        copy.notifyAvailabilityToWatchers();
+        System.out.println("Book returned successfully.");
     }
 
     @Override
@@ -28,7 +29,7 @@ public class LoanedState implements AvailabilityState {
     }
 
     @Override
-    public void markAsAvailable(BookCopy copy) {
+    public void markAsAvailable(BookCopy copy) { // ONLY RETURNING CAN MARK AS AVAILABLE THE COPY
         System.err.println("Error: Cannot mark loaned book as available (after maintenance method).");
     }
 

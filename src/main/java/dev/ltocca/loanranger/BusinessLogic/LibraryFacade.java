@@ -1,6 +1,6 @@
 package dev.ltocca.loanranger.BusinessLogic;
 
-import dev.ltocca.loanranger.BusinessLogic.Observer.BookObserver;
+import dev.ltocca.loanranger.BusinessLogic.Observer.BookCopyObserver;
 import dev.ltocca.loanranger.DomainModel.*;
 import dev.ltocca.loanranger.DomainModel.State.*;
 import dev.ltocca.loanranger.ORM.*;
@@ -146,7 +146,7 @@ public class LibraryFacade {
             bookCopiesDAO.updateCopyStatus(copy);
 
             System.out.printf("Book copy %d returned%n", copyId);
-            notifyReservations(copy.getBook().getIsbn());
+            notifyReservations(copy.getBook().getIsbn()); // FIXME: maybe is not required anymore
 
             return true;
         } catch (Exception e) {
@@ -166,15 +166,21 @@ public class LibraryFacade {
                 return false;
             }
             if (bookCopy.getState() instanceof UnderMaintenanceState) {
-                System.err.printf("Book copy %d is under maintenance.%n", bookCopy.getCopyId());
+                System.err.printf("Book copy %d is under maintenance Copy now observed.%n", bookCopy.getCopyId());
+                bookCopy.addObserver(member);
+                System.out.printf("Member %s is now watching copy %d of '%s'.%n", member.getUsername(), bookCopy.getCopyId(), bookCopy.getBook().getTitle());
                 return false;
             }
             if (bookCopy.getState() instanceof ReservedState) {
                 System.err.printf("Book copy %d is already reserved.%n", bookCopy.getCopyId());
+                bookCopy.addObserver(member);
+                System.out.printf("Member %s is now watching copy %d of '%s'.%n", member.getUsername(), bookCopy.getCopyId(), bookCopy.getBook().getTitle());
                 return false;
             }
             if (bookCopy.getState() instanceof LoanedState) {
                 System.err.printf("Book copy %d is loaned right now.%n", bookCopy.getCopyId());
+                bookCopy.addObserver(member); // Add observer
+                System.out.printf("Member %s is now watching copy %d of '%s'.%n", member.getUsername(), bookCopy.getCopyId(), bookCopy.getBook().getTitle());
                 return false;
             }
 
@@ -184,8 +190,8 @@ public class LibraryFacade {
             bookCopy.reserve();
             bookCopiesDAO.updateCopyStatus(bookCopy);
 
-            if (member instanceof BookObserver observer) {
-                observer.onBookAvailable(bookCopy.getBook());
+            if (member instanceof BookCopyObserver observer) {
+                observer.onBookCopyAvailable(bookCopy);
                 System.out.printf("Member %s observing availability of book %s%n",
                         member.getUsername(), bookCopy.getBook().getTitle());
             }

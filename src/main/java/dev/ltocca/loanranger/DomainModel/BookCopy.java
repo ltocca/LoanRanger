@@ -1,9 +1,13 @@
 package dev.ltocca.loanranger.DomainModel;
 
+import dev.ltocca.loanranger.BusinessLogic.Observer.BookCopyObserver;
 import dev.ltocca.loanranger.DomainModel.State.AvailabilityState;
 import dev.ltocca.loanranger.DomainModel.State.AvailableState;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,6 +17,7 @@ public class BookCopy {
     private Book book;
     private Library library;
     private AvailabilityState state;
+    private List<BookCopyObserver> observers = new ArrayList<>();
 
     public BookCopy(Book book, Library library, AvailabilityState state) {
         this.book = book;
@@ -45,6 +50,28 @@ public class BookCopy {
     public void markAsAvailable() {
         state.markAsAvailable(this);
     }
+
+    // Observer pattern methods
+
+    public void addObserver(BookCopyObserver observer) {
+        if (!observers.contains(observer)) {
+            observers.add(observer);
+        }
+    }
+
+    public void removeObserver(BookCopyObserver observer) {
+        observers.remove(observer);
+    }
+
+    // Notify all *observers of this specific copy* that it is available
+    public void notifyAvailabilityToWatchers() {
+        //List<BookCopyObserver> observersSnapshot = new ArrayList<>(this.observers); // first idea was to save the observes
+        for (BookCopyObserver observer : observers) {
+            observer.onBookCopyAvailable(this);
+            removeObserver(observer);
+        }
+    }
+
 
 
 }
