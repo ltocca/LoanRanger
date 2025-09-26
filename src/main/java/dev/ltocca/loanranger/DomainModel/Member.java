@@ -1,11 +1,9 @@
 package dev.ltocca.loanranger.DomainModel;
 
 import dev.ltocca.loanranger.BusinessLogic.Observer.BookObserver;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-@AllArgsConstructor
 
 public class Member extends User implements BookObserver {
 

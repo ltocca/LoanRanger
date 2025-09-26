@@ -1,10 +1,8 @@
 package dev.ltocca.loanranger.BusinessLogic;
 
-import dev.ltocca.loanranger.DomainModel.Member;
-import dev.ltocca.loanranger.DomainModel.BookCopy;
-import dev.ltocca.loanranger.DomainModel.Reservation;
-import dev.ltocca.loanranger.DomainModel.ReservationStatus;
+import dev.ltocca.loanranger.DomainModel.*;
 import dev.ltocca.loanranger.ORM.BookCopiesDAO;
+import dev.ltocca.loanranger.ORM.LoanDAO;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -91,6 +89,14 @@ public class MemberBookController {
         }
     }
 
+    public boolean cancelReservation(Long reservationId) {
+        if (reservationId == null) {
+            System.err.println("Reservation ID cannot be null.");
+            return false;
+        }
+        return facade.cancelReservation(reservationId, this.member);
+    }
+
     public List<Reservation> getActiveReservations() {
         try {
             List<Reservation> allReservations = facade.getMemberReservations(member);
@@ -114,6 +120,36 @@ public class MemberBookController {
             return facade.getMemberReservations(member);
         } catch (Exception e) {
             System.err.println("Error fetching reservation history: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    public List<Loan> getActiveLoans() {
+        try {
+            LoanDAO loanDAO = new LoanDAO();
+            return loanDAO.findActiveLoansByMember(this.member);
+        } catch (Exception e) {
+            System.err.println("Error fetching active loans: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    public List<Loan> getOverdueLoans() {
+        try {
+            LoanDAO loanDAO = new LoanDAO();
+            return loanDAO.findMemberOverdueLoans(this.member.getId());
+        } catch (Exception e) {
+            System.err.println("Error fetching overdue loans: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    public List<Loan> getAllLoans() {
+        try {
+            LoanDAO loanDAO = new LoanDAO();
+            return loanDAO.findLoansByMember(this.member);
+        } catch (Exception e) {
+            System.err.println("Error fetching all loans: " + e.getMessage());
             return List.of();
         }
     }
@@ -154,13 +190,14 @@ public class MemberBookController {
         }
     }
 
-    public List<Reservation> getMyReservations() {
-        try {
-            return facade.getMemberReservations(member);
-        } catch (Exception e) {
-            System.err.println("Error fetching reservations: " + e.getMessage());
-            return List.of();
-        }
+    public List<BookCopy> searchBooksByType(String query, BookCopySearchService.SearchType type) {
+        return switch (type) {
+            case TITLE -> searchBooksByTitle(query);
+            case AUTHOR -> searchBooksByAuthor(query);
+            case ISBN -> searchBooksByIsbn(query);
+            default -> searchBookCopyGeneric(query);
+        };
+
     }
 
 }

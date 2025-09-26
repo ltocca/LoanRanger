@@ -10,7 +10,7 @@
     </parent>
     <groupId>dev.ltocca</groupId>
     <artifactId>LoanRanger</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>LoanRanger</name>
     <description>LoanRanger</description>
     <url/>
@@ -27,7 +27,7 @@
         <url/>
     </scm>
     <properties>
-        <java.version>17</java.version>
+        <java.version>24</java.version>
     </properties>
     <dependencies>
         <dependency>

@@ -7,8 +7,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class LibrarianBookController {
     private final Librarian librarian;
@@ -31,7 +29,7 @@ public class LibrarianBookController {
 
     }
 
-    public boolean loanBookToMember(Long memberId, Long copyId, LocalDate dueDate) {
+    public Boolean loanBookToMember(Long memberId, Long copyId, LocalDate dueDate) {
         User user = null;
         try {
             user = userDAO.getUserById(memberId).orElse(null); // "new" syntax, maybe update all the project
@@ -39,7 +37,10 @@ public class LibrarianBookController {
             System.err.println("Error fetching member: " + e.getMessage());
             return false;
         }
-        if (!(user instanceof Member member)) return false;
+        if (!(user instanceof Member member)) {
+            System.err.println("The user provided (" + memberId + ") is not a user! try again");
+            return false;
+        }
 
         BookCopy copy;
         try {
@@ -48,7 +49,13 @@ public class LibrarianBookController {
             System.err.println("Error fetching book copy: " + e.getMessage());
             return false;
         }
-        if (copy == null || !checkCopyBelongsToLibrary(copy)) return false;
+        if (copy == null) {
+            System.err.println("No copy inserted! Try again.");
+            return false;
+        } else if (!checkCopyBelongsToLibrary(copy)) {
+            System.err.printf("This book copy with id %d is not in this Library, but it is in %s!%n", copy.getCopyId(), copy.getLibrary().getName());
+            return false;
+        }
 
         if (dueDate == null) {
             return libraryFacade.borrowBook(member, copy);
@@ -58,6 +65,22 @@ public class LibrarianBookController {
     }
 
     public boolean processReturn(Long copyId) {
+        if (copyId == null) {
+            System.err.println("No copy inserted! Try again.");
+            return false;
+
+        }
+        BookCopy copy;
+        try {
+            copy = bookCopiesDAO.getCopyById(copyId).orElse(null);
+        } catch (Exception e) {
+            System.err.println("Error fetching book copy: " + e.getMessage());
+            return false;
+        }
+        if (!checkCopyBelongsToLibrary(copy)) {
+            System.err.printf("This book copy with id %d is has not been borrowed in this Library, but it is in %s!%n", copyId, copy.getLibrary().getName() + " id: " + copy.getLibrary().getId());
+            return false;
+        }
         return libraryFacade.returnBook(copyId);
     }
 
@@ -69,8 +92,14 @@ public class LibrarianBookController {
             System.err.println("Error fetching loan: " + e.getMessage());
             return false;
         }
-        if (loan == null || !checkLoanBelongsToLibrary(loan)) return false;
-
+        if (loan == null) {
+            System.err.printf("Empty loan ID!%n");
+            return false;
+        }
+        if (!checkLoanBelongsToLibrary(loan)) {
+            System.err.printf("This loan with id %d is has not been processed in this Library, but it is form %s!%n", loanId, loan.getBookCopy().getLibrary().getName() + " id: " + loan.getBookCopy().getLibrary().getId());
+            return false;
+        }
         if (days == null) {
             return libraryFacade.renewLoan(loan);
         } else {
@@ -100,8 +129,13 @@ public class LibrarianBookController {
             System.err.println("Error fetching book copy: " + e.getMessage());
             return false;
         }
-        if (copy == null || !checkCopyBelongsToLibrary(copy)) return false;
-
+        if (copy == null) {
+            System.err.println("No copy inserted! Try again.");
+            return false;
+        } else if (!checkCopyBelongsToLibrary(copy)) {
+            System.err.printf("This book copy with id %d is not in this Library, but it is in %s!%n", copy.getCopyId(), copy.getLibrary().getName());
+            return false;
+        }
         libraryFacade.removeFromMaintenance(copy);
         return true;
     }
@@ -128,8 +162,8 @@ public class LibrarianBookController {
     }
 
     public List<Reservation> getActiveReservations() {
-        java.util.List<Reservation> result = new java.util.ArrayList<Reservation>();
         try {
+            List<Reservation> result = new ArrayList<>();
             for (BookCopy copy : bookCopiesDAO.findLibraryCopies(librarian.getWorkLibrary())) {
                 for (Reservation r : reservationDAO.findCopyReservation(copy)) {
                     if (r.getStatus() == ReservationStatus.PENDING) {
@@ -137,11 +171,13 @@ public class LibrarianBookController {
                     }
                 }
             }
+            return result;
         } catch (Exception e) {
             System.err.println("Error fetching reservations: " + e.getMessage());
+            return List.of();
         }
-        return result;
     }
+
 
     public List<BookCopy> searchBookCopies(String query) {
         List<BookCopy> results = searchService.smartSearch(query);
@@ -181,7 +217,7 @@ public class LibrarianBookController {
     }
 
     private List<BookCopy> filterCopiesByLibrary(List<BookCopy> copies) {
-        List<BookCopy> filteredList = new java.util.ArrayList<BookCopy>();
+        List<BookCopy> filteredList = new java.util.ArrayList<>();
         for (BookCopy copy : copies) {
             if (copy.getLibrary().getId().equals(librarian.getWorkLibrary().getId())) {
                 filteredList.add(copy);
@@ -196,5 +232,14 @@ public class LibrarianBookController {
 
     private boolean checkLoanBelongsToLibrary(Loan loan) {
         return checkCopyBelongsToLibrary(loan.getBookCopy());
+    }
+
+    public List<Loan> getAllLoans() {
+        try {
+            return loanDAO.listAllLoansByLibrary(librarian.getWorkLibrary());
+        } catch (Exception e) {
+            System.err.println("Error fetching all loans for the library: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 }

@@ -1,9 +1,10 @@
 -- Drop tables in reverse order of dependency to avoid foreign key constraints
 DROP TABLE IF EXISTS loans, reservations, book_copies, books, users, libraries CASCADE;
-DROP TYPE IF EXISTS user_role, book_status;
+DROP TYPE IF EXISTS user_role, book_status, reservation_status;
 
 CREATE TYPE user_role AS ENUM ('MEMBER', 'LIBRARIAN', 'ADMIN');
 CREATE TYPE book_status AS ENUM ('AVAILABLE', 'LOANED', 'RESERVED', 'UNDER_MAINTENANCE');
+CREATE TYPE reservation_status AS ENUM ('PENDING', 'FULFILLED', 'CANCELLED');
 
 CREATE TABLE libraries
 (
@@ -48,7 +49,7 @@ CREATE TABLE book_copies
 CREATE TABLE loans
 (
     loan_id     BIGSERIAL PRIMARY KEY,
-    copy_id     BIGINT NOT NULL UNIQUE, -- a copy can only be on one active loan at a time
+    copy_id     BIGINT NOT NULL,
     member_id   BIGINT NOT NULL,
     loan_date   DATE   NOT NULL DEFAULT CURRENT_DATE,
     due_date    DATE   NOT NULL,
@@ -68,3 +69,7 @@ CREATE TABLE reservations
     FOREIGN KEY (copy_id) REFERENCES book_copies (copy_id) ON DELETE CASCADE,
     FOREIGN KEY (member_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
+
+INSERT INTO users (role, username, name, email, password, library_id)
+VALUES ('ADMIN', 'superadmin', 'Super Admin', 'super@library.org',
+        '$2a$10$Iz3kYRcmqPy45Dokr58hLug5GdIAxfWE2LwOocfLO0k5E/8sqLsr6', NULL);

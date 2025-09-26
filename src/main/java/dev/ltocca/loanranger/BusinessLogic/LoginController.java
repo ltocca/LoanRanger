@@ -14,8 +14,27 @@ public class LoginController {
     public LoginController(){}
 
     public Optional<User> login(String email, String password) throws SQLException {
+        if (email == null || password == null) {
+            System.err.println("Error: No email or password provided!");
+            return Optional.empty();
+        }
         UserDAO userDAO = new UserDAO();
         Optional<User> userOptional = userDAO.getUserByEmail(email.trim());
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (PasswordHasher.check(password.trim(), user.getPassword())) {
+                System.out.println("Login successful: welcome " + user.getName()+"!");
+                return Optional.of(user);
+            }
+            System.err.println("Login error: Invalid password!");
+        }
+        return Optional.empty();
+    }
+
+/*
+    public Optional<User> login(String username, String password) throws SQLException {
+        UserDAO userDAO = new UserDAO();
+        Optional<User> userOptional = userDAO.getUserByUsername(username.trim());
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             if (PasswordHasher.check(password.trim(), user.getPassword())) {
@@ -27,9 +46,14 @@ public class LoginController {
         System.err.println("Login error: User not found!");
         return Optional.empty();
     }
+*/
 
     public User register(UserRole role, String username, String name, String email, String password, Library workLibrary) throws SQLException {
-        validateRegistrationParameters(role, username, email, password, workLibrary);
+        try {
+            validateRegistrationParameters(role, username, email, password, workLibrary);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
         UserDAO userDAO = new UserDAO();
         User newUser = UserFactory.createUser(role, username, name, email, password, workLibrary);
         return userDAO.createUser(newUser);
@@ -47,7 +71,7 @@ public class LoginController {
      * Added to try registration limitation. Using trim to remove excess space. Inspired by spring boot validation!
      * TODO: first javadoc added, to be modified or removed
      */
-    private void validateRegistrationParameters(UserRole role, String username, String email, String password, Library workLibrary) {
+    private void validateRegistrationParameters(UserRole role, String username, String email, String password, Library workLibrary) throws IllegalArgumentException {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be empty");
         }

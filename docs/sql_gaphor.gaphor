@@ -1,0 +1,51 @@
+@startuml
+!include https://raw.githubusercontent.com/Gaphor/gaphor/main/gaphor.puml
+
+class BookCopies {
++isbn: varchar(13)
++library_id: bigint
++status: BookStatus
++copy_id: bigint
+}
+
+class Books {
++title: varchar(255)
++author: varchar(255)
++publication_year: integer
++genre: varchar(100)
++isbn: varchar(13)
+}
+
+class Libraries {
++name: varchar(255)
++address: varchar(500)
++phone: varchar(50)
++email: varchar(255)
++library_id: bigint
+}
+
+class Reservations {
++copy_id: bigint
++member_id: bigint
++reservation_date: date
++status: varchar(50)
++reservation_id: bigint
+}
+
+class Users {
++username: varchar(100)
++name: varchar(200)
++email: varchar(255)
++password: varchar(512)
++role: UserRole
++library_id: bigint
++user_id: bigint
+}
+
+BookCopies --> Books: isbn
+BookCopies --> Libraries: library_id
+Reservations --> BookCopies: copy_id
+Reservations --> Users: member_id
+Users --> Libraries: library_id
+
+@enduml

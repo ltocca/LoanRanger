@@ -106,7 +106,8 @@ public class BookCopySearchService {
     }
 
     private boolean looksLikeISBN(String query) {
-        return query.matches("^[0-9X\\-\\s]{10,17}$");
+        String cleanQuery = query.replaceAll("[\\-\\s]", "");
+        return cleanQuery.matches("^[0-9X]+$") && cleanQuery.length() > 6; // in this way the smart search can accept for example years as a query
     }
 
     private boolean looksLikeAuthorName(String query) {
@@ -114,7 +115,7 @@ public class BookCopySearchService {
     }
 
     private boolean looksLikeTitle(String query) {
-        return query.length() <= 50 && !query.contains(" ");
+        return query.length() <= 50 && query.contains(" ");
     }
 
     private boolean validateQuery(String query, BookCopySearchStrategy searchStrategy) {

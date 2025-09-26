@@ -34,7 +34,7 @@ public class ReservationDAO implements IReservationDAO {
 
     @Override
     public Reservation createReservation(Reservation reservation) {
-        String sql = "INSERT INTO reservations (copy_id, member_id, reservation_date, status) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO reservations (copy_id, member_id, reservation_date, status) VALUES (?, ?, ?, ?::reservation_status)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setLong(1, reservation.getBookCopy().getCopyId());
             pstmt.setLong(2, reservation.getMember().getId());
@@ -85,13 +85,13 @@ public class ReservationDAO implements IReservationDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Error fetching reservation with member id: " + member.getId() + " and book copy id: " + bookCopy.getCopyId(), e);
         }
-        System.err.println("Reservation with  member id: " + member.getId() + " and book copy id: " + bookCopy.getCopyId() + " not found, try again!");
+        System.err.println("Reservation with member id: " + member.getId() + " and book copy id: " + bookCopy.getCopyId() + " not found!"); // FIXME, maybe it needs to be deleted
         return Optional.empty();
     }
 
     @Override
     public void updateReservation(Reservation reservation) {
-        String sql = "UPDATE reservations SET copy_id = ?, member_id = ?, reservation_date = ?, status = ? WHERE reservation_id = ?";
+        String sql = "UPDATE reservations SET copy_id = ?, member_id = ?, reservation_date = ?, status = ?::reservation_status WHERE reservation_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, reservation.getBookCopy().getCopyId());
             pstmt.setLong(2, reservation.getMember().getId());
@@ -114,7 +114,7 @@ public class ReservationDAO implements IReservationDAO {
 
     @Override
     public void updateStatus(Long id, ReservationStatus status) {
-        String sql = "UPDATE reservations SET status = ? WHERE reservation_id = ?";
+        String sql = "UPDATE reservations SET status = ?::reservation_status WHERE reservation_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, status.name());
             pstmt.setLong(2, id);
