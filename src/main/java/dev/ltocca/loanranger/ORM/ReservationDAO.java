@@ -193,6 +193,28 @@ public class ReservationDAO implements IReservationDAO {
         return findCopyReservation(bookCopy.getCopyId());
     }
 
+    @Override
+    public List<Reservation> findCopyWaitingReservation(Long copyId) {
+        if (copyId == null) {
+            throw new IllegalArgumentException("Copy ID cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL +
+                " WHERE r.copy_id = ? AND r.status = 'WAITING'" +
+                " ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, copyId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding 'waiting' reservations for copy ID " + copyId, e);
+        }
+        return reservations;
+    }
+
     private Reservation mapRowToReservation(ResultSet rs) throws SQLException {
         Member member = new Member(
                 rs.getLong("user_id"),

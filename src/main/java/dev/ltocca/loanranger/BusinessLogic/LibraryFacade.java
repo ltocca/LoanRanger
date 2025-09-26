@@ -167,19 +167,25 @@ public class LibraryFacade {
             }
             if (bookCopy.getState() instanceof UnderMaintenanceState) {
                 System.err.printf("Book copy %d is under maintenance Copy now observed.%n", bookCopy.getCopyId());
-                bookCopy.addObserver(member);
+                Reservation waitingReservation = new Reservation(bookCopy, member);
+                waitingReservation.setStatus(ReservationStatus.WAITING);
+                reservationDAO.createReservation(waitingReservation);
                 System.out.printf("Member %s is now watching copy %d of '%s'.%n", member.getUsername(), bookCopy.getCopyId(), bookCopy.getBook().getTitle());
                 return false;
             }
             if (bookCopy.getState() instanceof ReservedState) {
                 System.err.printf("Book copy %d is already reserved.%n", bookCopy.getCopyId());
-                bookCopy.addObserver(member);
+                Reservation waitingReservation = new Reservation(bookCopy, member);
+                waitingReservation.setStatus(ReservationStatus.WAITING);
+                reservationDAO.createReservation(waitingReservation);
                 System.out.printf("Member %s is now watching copy %d of '%s'.%n", member.getUsername(), bookCopy.getCopyId(), bookCopy.getBook().getTitle());
                 return false;
             }
             if (bookCopy.getState() instanceof LoanedState) {
                 System.err.printf("Book copy %d is loaned right now.%n", bookCopy.getCopyId());
-                bookCopy.addObserver(member); // Add observer
+                Reservation waitingReservation = new Reservation(bookCopy, member);
+                waitingReservation.setStatus(ReservationStatus.WAITING);
+                reservationDAO.createReservation(waitingReservation);
                 System.out.printf("Member %s is now watching copy %d of '%s'.%n", member.getUsername(), bookCopy.getCopyId(), bookCopy.getBook().getTitle());
                 return false;
             }
