@@ -191,7 +191,7 @@ public class LibraryFacade {
             bookCopiesDAO.updateCopyStatus(bookCopy);
 
             if (member instanceof BookCopyObserver observer) {
-                observer.onBookCopyAvailable(bookCopy);
+                //observer.onBookCopyAvailable(bookCopy);
                 System.out.printf("Member %s observing availability of book %s%n",
                         member.getUsername(), bookCopy.getBook().getTitle());
             }
