@@ -4,7 +4,7 @@ DROP TYPE IF EXISTS user_role, book_status, reservation_status;
 
 CREATE TYPE user_role AS ENUM ('MEMBER', 'LIBRARIAN', 'ADMIN');
 CREATE TYPE book_status AS ENUM ('AVAILABLE', 'LOANED', 'RESERVED', 'UNDER_MAINTENANCE');
-CREATE TYPE reservation_status AS ENUM ('PENDING', 'FULFILLED', 'CANCELLED');
+CREATE TYPE reservation_status AS ENUM ('PENDING', 'FULFILLED', 'CANCELLED', 'WAITING');
 
 CREATE TABLE libraries
 (
