@@ -31,6 +31,13 @@ public interface IReservationDAO {
     List<Reservation> findCopyReservation(BookCopy bookCopy);
 
     List<Reservation> findCopyWaitingReservation(Long copyId);
+
+    List<Reservation> findCopyPendingReservation(Long copyId);
+
+    boolean hasOtherPendingReservations(Long copyId, Long reservationIdToExclude);
+
+    List
+
 }
 
 // TODO maybe add other methods to obtain information from the table

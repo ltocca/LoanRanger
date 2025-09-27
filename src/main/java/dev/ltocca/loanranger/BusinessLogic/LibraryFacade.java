@@ -142,11 +142,13 @@ public class LibraryFacade {
             loan.setReturnDate(LocalDate.now());
             //loan.endLoan();
             loanDAO.updateLoan(loan);
+            System.out.printf("Book copy %d returned. Processing next steps...%n", copyId);
+            processWaitingList(copy);
 
-            bookCopiesDAO.updateCopyStatus(copy);
+            /*bookCopiesDAO.updateCopyStatus(copy);
 
             System.out.printf("Book copy %d returned%n", copyId);
-            notifyReservations(copy.getBook().getIsbn()); // FIXME: maybe is not required anymore
+            notifyReservations(copy.getBook().getIsbn()); // FIXME: maybe is not required anymore*/
 
             return true;
         } catch (Exception e) {
@@ -210,54 +212,6 @@ public class LibraryFacade {
         }
     }
 
-    public boolean cancelReservation(Long reservationId, Member member) {
-        try {
-            Optional<Reservation> resOpt = reservationDAO.getReservationById(reservationId);
-            if (resOpt.isEmpty()) {
-                System.err.println("Reservation with ID " + reservationId + " not found.");
-                return false;
-            }
-
-            Reservation reservation = resOpt.get();
-
-            if (!reservation.getMember().getId().equals(member.getId())) {
-                System.err.println("Error: You do not have permission to cancel this reservation.");
-                return false;
-            }
-
-            if (reservation.getStatus() != ReservationStatus.PENDING) {
-                System.err.println("Error: This reservation cannot be cancelled (Status: " + reservation.getStatus() + ").");
-                return false;
-            }
-
-            // Update the reservation status to CANCELLED
-            reservation.setStatus(ReservationStatus.CANCELLED);
-            reservationDAO.updateStatus(reservationId, ReservationStatus.CANCELLED);
-
-            // Update the associated BookCopy's state if it's no longer reserved
-            BookCopy bookCopy = reservation.getBookCopy();
-            List<Reservation> otherReservations = reservationDAO.findCopyReservation(bookCopy.getCopyId());
-
-            // Check if there are any other PENDING reservations for this copy
-            boolean isStillReserved = otherReservations.stream()
-                    .anyMatch(r -> r.getStatus() == ReservationStatus.PENDING && !r.getId().equals(reservationId));
-
-            if (!isStillReserved && bookCopy.getState() instanceof ReservedState) {
-                bookCopy.markAsAvailable();
-                bookCopiesDAO.updateCopyStatus(bookCopy);
-                System.out.println("Book copy " + bookCopy.getCopyId() + " is now available.");
-            }
-
-            System.out.println("Reservation " + reservationId + " cancelled successfully.");
-            return true;
-
-        } catch (Exception e) {
-            System.err.println("An error occurred while cancelling the reservation: " + e.getMessage());
-            return false;
-        }
-    }
-
-
     public boolean placeReservation(long memberId, long copyId) {
         Optional<User> memberOpt = userDAO.getUserById(memberId);
         if (memberOpt.isEmpty() || !(memberOpt.get() instanceof Member member)) {
@@ -274,6 +228,69 @@ public class LibraryFacade {
         return placeReservation(member, bookCopyOpt.get());
     }
 
+    public boolean cancelReservation(Long reservationId, Member member) {
+        try {
+            Optional<Reservation> resOpt = reservationDAO.getReservationById(reservationId);
+            if (resOpt.isEmpty()) {
+                System.err.println("Reservation with ID " + reservationId + " not found.");
+                return false;
+            }
+
+            Reservation reservation = resOpt.get();
+
+            if (!reservation.getMember().getId().equals(member.getId())) {
+                System.err.println("Error: You do not have permission to cancel this reservation.");
+                return false;
+            }
+
+            if (reservation.getStatus() != ReservationStatus.PENDING && reservation.getStatus() != ReservationStatus.WAITING) {
+                System.err.println("Error: This reservation cannot be cancelled (Status: " + reservation.getStatus() + ").");
+                return false;
+            }
+
+            ReservationStatus originalStatus = reservation.getStatus();
+
+            reservationDAO.updateStatus(reservationId, ReservationStatus.CANCELLED);
+
+
+            if (originalStatus == ReservationStatus.PENDING) {
+                BookCopy bookCopy = reservation.getBookCopy();
+
+                // Defensive Check: As a safeguard, verify that this cancellation truly frees the book.
+                if (!reservationDAO.hasOtherPendingReservations(bookCopy.getCopyId(), reservationId)) {
+                    processWaitingList(bookCopy);
+                }
+            }
+
+            System.out.println("Reservation " + reservationId + " cancelled successfully.");
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("An error occurred while cancelling the reservation: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private void processWaitingList(BookCopy bookCopy) {
+        List<Reservation> waitingList = reservationDAO.findCopyWaitingReservation(bookCopy.getCopyId());
+
+        if (!waitingList.isEmpty()) {
+            Reservation nextInQueue = waitingList.get(0);
+            nextInQueue.setStatus(ReservationStatus.PENDING);
+            reservationDAO.updateStatus(nextInQueue.getId(), ReservationStatus.PENDING);
+
+            bookCopy.reserve();
+            System.out.printf("Book copy %d automatically reserved for member %s from the waiting list.%n",
+                    bookCopy.getCopyId(), nextInQueue.getMember().getUsername());
+
+            nextInQueue.getMember().onBookCopyAvailable(bookCopy);
+
+        } else { // no more waiting reservations
+            bookCopy.markAsAvailable();
+            System.out.printf("Book copy %d is now available.%n", bookCopy.getCopyId());
+        }
+        bookCopiesDAO.updateCopyStatus(bookCopy);
+    }
 
     public void putUnderMaintenance(BookCopy bookCopy) {
         try {
@@ -303,9 +320,12 @@ public class LibraryFacade {
                 System.err.printf("Book copy %d is not under maintenance.%n", bookCopy.getCopyId());
                 return;
             }
-            bookCopy.markAsAvailable(); // ensure implemented in BookCopy
+            /*bookCopy.markAsAvailable(); // ensure implemented in BookCopy
             bookCopiesDAO.updateCopyStatus(bookCopy);
-            System.out.printf("Book copy %d removed from maintenance and available.%n", bookCopy.getCopyId());
+            System.out.printf("Book copy %d removed from maintenance and available.%n", bookCopy.getCopyId());*/
+            System.out.printf("Book copy %d removed from maintenance. Processing...%n", bookCopy.getCopyId());
+            processWaitingList(bookCopy);
+
         } catch (Exception e) {
             throw new RuntimeException(String.format("Error removing book copy %s from maintenance!", bookCopy.getCopyId()), e);
         }
