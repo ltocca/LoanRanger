@@ -34,9 +34,13 @@ public interface IReservationDAO {
 
     List<Reservation> findCopyPendingReservation(Long copyId);
 
-    boolean hasOtherPendingReservations(Long copyId, Long reservationIdToExclude);
+    List<Reservation> findReservationsByLibrary(Long libraryId);
 
-    List
+    List<Reservation> findActiveReservationsByLibrary(Long libraryId);
+
+    List<Reservation> findPastReservationsByLibrary(Long libraryId);
+
+    boolean hasOtherPendingReservations(Long copyId, Long reservationIdToExclude);
 
 }
 

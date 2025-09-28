@@ -35,7 +35,7 @@ public class Member extends User implements BookCopyObserver {
         String message = "Dear " + this.getName() + ",\n" +
                 "The book '" + bookCopy.getBook().getTitle() + "' by " + bookCopy.getBook().getAuthor() +
                 " (Copy ID: " + bookCopy.getCopyId() + ") that you reserved is now available.\n" +
-                "Please visit the library " + bookCopy.getLibrary().getName() + "soon to borrow it!";
+                "Please visit the library " + bookCopy.getLibrary().getName() + " soon to borrow it!";
         emailService.sendEmail(this.getEmail(), subject, message);
     }
 }

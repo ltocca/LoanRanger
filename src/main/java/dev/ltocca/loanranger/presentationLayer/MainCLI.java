@@ -121,15 +121,17 @@ public class MainCLI {
             System.out.println("3. Renew a Loan");
             System.out.println("--- Library Monitoring ---");
             System.out.println("4. View Library Loans (Active/Overdue)");
+            System.out.println("5. View Library Reservations (Active/Past)");
             System.out.println("--- Book Inventory ---");
-            System.out.println("5. Search Books");
-            System.out.println("6. Place Copy Under Maintenance");
-            System.out.println("7. Remove Copy from Maintenance");
+            System.out.println("6. Search Books");
+            System.out.println("7. Add New Book Copy");
+            System.out.println("8. Place Copy Under Maintenance");
+            System.out.println("9. Remove Copy from Maintenance");
             System.out.println("--- My Account ---");
-            System.out.println("8. Change Username");
-            System.out.println("9. Change Email");
-            System.out.println("10. Change Password");
-            System.out.println("11. Logout");
+            System.out.println("10. Change Username");
+            System.out.println("11. Change Email");
+            System.out.println("12. Change Password");
+            System.out.println("13. Logout");
         } else if (currentUser instanceof Admin) {
             System.out.println("--- Admin Menu ---");
             System.out.println("--- Library Management ---");
@@ -438,24 +440,30 @@ public class MainCLI {
                 handleLibrarianViewLoans(bookCtrl);
                 break;
             case "5":
-                handleLibrarianBookSearch(bookCtrl);
+                handleLibrarianViewReservations(bookCtrl);
                 break;
             case "6":
-                handleLibrarianMaintenance(bookCtrl, true);
+                handleLibrarianBookSearch(bookCtrl);
                 break;
             case "7":
-                handleLibrarianMaintenance(bookCtrl, false);
+                handleLibrarianAddBookCopy(bookCtrl);
                 break;
             case "8":
-                handleLibrarianChangeUsername(accountCtrl);
+                handleLibrarianMaintenance(bookCtrl, true);
                 break;
             case "9":
-                handleLibrarianChangeEmail(accountCtrl);
+                handleLibrarianMaintenance(bookCtrl, false);
                 break;
             case "10":
-                handleLibrarianChangePassword(accountCtrl);
+                handleLibrarianChangeUsername(accountCtrl);
                 break;
             case "11":
+                handleLibrarianChangeEmail(accountCtrl);
+                break;
+            case "12":
+                handleLibrarianChangePassword(accountCtrl);
+                break;
+            case "13":
                 currentUser = null;
                 break;
             default:
@@ -539,6 +547,52 @@ public class MainCLI {
         }
     }
 
+    private static void handleLibrarianViewReservations(LibrarianBookController bookCtrl) throws SQLException {
+        System.out.println("\n--- View Library Reservations ---");
+        System.out.println("1. View Active (Pending) Reservations");
+        System.out.println("2. View Past Reservations");
+        System.out.println("3. View Full Reservation History");
+        System.out.print("Choose an option: ");
+        String choice = scanner.nextLine();
+
+        List<Reservation> reservations;
+        switch (choice) {
+            case "1":
+                reservations = bookCtrl.getActiveReservations();
+                System.out.println("\n--- Active Reservations in This Library ---");
+                break;
+            case "2":
+                reservations = bookCtrl.getPastReservations();
+                System.out.println("\n--- Past Reservations in This Library ---");
+                break;
+            case "3":
+                reservations = bookCtrl.getAllReservations();
+                System.out.println("\n--- Full Reservation History for This Library ---");
+                break;
+            default:
+                System.err.println("Invalid option.");
+                return;
+        }
+
+        if (reservations.isEmpty()) {
+            System.out.println("No reservations found for this category.");
+        } else {
+            String format = "%-10s | %-7s | %-30.30s | %-7s | %-20.20s | %-12s | %-15s%n";
+            System.out.printf(format, "Res. ID", "Copy ID", "Title", "Mem. ID", "Member Name", "Res. Date", "Status");
+            System.out.println(String.join("", Collections.nCopies(130, "-")));
+            for (Reservation r : reservations) {
+                System.out.printf(format,
+                        r.getId(),
+                        r.getBookCopy().getCopyId(),
+                        r.getBookCopy().getBook().getTitle(),
+                        r.getMember().getId(),
+                        r.getMember().getName(),
+                        r.getReservationDate(),
+                        r.getStatus());
+            }
+        }
+    }
+
     private static void handleLibrarianRenewLoan(LibrarianBookController bookCtrl) {
         Long loanId = promptForLong("Enter Loan ID to renew");
         if (loanId != null) {
@@ -550,7 +604,7 @@ public class MainCLI {
         }
     }
 
-    private static void handleLibrarianBookSearch(LibrarianBookController bookCtrl) { // TODO: add way to add copy to library
+    private static void handleLibrarianBookSearch(LibrarianBookController bookCtrl) {
         System.out.println("\n--- Choose Search Scope ---");
         System.out.println("1. Search in My Library Only");
         System.out.println("2. Search System-wide");
@@ -599,6 +653,17 @@ public class MainCLI {
                     c.getBook().getAuthor(),
                     String.format("%s (%d)", c.getLibrary().getName(), c.getLibrary().getId()),
                     c.getState().getStatus()));
+        }
+    }
+
+    private static void handleLibrarianAddBookCopy(LibrarianBookController bookCtrl) {
+        System.out.print("Enter the ISBN of the book to add a new copy: ");
+        String isbn = scanner.nextLine();
+        try {
+            bookCtrl.addBookCopy(isbn);
+            System.out.println("New book copy added successfully.");
+        } catch (Exception e) {
+            System.err.println("Error adding book copy: " + e.getMessage());
         }
     }
 

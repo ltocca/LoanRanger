@@ -237,6 +237,67 @@ public class ReservationDAO implements IReservationDAO {
         return reservations;
     }
 
+    @Override
+    public List<Reservation> findReservationsByLibrary(Long libraryId) {
+        if (libraryId == null) {
+            throw new IllegalArgumentException("libraryId ID cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, libraryId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding reservations for this library ID " + libraryId, e);
+        }
+        return reservations;
+
+    }
+
+    @Override
+    public List<Reservation> findActiveReservationsByLibrary(Long libraryId) {
+        if (libraryId == null) {
+            throw new IllegalArgumentException("libraryId cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? AND r.status IN ('PENDING', 'WAITING') ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, libraryId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding active reservations for library ID " + libraryId, e);
+        }
+        return reservations;
+    }
+
+    @Override
+    public List<Reservation> findPastReservationsByLibrary(Long libraryId) {
+        if (libraryId == null) {
+            throw new IllegalArgumentException("libraryId cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? AND r.status IN ('CANCELLED', 'FULFILLED') ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, libraryId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding past reservations for library ID " + libraryId, e);
+        }
+        return reservations;
+    }
+
 
     // used to find if there is at least another pending reservation (cancel reservation)
     @Override

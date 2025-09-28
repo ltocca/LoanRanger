@@ -29,6 +29,19 @@ public class LibrarianBookController {
 
     }
 
+    public void addBookCopy(String isbn) throws SQLException {
+        try {
+            BookCopy newCopy = libraryFacade.createBookCopy(isbn, librarian.getWorkLibrary());
+            if (newCopy != null) {
+                System.out.printf("New copy added with ID %d for book ISBN %s.%n", newCopy.getCopyId(), isbn);
+            } else {
+                System.err.println("Failed to add new book copy.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error adding book copy: " + e.getMessage());
+        }
+    }
+
     public Boolean loanBookToMember(Long memberId, Long copyId, LocalDate dueDate) {
         User user = null;
         try {
@@ -161,23 +174,32 @@ public class LibrarianBookController {
         return overdueLoans;
     }
 
-    public List<Reservation> getActiveReservations() {
+    public List<Reservation> getActiveReservations() throws SQLException {
         try {
-            List<Reservation> result = new ArrayList<>();
-            for (BookCopy copy : bookCopiesDAO.findLibraryCopies(librarian.getWorkLibrary())) {
-                for (Reservation r : reservationDAO.findCopyReservation(copy)) {
-                    if (r.getStatus() == ReservationStatus.PENDING) {
-                        result.add(r);
-                    }
-                }
-            }
-            return result;
+            return reservationDAO.findActiveReservationsByLibrary(librarian.getWorkLibrary().getId());
         } catch (Exception e) {
-            System.err.println("Error fetching reservations: " + e.getMessage());
+            System.err.println("Error fetching active reservations: " + e.getMessage());
             return List.of();
         }
     }
 
+    public List<Reservation> getPastReservations() throws SQLException {
+        try {
+            return reservationDAO.findPastReservationsByLibrary(librarian.getWorkLibrary().getId());
+        } catch (Exception e) {
+            System.err.println("Error fetching past reservations: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    public List<Reservation> getAllReservations() throws SQLException {
+        try {
+            return reservationDAO.findReservationsByLibrary(librarian.getWorkLibrary().getId());
+        } catch (Exception e) {
+            System.err.println("Error fetching all reservations: " + e.getMessage());
+            return List.of();
+        }
+    }
 
     public List<BookCopy> searchBookCopies(String query) {
         List<BookCopy> results = searchService.smartSearch(query);
