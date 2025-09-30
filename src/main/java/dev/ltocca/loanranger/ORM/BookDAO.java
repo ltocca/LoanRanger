@@ -1,6 +1,6 @@
 package dev.ltocca.loanranger.ORM;
 
-import dev.ltocca.loanranger.DomainModel.Book;
+import dev.ltocca.loanranger.domainModel.Book;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IBookDAO;
 
 import java.sql.*;
@@ -17,7 +17,7 @@ public class BookDAO implements IBookDAO {
 
     @Override
     public Book createBook(Book book) {
-        String sql = "INSERT INTO books (title, author, year, genre) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO books (title, author, publication_year, genre) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, book.getTitle());
             pstmt.setString(2, book.getAuthor());
@@ -166,7 +166,7 @@ public class BookDAO implements IBookDAO {
         String isbn = rs.getString("isbn");
         String title = rs.getString("title");
         String author = rs.getString("author");
-        int year = rs.getInt("year");
+        int year = rs.getInt("publication_year");
         String genre = rs.getString("genre");
         return new Book(isbn, title, author, year, genre);
     }

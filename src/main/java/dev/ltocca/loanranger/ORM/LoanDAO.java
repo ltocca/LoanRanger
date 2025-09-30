@@ -1,7 +1,7 @@
 package dev.ltocca.loanranger.ORM;
 
-import dev.ltocca.loanranger.DomainModel.*;
-import dev.ltocca.loanranger.DomainModel.State.*;
+import dev.ltocca.loanranger.domainModel.*;
+import dev.ltocca.loanranger.domainModel.State.*;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.ILoanDAO;
 
 import java.sql.*;

@@ -1,5 +1,6 @@
 CREATE TYPE user_role AS ENUM ('MEMBER', 'LIBRARIAN', 'ADMIN');
 CREATE TYPE book_status AS ENUM ('AVAILABLE', 'LOANED', 'RESERVED', 'UNDER_MAINTENANCE');
+CREATE TYPE reservation_status AS ENUM ('PENDING', 'FULFILLED', 'CANCELLED', 'WAITING');
 
 CREATE TABLE libraries
 (
@@ -59,8 +60,8 @@ CREATE TABLE reservations
     reservation_id   BIGSERIAL PRIMARY KEY,
     copy_id          BIGINT NOT NULL,
     member_id        BIGINT NOT NULL,
-    reservation_date DATE   NOT NULL DEFAULT CURRENT_DATE,
-    status           VARCHAR(50)     DEFAULT 'PENDING', -- PENDING, FULFILLED, CANCELED
+    reservation_date DATE NOT NULL      DEFAULT CURRENT_DATE,
+    status           reservation_status DEFAULT 'PENDING', -- PENDING, FULFILLED, CANCELED
     FOREIGN KEY (copy_id) REFERENCES book_copies (copy_id) ON DELETE CASCADE,
     FOREIGN KEY (member_id) REFERENCES users (user_id) ON DELETE CASCADE
 );

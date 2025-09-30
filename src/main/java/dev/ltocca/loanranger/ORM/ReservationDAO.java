@@ -1,11 +1,11 @@
 package dev.ltocca.loanranger.ORM;
 
-import dev.ltocca.loanranger.DomainModel.*;
-import dev.ltocca.loanranger.DomainModel.State.AvailabilityState;
-import dev.ltocca.loanranger.DomainModel.State.AvailableState;
-import dev.ltocca.loanranger.DomainModel.State.LoanedState;
-import dev.ltocca.loanranger.DomainModel.State.ReservedState;
-import dev.ltocca.loanranger.DomainModel.State.UnderMaintenanceState;
+import dev.ltocca.loanranger.domainModel.*;
+import dev.ltocca.loanranger.domainModel.State.AvailabilityState;
+import dev.ltocca.loanranger.domainModel.State.AvailableState;
+import dev.ltocca.loanranger.domainModel.State.LoanedState;
+import dev.ltocca.loanranger.domainModel.State.ReservedState;
+import dev.ltocca.loanranger.domainModel.State.UnderMaintenanceState;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IReservationDAO;
 
 import java.sql.*;
@@ -191,6 +191,127 @@ public class ReservationDAO implements IReservationDAO {
             throw new IllegalArgumentException("The book copy and its ID cannot be null.");
         }
         return findCopyReservation(bookCopy.getCopyId());
+    }
+
+    @Override
+    public List<Reservation> findCopyWaitingReservation(Long copyId) {
+        if (copyId == null) {
+            throw new IllegalArgumentException("Copy ID cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL +
+                " WHERE r.copy_id = ? AND r.status = 'WAITING'" +
+                " ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, copyId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding 'waiting' reservations for copy ID " + copyId, e);
+        }
+        return reservations;
+    }
+
+    @Override
+    public List<Reservation> findCopyPendingReservation(Long copyId) {
+        if (copyId == null) {
+            throw new IllegalArgumentException("Copy ID cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL +
+                " WHERE r.copy_id = ? AND r.status = 'PENDING'" +
+                " ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, copyId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding 'pending' reservations for copy ID " + copyId, e);
+        }
+        return reservations;
+    }
+
+    @Override
+    public List<Reservation> findReservationsByLibrary(Long libraryId) {
+        if (libraryId == null) {
+            throw new IllegalArgumentException("libraryId ID cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, libraryId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding reservations for this library ID " + libraryId, e);
+        }
+        return reservations;
+
+    }
+
+    @Override
+    public List<Reservation> findActiveReservationsByLibrary(Long libraryId) {
+        if (libraryId == null) {
+            throw new IllegalArgumentException("libraryId cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? AND r.status IN ('PENDING', 'WAITING') ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, libraryId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding active reservations for library ID " + libraryId, e);
+        }
+        return reservations;
+    }
+
+    @Override
+    public List<Reservation> findPastReservationsByLibrary(Long libraryId) {
+        if (libraryId == null) {
+            throw new IllegalArgumentException("libraryId cannot be null.");
+        }
+        List<Reservation> reservations = new ArrayList<>();
+        String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? AND r.status IN ('CANCELLED', 'FULFILLED') ORDER BY r.reservation_date ASC";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, libraryId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    reservations.add(mapRowToReservation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error finding past reservations for library ID " + libraryId, e);
+        }
+        return reservations;
+    }
+
+
+    // used to find if there is at least another pending reservation (cancel reservation)
+    @Override
+    public boolean hasOtherPendingReservations(Long copyId, Long reservationIdToExclude) {
+        String sql = "SELECT 1 FROM reservations WHERE copy_id = ? AND status = 'PENDING' AND reservation_id != ? LIMIT 1";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, copyId);
+            pstmt.setLong(2, reservationIdToExclude);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error checking for other pending reservations for copy ID " + copyId, e);
+        }
     }
 
     private Reservation mapRowToReservation(ResultSet rs) throws SQLException {

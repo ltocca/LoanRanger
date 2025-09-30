@@ -1,7 +1,7 @@
 package dev.ltocca.loanranger.presentationLayer;
 
-import dev.ltocca.loanranger.BusinessLogic.*;
-import dev.ltocca.loanranger.DomainModel.*;
+import dev.ltocca.loanranger.businessLogic.*;
+import dev.ltocca.loanranger.domainModel.*;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -121,15 +121,17 @@ public class MainCLI {
             System.out.println("3. Renew a Loan");
             System.out.println("--- Library Monitoring ---");
             System.out.println("4. View Library Loans (Active/Overdue)");
+            System.out.println("5. View Library Reservations (Active/Past)");
             System.out.println("--- Book Inventory ---");
-            System.out.println("5. Search Books");
-            System.out.println("6. Place Copy Under Maintenance");
-            System.out.println("7. Remove Copy from Maintenance");
+            System.out.println("6. Search Books");
+            System.out.println("7. Add New Book Copy");
+            System.out.println("8. Place Copy Under Maintenance");
+            System.out.println("9. Remove Copy from Maintenance");
             System.out.println("--- My Account ---");
-            System.out.println("8. Change Username");
-            System.out.println("9. Change Email");
-            System.out.println("10. Change Password");
-            System.out.println("11. Logout");
+            System.out.println("10. Change Username");
+            System.out.println("11. Change Email");
+            System.out.println("12. Change Password");
+            System.out.println("13. Logout");
         } else if (currentUser instanceof Admin) {
             System.out.println("--- Admin Menu ---");
             System.out.println("--- Library Management ---");
@@ -144,8 +146,11 @@ public class MainCLI {
             System.out.println("8. List All Users");
             System.out.println("--- System ---");
             System.out.println("9. Seed Database with Default Data");
-            System.out.println("10. !! Recreate Database (Schema + Admin) !!");
-            System.out.println("11. Logout");
+            System.out.println("10. Recreate Database (Schema + Admin)");
+            System.out.println("--- My Account ---");
+            System.out.println("11. Change Email");
+            System.out.println("12. Change Password");
+            System.out.println("13. Logout");
         }
     }
 
@@ -438,24 +443,30 @@ public class MainCLI {
                 handleLibrarianViewLoans(bookCtrl);
                 break;
             case "5":
-                handleLibrarianBookSearch(bookCtrl);
+                handleLibrarianViewReservations(bookCtrl);
                 break;
             case "6":
-                handleLibrarianMaintenance(bookCtrl, true);
+                handleLibrarianBookSearch(bookCtrl);
                 break;
             case "7":
-                handleLibrarianMaintenance(bookCtrl, false);
+                handleLibrarianAddBookCopy(bookCtrl);
                 break;
             case "8":
-                handleLibrarianChangeUsername(accountCtrl);
+                handleLibrarianMaintenance(bookCtrl, true);
                 break;
             case "9":
-                handleLibrarianChangeEmail(accountCtrl);
+                handleLibrarianMaintenance(bookCtrl, false);
                 break;
             case "10":
-                handleLibrarianChangePassword(accountCtrl);
+                handleLibrarianChangeUsername(accountCtrl);
                 break;
             case "11":
+                handleLibrarianChangeEmail(accountCtrl);
+                break;
+            case "12":
+                handleLibrarianChangePassword(accountCtrl);
+                break;
+            case "13":
                 currentUser = null;
                 break;
             default:
@@ -539,6 +550,52 @@ public class MainCLI {
         }
     }
 
+    private static void handleLibrarianViewReservations(LibrarianBookController bookCtrl) throws SQLException {
+        System.out.println("\n--- View Library Reservations ---");
+        System.out.println("1. View Active (Pending) Reservations");
+        System.out.println("2. View Past Reservations");
+        System.out.println("3. View Full Reservation History");
+        System.out.print("Choose an option: ");
+        String choice = scanner.nextLine();
+
+        List<Reservation> reservations;
+        switch (choice) {
+            case "1":
+                reservations = bookCtrl.getActiveReservations();
+                System.out.println("\n--- Active Reservations in This Library ---");
+                break;
+            case "2":
+                reservations = bookCtrl.getPastReservations();
+                System.out.println("\n--- Past Reservations in This Library ---");
+                break;
+            case "3":
+                reservations = bookCtrl.getAllReservations();
+                System.out.println("\n--- Full Reservation History for This Library ---");
+                break;
+            default:
+                System.err.println("Invalid option.");
+                return;
+        }
+
+        if (reservations.isEmpty()) {
+            System.out.println("No reservations found for this category.");
+        } else {
+            String format = "%-10s | %-7s | %-30.30s | %-7s | %-20.20s | %-12s | %-15s%n";
+            System.out.printf(format, "Res. ID", "Copy ID", "Title", "Mem. ID", "Member Name", "Res. Date", "Status");
+            System.out.println(String.join("", Collections.nCopies(130, "-")));
+            for (Reservation r : reservations) {
+                System.out.printf(format,
+                        r.getId(),
+                        r.getBookCopy().getCopyId(),
+                        r.getBookCopy().getBook().getTitle(),
+                        r.getMember().getId(),
+                        r.getMember().getName(),
+                        r.getReservationDate(),
+                        r.getStatus());
+            }
+        }
+    }
+
     private static void handleLibrarianRenewLoan(LibrarianBookController bookCtrl) {
         Long loanId = promptForLong("Enter Loan ID to renew");
         if (loanId != null) {
@@ -602,6 +659,17 @@ public class MainCLI {
         }
     }
 
+    private static void handleLibrarianAddBookCopy(LibrarianBookController bookCtrl) {
+        System.out.print("Enter the ISBN of the book to add a new copy: ");
+        String isbn = scanner.nextLine();
+        try {
+            bookCtrl.addBookCopy(isbn);
+            System.out.println("New book copy added successfully.");
+        } catch (Exception e) {
+            System.err.println("Error adding book copy: " + e.getMessage());
+        }
+    }
+
     private static void handleLibrarianMaintenance(LibrarianBookController bookCtrl, boolean placeUnder) {
         String action = placeUnder ? "place under" : "remove from";
         Long copyId = promptForLong("Enter Copy ID to " + action + " maintenance");
@@ -652,40 +720,49 @@ public class MainCLI {
 
 
     // --- ADMIN ACTION HANDLERS ---
-    private static void handleAdminActions(Admin admin, String choice) throws SQLException {
-        AdminController adminCtrl = new AdminController(admin);
+    private static void handleAdminActions(Admin admin, String choice) throws SQLException { // TODO: handle possible credential updating
+        AdminBookController bookCtrl = new AdminBookController(admin);
+        AdminUsersController usersCtrl = new AdminUsersController(admin);
+        AdminDatabaseController dbCtrl = new AdminDatabaseController(admin);
+        AdminAccountController accountCtrl = new AdminAccountController(admin);
         switch (choice) {
             case "1":
-                handleAdminAddLibrary(adminCtrl);
+                handleAdminAddLibrary(bookCtrl);
                 break;
             case "2":
-                handleAdminUpdateLibrary(adminCtrl);
+                handleAdminUpdateLibrary(bookCtrl);
                 break;
             case "3":
-                handleAdminRemoveLibrary(adminCtrl);
+                handleAdminRemoveLibrary(bookCtrl);
                 break;
             case "4":
-                handleAdminListLibraries(adminCtrl);
+                handleAdminListLibraries(bookCtrl);
                 break;
             case "5":
-                handleAdminRegisterLibrarian(adminCtrl);
+                handleAdminRegisterLibrarian(usersCtrl);
                 break;
             case "6":
-                handleAdminReassignLibrarian(adminCtrl);
+                handleAdminReassignLibrarian(usersCtrl);
                 break;
             case "7":
-                handleAdminDeleteUser(adminCtrl);
+                handleAdminDeleteUser(usersCtrl);
                 break;
             case "8":
-                handleAdminListUsers(adminCtrl);
+                handleAdminListUsers(usersCtrl);
                 break;
             case "9":
-                handleAdminDefaultDatabase(adminCtrl);
+                handleAdminDefaultDatabase(dbCtrl);
                 break;
             case "10":
-                handleAdminRecreateDatabase(adminCtrl);
+                handleAdminRecreateDatabase(dbCtrl);
                 break;
             case "11":
+                handleAdminChangeEmail(accountCtrl);
+                break;
+            case "12":
+                handleAdminChangePassword(accountCtrl);
+                break;
+            case "13":
                 currentUser = null;
                 break;
             default:
@@ -693,7 +770,7 @@ public class MainCLI {
         }
     }
 
-    private static void handleAdminAddLibrary(AdminController adminCtrl) {
+    private static void handleAdminAddLibrary(AdminBookController bookCtrl) {
         System.out.print("Enter library name: ");
         String name = scanner.nextLine();
         System.out.print("Enter address: ");
@@ -702,10 +779,10 @@ public class MainCLI {
         String phone = scanner.nextLine();
         System.out.print("Enter email: ");
         String email = scanner.nextLine();
-        adminCtrl.addLibrary(name, address, phone, email);
+        bookCtrl.addLibrary(name, address, phone, email);
     }
 
-    private static void handleAdminUpdateLibrary(AdminController adminCtrl) {
+    private static void handleAdminUpdateLibrary(AdminBookController bookCtrl) {
         Long libraryId = promptForLong("Enter the ID of the library to update");
         if (libraryId == null) return;
 
@@ -717,61 +794,23 @@ public class MainCLI {
         String phone = scanner.nextLine();
         System.out.print("Enter new email (or press Enter to keep current): ");
         String email = scanner.nextLine();
-        adminCtrl.updateLibrary(libraryId, name, address, phone, email);
+        bookCtrl.updateLibrary(libraryId, name, address, phone, email);
     }
 
-    private static void handleAdminRemoveLibrary(AdminController adminCtrl) {
+    private static void handleAdminRemoveLibrary(AdminBookController bookCtrl) {
         Long libraryId = promptForLong("Enter the ID of the library to remove");
         if (libraryId == null) return;
 
         System.err.print("WARNING: This will remove the library and all its book copies. This cannot be undone. Type 'CONFIRM' to proceed: ");
         String confirmation = scanner.nextLine();
         if (confirmation.equals("CONFIRM")) {
-            adminCtrl.removeLibrary(libraryId);
+            bookCtrl.removeLibrary(libraryId);
         } else {
             System.out.println("Removal cancelled.");
         }
     }
-
-    private static void handleAdminReassignLibrarian(AdminController adminCtrl) {
-        Long librarianId = promptForLong("Enter the Librarian's User ID");
-        Long libraryId = promptForLong("Enter the new Library ID to assign them to");
-        if (librarianId != null && libraryId != null) {
-            adminCtrl.assignLibrarianToLibrary(librarianId, libraryId);
-        }
-    }
-
-    private static void handleAdminRegisterLibrarian(AdminController adminCtrl) {
-        System.out.print("Enter librarian's username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter librarian's full name: ");
-        String name = scanner.nextLine();
-        System.out.print("Enter librarian's email: ");
-        String email = scanner.nextLine();
-        System.out.print("Enter a temporary password: ");
-        String password = scanner.nextLine();
-        Long libraryId = promptForLong("Enter the Library ID to assign this librarian to");
-        if (libraryId != null) {
-            adminCtrl.registerNewLibrarian(username, name, email, password, libraryId);
-        }
-    }
-
-    private static void handleAdminDeleteUser(AdminController adminCtrl) {
-        Long userId = promptForLong("Enter the User ID to delete");
-        if (userId == null) return;
-
-        System.err.print("WARNING: This will permanently delete the user and all their associated loans and reservations. Type 'CONFIRM' to proceed: ");
-        String confirmation = scanner.nextLine();
-        if (confirmation.equals("CONFIRM")) {
-            adminCtrl.deleteUser(userId);
-        } else {
-            System.out.println("Deletion cancelled.");
-        }
-    }
-
-
-    private static void handleAdminListLibraries(AdminController adminCtrl) {
-        List<Library> libraries = adminCtrl.listAllLibraries();
+    private static void handleAdminListLibraries(AdminBookController bookCtrl) {
+        List<Library> libraries = bookCtrl.listAllLibraries();
         if (libraries.isEmpty()) {
             System.out.println("No libraries found in the system.");
         } else {
@@ -783,8 +822,45 @@ public class MainCLI {
         }
     }
 
-    private static void handleAdminListUsers(AdminController adminCtrl) {
-        List<User> users = adminCtrl.listAllUsers();
+    private static void handleAdminReassignLibrarian(AdminUsersController usersCtrl) {
+        Long librarianId = promptForLong("Enter the Librarian's User ID");
+        Long libraryId = promptForLong("Enter the new Library ID to assign them to");
+        if (librarianId != null && libraryId != null) {
+            usersCtrl.assignLibrarianToLibrary(librarianId, libraryId);
+        }
+    }
+
+    private static void handleAdminRegisterLibrarian(AdminUsersController usersCtrl) {
+        System.out.print("Enter librarian's username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter librarian's full name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter librarian's email: ");
+        String email = scanner.nextLine();
+        System.out.print("Enter a temporary password: ");
+        String password = scanner.nextLine();
+        Long libraryId = promptForLong("Enter the Library ID to assign this librarian to");
+        if (libraryId != null) {
+            usersCtrl.registerNewLibrarian(username, name, email, password, libraryId);
+        }
+    }
+
+    private static void handleAdminDeleteUser(AdminUsersController usersCtrl) {
+        Long userId = promptForLong("Enter the User ID to delete");
+        if (userId == null) return;
+
+        System.err.print("WARNING: This will permanently delete the user and all their associated loans and reservations. Type 'CONFIRM' to proceed: ");
+        String confirmation = scanner.nextLine();
+        if (confirmation.equals("CONFIRM")) {
+            usersCtrl.deleteUser(userId);
+        } else {
+            System.out.println("Deletion cancelled.");
+        }
+    }
+
+
+    private static void handleAdminListUsers(AdminUsersController usersCtrl) {
+        List<User> users = usersCtrl.listAllUsers();
         if (users.isEmpty()) {
             System.out.println("No users found.");
         } else {
@@ -806,7 +882,7 @@ public class MainCLI {
     }
 
 
-    private static void handleAdminRecreateDatabase(AdminController adminCtrl) {
+    private static void handleAdminRecreateDatabase(AdminDatabaseController dbCtrl) {
         System.err.println("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         System.err.println("!! WARNING: THIS WILL DELETE ALL DATA IN THE DATABASE !!");
         System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -814,22 +890,46 @@ public class MainCLI {
         String confirmation = scanner.nextLine();
 
         if (confirmation.equals("YES, RECREATE DATABASE")) {
-            adminCtrl.recreateSchemaAndAdmin();
+            dbCtrl.recreateSchemaAndAdmin();
         } else {
             System.out.println("Database recreation cancelled.");
         }
     }
 
-    private static void handleAdminDefaultDatabase(AdminController adminCtrl) {
+    private static void handleAdminDefaultDatabase(AdminDatabaseController dbCtrl) {
         System.out.println("\nThis will populate the database with a default set of test data.");
         System.err.println("WARNING: This should only be run on a clean database. Run the 'Recreate Database' option first if you are unsure.");
         System.out.print("Are you sure you want to continue? (y/n): ");
         String confirmation = scanner.nextLine();
 
         if (confirmation.equalsIgnoreCase("y")) {
-            adminCtrl.generateDefaultDatabase();
+            dbCtrl.generateDefaultDatabase();
         } else {
             System.out.println("Operation cancelled.");
+        }
+    }
+
+    private static void handleAdminChangeEmail(AdminAccountController accountCtrl) {
+        System.out.print("Enter new email: ");
+        String newEmail = scanner.nextLine();
+        try {
+            accountCtrl.changeEmail(newEmail);
+            System.out.println("Email updated successfully.");
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static void handleAdminChangePassword(AdminAccountController accountCtrl) {
+        System.out.print("Enter current password: ");
+        String currentPass = scanner.nextLine();
+        System.out.print("Enter new password: ");
+        String newPass = scanner.nextLine();
+        try {
+            accountCtrl.changePassword(currentPass, newPass);
+            System.out.println("Password updated successfully.");
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
