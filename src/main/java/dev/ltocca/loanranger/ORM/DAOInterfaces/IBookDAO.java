@@ -1,6 +1,6 @@
 package dev.ltocca.loanranger.ORM.DAOInterfaces;
 
-import dev.ltocca.loanranger.DomainModel.Book;
+import dev.ltocca.loanranger.domainModel.Book;
 
 import java.util.List;
 import java.util.Optional;

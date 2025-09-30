@@ -1,9 +1,9 @@
 package dev.ltocca.loanranger.ORM.DAOInterfaces;
 
-import dev.ltocca.loanranger.DomainModel.BookCopy;
-import dev.ltocca.loanranger.DomainModel.Library;
-import dev.ltocca.loanranger.DomainModel.Loan;
-import dev.ltocca.loanranger.DomainModel.Member;
+import dev.ltocca.loanranger.domainModel.BookCopy;
+import dev.ltocca.loanranger.domainModel.Library;
+import dev.ltocca.loanranger.domainModel.Loan;
+import dev.ltocca.loanranger.domainModel.Member;
 
 import java.time.LocalDate;
 import java.util.List;

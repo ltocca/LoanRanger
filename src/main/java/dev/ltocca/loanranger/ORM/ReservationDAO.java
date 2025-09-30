@@ -1,11 +1,11 @@
 package dev.ltocca.loanranger.ORM;
 
-import dev.ltocca.loanranger.DomainModel.*;
-import dev.ltocca.loanranger.DomainModel.State.AvailabilityState;
-import dev.ltocca.loanranger.DomainModel.State.AvailableState;
-import dev.ltocca.loanranger.DomainModel.State.LoanedState;
-import dev.ltocca.loanranger.DomainModel.State.ReservedState;
-import dev.ltocca.loanranger.DomainModel.State.UnderMaintenanceState;
+import dev.ltocca.loanranger.domainModel.*;
+import dev.ltocca.loanranger.domainModel.State.AvailabilityState;
+import dev.ltocca.loanranger.domainModel.State.AvailableState;
+import dev.ltocca.loanranger.domainModel.State.LoanedState;
+import dev.ltocca.loanranger.domainModel.State.ReservedState;
+import dev.ltocca.loanranger.domainModel.State.UnderMaintenanceState;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IReservationDAO;
 
 import java.sql.*;

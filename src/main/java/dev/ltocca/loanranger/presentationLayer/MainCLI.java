@@ -1,7 +1,7 @@
 package dev.ltocca.loanranger.presentationLayer;
 
-import dev.ltocca.loanranger.BusinessLogic.*;
-import dev.ltocca.loanranger.DomainModel.*;
+import dev.ltocca.loanranger.businessLogic.*;
+import dev.ltocca.loanranger.domainModel.*;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
