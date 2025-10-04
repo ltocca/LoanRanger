@@ -3,16 +3,19 @@ package dev.ltocca.loanranger.ORM;
 import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.domainModel.State.*;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IBookCopiesDAO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class BookCopiesDAO implements IBookCopiesDAO {
-    private final Connection connection;
+    private final DataSource dataSource;
 
-    // A single, reusable JOIN query to build the entire BookCopy object graph efficiently. -- AI Generated
     private static final String BOOK_COPY_SELECT_SQL =
             "SELECT bc.copy_id, bc.status, " +
                     "b.isbn, b.title, b.author, b.publication_year, b.genre, " +
@@ -21,14 +24,16 @@ public class BookCopiesDAO implements IBookCopiesDAO {
                     "JOIN books b ON bc.isbn = b.isbn " +
                     "JOIN libraries l ON bc.library_id = l.library_id";
 
-    public BookCopiesDAO() throws SQLException {
-        this.connection = ConnectionManager.getInstance().getConnection();
+    @Autowired
+    public BookCopiesDAO(DataSource dataSource)  {
+        this.dataSource = dataSource;
     }
 
     @Override
     public BookCopy createCopy(BookCopy bookCopy) {
         String sql = "INSERT INTO book_copies (isbn, library_id, status) VALUES (?, ?, ?::book_status)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, bookCopy.getBook().getIsbn());
             pstmt.setLong(2, bookCopy.getLibrary().getId());
             pstmt.setString(3, bookCopy.getState().getStatus());
@@ -50,7 +55,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     @Override
     public Optional<BookCopy> getCopyById(Long id) {
         String sql = BOOK_COPY_SELECT_SQL + " WHERE bc.copy_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -67,7 +73,9 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> getAllBookCopies(){
         List<BookCopy> bookCopies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL;
-        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)){
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
             while(rs.next()){
                 bookCopies.add(mapRowToBookCopy(rs));
             }
@@ -83,7 +91,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> searchByTitle(String titleFragment) {
         List<BookCopy> bookCopies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE b.title ILIKE ?"; // using ILIKE to take advantage (again) of postrgresql to lowercase the text inserted
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, "%" + titleFragment + "%"); // partial string search
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -102,7 +111,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
         List<BookCopy> copies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE b.author ILIKE ?";
 
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, "%" + authorFragment + "%");
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -120,7 +130,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> searchByIsbn(String isbnFragment) {
         List<BookCopy> copies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE b.isbn LIKE ?"; // all numbers, no need to lowercase
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, "%" + isbnFragment + "%");
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -136,7 +147,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     @Override
     public void updateCopyStatus(BookCopy bookCopy) {
         String sql = "UPDATE book_copies SET status = ?::book_status WHERE copy_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, bookCopy.getState().getStatus());
             pstmt.setLong(2, bookCopy.getCopyId());
             pstmt.executeUpdate();
@@ -148,7 +160,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     @Override
     public void updateCopyStatus(Long copyId, BookStatus status) {
         String sql = "UPDATE book_copies SET status = ? WHERE copy_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, status.toString());
             pstmt.setLong(2, copyId);
             pstmt.executeUpdate();
@@ -160,7 +173,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     @Override
     public void deleteCopy(Long id) {
         String sql = "DELETE FROM book_copies WHERE copy_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -177,7 +191,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> findAllBookCopies(Book book) {
         List<BookCopy> copies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE bc.isbn = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, book.getIsbn());
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -193,7 +208,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> findLibraryCopies(Library library) {
         List<BookCopy> copies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE bc.library_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, library.getId());
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -209,7 +225,8 @@ public class BookCopiesDAO implements IBookCopiesDAO {
     public List<BookCopy> findAvailableBookCopies(Book book) {
         List<BookCopy> copies = new ArrayList<>();
         String sql = BOOK_COPY_SELECT_SQL + " WHERE bc.isbn = ? AND bc.status = 'AVAILABLE'";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, book.getIsbn());
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {

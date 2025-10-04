@@ -3,23 +3,30 @@ package dev.ltocca.loanranger.ORM;
 import dev.ltocca.loanranger.domainModel.Library;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.ILibraryDAO;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class LibraryDAO implements ILibraryDAO {
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
-    public LibraryDAO() throws SQLException {
-        this.connection = ConnectionManager.getInstance().getConnection();
+    @Autowired
+    public LibraryDAO(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
     public Library createLibrary(Library library) {
         String sql = "INSERT INTO libraries (name, address, phone, email) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             pstmt.setString(1, library.getName());
             pstmt.setString(2, library.getAddress());
@@ -43,7 +50,8 @@ public class LibraryDAO implements ILibraryDAO {
     @Override
     public Optional<Library> getLibraryById(Long id) {
         String sql = "SELECT * FROM libraries WHERE library_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -61,7 +69,8 @@ public class LibraryDAO implements ILibraryDAO {
     public List<Library> findLibrariesByName(String name) {
         List<Library> libraries = new ArrayList<>();
         String sql = "SELECT * FROM libraries WHERE name ILIKE ?"; // ILIKE used to avoid case sensitivity
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, "%" + name + "%");
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -79,9 +88,9 @@ public class LibraryDAO implements ILibraryDAO {
     public List<Library> getAllLibraries() {
         List<Library> libraries = new ArrayList<>();
         String sql = "SELECT * FROM libraries ORDER BY name";
-        try (Statement stmt = connection.createStatement();
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-
             while (rs.next()) {
                 libraries.add(mapRowToLibrary(rs));
             }
@@ -94,7 +103,8 @@ public class LibraryDAO implements ILibraryDAO {
     @Override
     public void updateLibrary(Library library) {
         String sql = "UPDATE libraries SET name = ?, address = ?, phone = ?, email = ? WHERE library_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, library.getName());
             pstmt.setString(2, library.getAddress());
@@ -111,8 +121,8 @@ public class LibraryDAO implements ILibraryDAO {
     @Override
     public void deleteLibrary(Long id) {
         String sql = "DELETE FROM libraries WHERE library_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
 
@@ -125,8 +135,8 @@ public class LibraryDAO implements ILibraryDAO {
     public void deleteLibrary(Library library) {
         Long id = library.getId();
         String sql = "DELETE FROM libraries WHERE library_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
 

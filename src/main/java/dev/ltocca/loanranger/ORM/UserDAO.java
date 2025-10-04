@@ -2,27 +2,32 @@ package dev.ltocca.loanranger.ORM;
 
 import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IUserDAO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class UserDAO implements IUserDAO {
 
-    private final Connection connection;
-    private final LibraryDAO libraryDAO; // Dependency to fetch library details for librarians
+    private final LibraryDAO libraryDAO;
+    private final DataSource dataSource;
 
-    public UserDAO() throws SQLException {
-        this.connection = ConnectionManager.getInstance().getConnection();
-        this.libraryDAO = new LibraryDAO(); // Instantiate the dependency
+    @Autowired
+    public UserDAO(LibraryDAO libraryDAO, DataSource dataSource) {
+        this.libraryDAO = libraryDAO;
+        this.dataSource = dataSource;
     }
 
     @Override
     public User createUser(User user) {
         String sql = "INSERT INTO users (username, name, email, password, role, library_id) VALUES (?, ?, ?, ?, ?::user_role, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, user.getUsername());
             pstmt.setString(2, user.getName());
             pstmt.setString(3, user.getEmail());
@@ -61,7 +66,8 @@ public class UserDAO implements IUserDAO {
     @Override
     public Optional<User> getUserById(Long id) {
         String sql = "SELECT * FROM users WHERE user_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -78,7 +84,8 @@ public class UserDAO implements IUserDAO {
     public Optional<User> getUserByEmail(String email) {
         // ILIKE for case-insensitive email lookup
         String sql = "SELECT * FROM users WHERE email ILIKE ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, email);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -94,7 +101,8 @@ public class UserDAO implements IUserDAO {
     @Override
     public Optional<User> getUserByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username ILIKE ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -111,7 +119,8 @@ public class UserDAO implements IUserDAO {
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users ORDER BY name";
-        try (Statement stmt = connection.createStatement();
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 users.add(mapRowToUser(rs));
@@ -126,7 +135,8 @@ public class UserDAO implements IUserDAO {
     public List<User> getUsersByRole(String role) {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users WHERE role = ? ORDER BY name";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, role.toUpperCase());
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -142,7 +152,8 @@ public class UserDAO implements IUserDAO {
     @Override
     public Optional<User> findUserByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username ILIKE ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -165,7 +176,8 @@ public class UserDAO implements IUserDAO {
         }
         String sql = "UPDATE users SET username = ? WHERE user_id = ?";
 
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, newUsername);
             pstmt.setLong(2, id);
 
@@ -188,7 +200,8 @@ public class UserDAO implements IUserDAO {
         }
         String sql = "UPDATE users SET password = ? WHERE user_id = ?";
 
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, newPassword);
             pstmt.setLong(2, id);
 
@@ -212,7 +225,8 @@ public class UserDAO implements IUserDAO {
         }
         String sql = "UPDATE users SET email = ? WHERE user_id = ?";
 
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, newEmail);
             pstmt.setLong(2, id);
 
@@ -235,7 +249,8 @@ public class UserDAO implements IUserDAO {
             throw new IllegalArgumentException("This operation is only valid for Librarian users.");
         }
         String sql = "UPDATE users SET library_id = ? WHERE user_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, libraryId);
             pstmt.setLong(2, user.getId());
 
@@ -253,7 +268,8 @@ public class UserDAO implements IUserDAO {
     @Override
     public void updateUser(User user) {
         String sql = "UPDATE users SET username = ?, name = ?, email = ?, role = ?, library_id = ? WHERE user_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, user.getUsername());
             pstmt.setString(2, user.getName());
             pstmt.setString(3, user.getEmail());
@@ -280,7 +296,8 @@ public class UserDAO implements IUserDAO {
     @Override
     public void deleteUser(Long id) {
         String sql = "DELETE FROM users WHERE user_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {

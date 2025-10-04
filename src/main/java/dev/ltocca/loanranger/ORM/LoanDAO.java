@@ -3,16 +3,20 @@ package dev.ltocca.loanranger.ORM;
 import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.domainModel.State.*;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.ILoanDAO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class LoanDAO implements ILoanDAO {
 
-    private final Connection connection;
+    private final DataSource dataSource;
     // I think I need this query to have a "table" for methods that need other types of object
     private static final String LOAN_SELECT_SQL =
             "SELECT " +
@@ -28,14 +32,16 @@ public class LoanDAO implements ILoanDAO {
                     "JOIN books b ON bc.isbn = b.isbn " +
                     "JOIN libraries lib ON bc.library_id = lib.library_id";
 
-    public LoanDAO() throws SQLException {
-        this.connection = ConnectionManager.getInstance().getConnection();
+    @Autowired
+    public LoanDAO(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
     public Loan createLoan(Loan loan) {
         String sql = "INSERT INTO loans (copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setLong(1, loan.getBookCopy().getCopyId());
             pstmt.setLong(2, loan.getMember().getId());
             pstmt.setDate(3, Date.valueOf(loan.getLoanDate()));
@@ -64,7 +70,8 @@ public class LoanDAO implements ILoanDAO {
     @Override
     public Loan createLoan(BookCopy bookCopy, Member member) {
         String sql = "INSERT INTO loans (copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             Loan loan = new Loan(bookCopy, member, LocalDate.now());
             pstmt.setLong(1, loan.getBookCopy().getCopyId());
             pstmt.setLong(2, loan.getMember().getId());
@@ -89,7 +96,8 @@ public class LoanDAO implements ILoanDAO {
     @Override
     public Optional<Loan> getLoanById(Long id) {
         String sql = LOAN_SELECT_SQL + " WHERE l.loan_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -106,7 +114,8 @@ public class LoanDAO implements ILoanDAO {
     @Override
     public Optional<Loan> getLoanByBookCopy(BookCopy bookCopy) {
         String sql = LOAN_SELECT_SQL + " WHERE l.copy_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, bookCopy.getCopyId());
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -123,7 +132,8 @@ public class LoanDAO implements ILoanDAO {
     @Override
     public Optional<Loan> getLoanByBookCopyId(Long bookCopyId) {
         String sql = LOAN_SELECT_SQL + " WHERE l.copy_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, bookCopyId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -141,7 +151,8 @@ public class LoanDAO implements ILoanDAO {
     @Override
     public void updateLoan(Loan loan) {
         String sql = "UPDATE loans SET copy_id = ?, member_id = ?, loan_date = ?, due_date = ?, return_date = ? WHERE loan_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             try {
                 pstmt.setLong(1, loan.getBookCopy().getCopyId());
                 pstmt.setLong(2, loan.getMember().getId());
@@ -177,7 +188,8 @@ public class LoanDAO implements ILoanDAO {
     @Override
     public void updateDueDate(Long id, LocalDate dueDate) {
         String sql = "UPDATE loans SET due_date = ? WHERE loan_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setDate(1, Date.valueOf(dueDate));
             pstmt.setLong(2, id);
 
@@ -209,7 +221,8 @@ public class LoanDAO implements ILoanDAO {
     public List<Loan> findActiveLoansByLibrary(Library library) {
         List<Loan> loans = new ArrayList<>();
         String sql = LOAN_SELECT_SQL + " WHERE lib.library_id = ? AND l.return_date IS NULL ORDER BY l.due_date ASC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, library.getId());
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -223,7 +236,8 @@ public class LoanDAO implements ILoanDAO {
     }
 
     private List<Loan> extractLoansMember(Member member, List<Loan> loans, String sql) {
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, member.getId());
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -240,7 +254,9 @@ public class LoanDAO implements ILoanDAO {
     public List<Loan> findOverdueLoans() {
         List<Loan> loans = new ArrayList<>();
         String sql = LOAN_SELECT_SQL + " WHERE l.due_date < CURRENT_DATE AND l.return_date IS NULL ORDER BY l.due_date ASC";
-        try (Statement stmt = connection.createStatement(); // no ? in the sql string, statement is sufficient
+        // no ? in the sql string, statement is sufficient
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 loans.add(mapRowToLoan(rs));
@@ -255,7 +271,8 @@ public class LoanDAO implements ILoanDAO {
     public List<Loan> findMemberOverdueLoans(Long memberId) {
         List<Loan> loans = new ArrayList<>();
         String sql = LOAN_SELECT_SQL + " WHERE l.due_date < CURRENT_DATE AND l.member_id = ? AND l.return_date IS NULL ORDER BY l.due_date ASC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setLong(1, memberId);
 
@@ -274,7 +291,8 @@ public class LoanDAO implements ILoanDAO {
     public List<Loan> listAllLoansByLibrary(Library workLibrary) {
         List<Loan> loans = new ArrayList<>();
         String sql = LOAN_SELECT_SQL + " WHERE lib.library_id = ? ORDER BY l.loan_date DESC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, workLibrary.getId());
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -293,7 +311,8 @@ public class LoanDAO implements ILoanDAO {
             throw new IllegalArgumentException("Loan ID must be a positive number.");
         }
         String sql = "DELETE FROM loans WHERE loan_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
