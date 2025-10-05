@@ -3,22 +3,24 @@ package dev.ltocca.loanranger.businessLogic;
 import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.ORM.LibraryDAO;
 import dev.ltocca.loanranger.ORM.UserDAO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class AdminUsersController {
-    private final Admin admin;
     private final LibraryDAO libraryDAO;
     private final UserDAO userDAO;
     private final LoginController loginController;
 
-    public AdminUsersController(Admin admin) throws SQLException {
-        this.admin = admin;
-        this.libraryDAO = new LibraryDAO();
-        this.userDAO = new UserDAO();
-        this.loginController = new LoginController();
+    @Autowired
+    public AdminUsersController(LibraryDAO libraryDAO, UserDAO userDAO, LoginController loginController) throws SQLException {
+        this.libraryDAO = libraryDAO;
+        this.userDAO = userDAO;
+        this.loginController = loginController;
     }
 
     public void registerNewLibrarian(String username, String name, String email, String password, Long libraryId) {
@@ -35,7 +37,7 @@ public class AdminUsersController {
         }
     }
 
-    public void deleteUser(Long userId) {
+    public void deleteUser(Admin admin, Long userId) {
         try {
             if (userId.equals(admin.getId())) {
                 System.err.println("Cannot delete your own admin account.");

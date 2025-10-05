@@ -1,8 +1,9 @@
 package dev.ltocca.loanranger.businessLogic;
 
-import dev.ltocca.loanranger.domainModel.Admin;
-import dev.ltocca.loanranger.ORM.ConnectionManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -11,11 +12,14 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.util.stream.Collectors;
 
+@Service
 public class AdminDatabaseController {
-    private final Admin admin;
 
-    public AdminDatabaseController(Admin admin) {
-        this.admin = admin;
+    private final DataSource dataSource;
+
+    @Autowired
+    public AdminDatabaseController(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public void recreateSchemaAndAdmin() {
@@ -49,7 +53,8 @@ public class AdminDatabaseController {
             }
         }
 
-        try (Connection conn = ConnectionManager.getInstance().getConnection();
+        // CORRECTED: Get the connection from the injected DataSource
+        try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(scriptContent);
         }

@@ -5,20 +5,27 @@ import dev.ltocca.loanranger.domainModel.User;
 import dev.ltocca.loanranger.domainModel.UserRole;
 import dev.ltocca.loanranger.ORM.UserDAO;
 import dev.ltocca.loanranger.util.PasswordHasher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.Optional;
 
+@Service
 public class LoginController {
 
-    public LoginController(){}
+    private final UserDAO userDAO;
+
+    @Autowired
+    public LoginController(UserDAO userDAO){
+        this.userDAO = userDAO;
+    }
 
     public Optional<User> login(String email, String password) throws SQLException {
         if (email == null || password == null) {
             System.err.println("Error: No email or password provided!");
             return Optional.empty();
         }
-        UserDAO userDAO = new UserDAO();
         Optional<User> userOptional = userDAO.getUserByEmail(email.trim());
         if (userOptional.isPresent()) {
             User user = userOptional.get();
@@ -54,7 +61,6 @@ public class LoginController {
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
-        UserDAO userDAO = new UserDAO();
         User newUser = UserFactory.createUser(role, username, name, email, password, workLibrary);
         return userDAO.createUser(newUser);
     }

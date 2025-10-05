@@ -2,14 +2,17 @@ package dev.ltocca.loanranger.businessLogic;
 
 import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.ORM.*;
+import dev.ltocca.loanranger.service.BookCopySearchService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class LibrarianBookController {
-    private final Librarian librarian;
     private final LibraryFacade libraryFacade;
     private final LoanDAO loanDAO;
     private final ReservationDAO reservationDAO;
@@ -17,19 +20,19 @@ public class LibrarianBookController {
     private final UserDAO userDAO;
     private final BookCopySearchService searchService;
 
-
-    public LibrarianBookController(Librarian librarian) throws SQLException {
-        this.librarian = librarian;
-        this.libraryFacade = new LibraryFacade();
-        this.loanDAO = new LoanDAO();
-        this.reservationDAO = new ReservationDAO();
-        this.bookCopiesDAO = new BookCopiesDAO();
-        this.userDAO = new UserDAO();
-        this.searchService = new BookCopySearchService();
-
+    @Autowired
+    public LibrarianBookController(LibraryFacade libraryFacade, LoanDAO loanDAO, ReservationDAO reservationDAO,
+                                   BookCopiesDAO bookCopiesDAO, UserDAO userDAO, BookCopySearchService searchService) {
+        this.libraryFacade = libraryFacade;
+        this.loanDAO = loanDAO;
+        this.reservationDAO = reservationDAO;
+        this.bookCopiesDAO = bookCopiesDAO;
+        this.userDAO = userDAO;
+        this.searchService = searchService;
     }
 
-    public void addBookCopy(String isbn) throws SQLException {
+
+    public void addBookCopy(Librarian librarian, String isbn) throws SQLException {
         try {
             BookCopy newCopy = libraryFacade.createBookCopy(isbn, librarian.getWorkLibrary());
             if (newCopy != null) {
@@ -42,7 +45,7 @@ public class LibrarianBookController {
         }
     }
 
-    public Boolean loanBookToMember(Long memberId, Long copyId, LocalDate dueDate) {
+    public Boolean loanBookToMember(Librarian librarian, Long memberId, Long copyId, LocalDate dueDate) {
         User user = null;
         try {
             user = userDAO.getUserById(memberId).orElse(null); // "new" syntax, maybe update all the project
@@ -65,7 +68,7 @@ public class LibrarianBookController {
         if (copy == null) {
             System.err.println("No copy inserted! Try again.");
             return false;
-        } else if (!checkCopyBelongsToLibrary(copy)) {
+        } else if (!checkCopyBelongsToLibrary(librarian, copy)) {
             System.err.printf("This book copy with id %d is not in this Library, but it is in %s!%n", copy.getCopyId(), copy.getLibrary().getName());
             return false;
         }
@@ -77,7 +80,7 @@ public class LibrarianBookController {
         }
     }
 
-    public boolean processReturn(Long copyId) {
+    public boolean processReturn(Librarian librarian, Long copyId) {
         if (copyId == null) {
             System.err.println("No copy inserted! Try again.");
             return false;
@@ -90,14 +93,14 @@ public class LibrarianBookController {
             System.err.println("Error fetching book copy: " + e.getMessage());
             return false;
         }
-        if (!checkCopyBelongsToLibrary(copy)) {
+        if (!checkCopyBelongsToLibrary(librarian, copy)) {
             System.err.printf("This book copy with id %d is has not been borrowed in this Library, but it is in %s!%n", copyId, copy.getLibrary().getName() + " id: " + copy.getLibrary().getId());
             return false;
         }
         return libraryFacade.returnBook(copyId);
     }
 
-    public boolean renewLoan(Long loanId, Integer days) {
+    public boolean renewLoan(Librarian librarian, Long loanId, Integer days) {
         Loan loan = null;
         try {
             loan = loanDAO.getLoanById(loanId).orElse(null);
@@ -109,7 +112,7 @@ public class LibrarianBookController {
             System.err.printf("Empty loan ID!%n");
             return false;
         }
-        if (!checkLoanBelongsToLibrary(loan)) {
+        if (!checkLoanBelongsToLibrary(librarian, loan)) {
             System.err.printf("This loan with id %d is has not been processed in this Library, but it is from %s!%n", loanId, loan.getBookCopy().getLibrary().getName() + " id: " + loan.getBookCopy().getLibrary().getId());
             return false;
         }
@@ -120,7 +123,7 @@ public class LibrarianBookController {
         }
     }
 
-    public boolean putCopyUnderMaintenance(Long copyId) {
+    public boolean putCopyUnderMaintenance(Librarian librarian, Long copyId) {
         BookCopy copy;
         try {
             copy = bookCopiesDAO.getCopyById(copyId).orElse(null);
@@ -128,13 +131,13 @@ public class LibrarianBookController {
             System.err.println("Error fetching book copy: " + e.getMessage());
             return false;
         }
-        if (copy == null || !checkCopyBelongsToLibrary(copy)) return false;
+        if (copy == null || !checkCopyBelongsToLibrary(librarian, copy)) return false;
 
         libraryFacade.putUnderMaintenance(copy);
         return true;
     }
 
-    public boolean removeCopyFromMaintenance(Long copyId) {
+    public boolean removeCopyFromMaintenance(Librarian librarian, Long copyId) {
         BookCopy copy;
         try {
             copy = bookCopiesDAO.getCopyById(copyId).orElse(null);
@@ -145,7 +148,7 @@ public class LibrarianBookController {
         if (copy == null) {
             System.err.println("No copy inserted! Try again.");
             return false;
-        } else if (!checkCopyBelongsToLibrary(copy)) {
+        } else if (!checkCopyBelongsToLibrary(librarian, copy)) {
             System.err.printf("This book copy with id %d is not in this Library, but it is in %s!%n", copy.getCopyId(), copy.getLibrary().getName());
             return false;
         }
@@ -153,7 +156,7 @@ public class LibrarianBookController {
         return true;
     }
 
-    public List<Loan> getActiveLoans() {
+    public List<Loan> getActiveLoans(Librarian librarian) {
         try {
             return loanDAO.findActiveLoansByLibrary(librarian.getWorkLibrary());
         } catch (Exception e) {
@@ -162,11 +165,11 @@ public class LibrarianBookController {
         }
     }
 
-    public List<Loan> getOverdueLoans() {
+    public List<Loan> getOverdueLoans(Librarian librarian) {
         java.util.List<Loan> overdueLoans = new java.util.ArrayList<Loan>();
         try {
             for (Loan loan : loanDAO.findOverdueLoans()) {
-                if (checkLoanBelongsToLibrary(loan)) overdueLoans.add(loan);
+                if (checkLoanBelongsToLibrary(librarian, loan)) overdueLoans.add(loan);
             }
         } catch (Exception e) {
             System.err.println("Error fetching overdue loans: " + e.getMessage());
@@ -174,7 +177,7 @@ public class LibrarianBookController {
         return overdueLoans;
     }
 
-    public List<Reservation> getActiveReservations() throws SQLException {
+    public List<Reservation> getActiveReservations(Librarian librarian) throws SQLException {
         try {
             return reservationDAO.findActiveReservationsByLibrary(librarian.getWorkLibrary().getId());
         } catch (Exception e) {
@@ -183,7 +186,7 @@ public class LibrarianBookController {
         }
     }
 
-    public List<Reservation> getPastReservations() throws SQLException {
+    public List<Reservation> getPastReservations(Librarian librarian) throws SQLException {
         try {
             return reservationDAO.findPastReservationsByLibrary(librarian.getWorkLibrary().getId());
         } catch (Exception e) {
@@ -192,7 +195,7 @@ public class LibrarianBookController {
         }
     }
 
-    public List<Reservation> getAllReservations() throws SQLException {
+    public List<Reservation> getAllReservations(Librarian librarian) throws SQLException {
         try {
             return reservationDAO.findReservationsByLibrary(librarian.getWorkLibrary().getId());
         } catch (Exception e) {
@@ -201,24 +204,24 @@ public class LibrarianBookController {
         }
     }
 
-    public List<BookCopy> searchBookCopies(String query) {
+    public List<BookCopy> searchBookCopies(Librarian librarian, String query) {
         List<BookCopy> results = searchService.smartSearch(query);
-        return filterCopiesByLibrary(results);
+        return filterCopiesByLibrary(librarian, results);
     }
 
-    public List<BookCopy> searchBookCopies(String query, BookCopySearchService.SearchType type) {
+    public List<BookCopy> searchBookCopies(Librarian librarian, String query, BookCopySearchService.SearchType type) {
         List<BookCopy> results = searchService.search(query, type);
-        return filterCopiesByLibrary(results);
+        return filterCopiesByLibrary(librarian, results);
     }
 
-    public List<BookCopy> searchAvailableBookCopies(String query) {
+    public List<BookCopy> searchAvailableBookCopies(Librarian librarian, String query) {
         List<BookCopy> results = searchService.smartSearchAvailableOnly(query);
-        return filterCopiesByLibrary(results);
+        return filterCopiesByLibrary(librarian, results);
     }
 
-    public List<BookCopy> searchAvailableBookCopies(String query, BookCopySearchService.SearchType baseType) {
+    public List<BookCopy> searchAvailableBookCopies(Librarian librarian, String query, BookCopySearchService.SearchType baseType) {
         List<BookCopy> results = searchService.searchAvailableOnly(query, baseType);
-        return filterCopiesByLibrary(results);
+        return filterCopiesByLibrary(librarian, results);
     }
 
     public List<BookCopy> searchBookCopiesElsewhere(String query) {
@@ -238,7 +241,7 @@ public class LibrarianBookController {
         return searchService.searchAvailableOnly(query, baseType);
     }
 
-    private List<BookCopy> filterCopiesByLibrary(List<BookCopy> copies) {
+    private List<BookCopy> filterCopiesByLibrary(Librarian librarian, List<BookCopy> copies) {
         List<BookCopy> filteredList = new java.util.ArrayList<>();
         for (BookCopy copy : copies) {
             if (copy.getLibrary().getId().equals(librarian.getWorkLibrary().getId())) {
@@ -248,15 +251,15 @@ public class LibrarianBookController {
         return filteredList;
     }
 
-    private boolean checkCopyBelongsToLibrary(BookCopy copy) {
+    private boolean checkCopyBelongsToLibrary(Librarian librarian, BookCopy copy) {
         return copy.getLibrary().getId().equals(librarian.getWorkLibrary().getId());
     }
 
-    private boolean checkLoanBelongsToLibrary(Loan loan) {
-        return checkCopyBelongsToLibrary(loan.getBookCopy());
+    private boolean checkLoanBelongsToLibrary(Librarian librarian, Loan loan) {
+        return checkCopyBelongsToLibrary(librarian, loan.getBookCopy());
     }
 
-    public List<Loan> getAllLoans() {
+    public List<Loan> getAllLoans(Librarian librarian) {
         try {
             return loanDAO.listAllLoansByLibrary(librarian.getWorkLibrary());
         } catch (Exception e) {

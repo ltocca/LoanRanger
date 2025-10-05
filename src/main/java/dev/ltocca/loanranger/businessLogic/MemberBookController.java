@@ -3,49 +3,55 @@ package dev.ltocca.loanranger.businessLogic;
 import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.ORM.BookCopiesDAO;
 import dev.ltocca.loanranger.ORM.LoanDAO;
+import dev.ltocca.loanranger.service.BookCopySearchService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class MemberBookController {
-    private final Member member;
     private final LibraryFacade facade;
     private final BookCopySearchService searchService;
+    private final BookCopiesDAO bookCopiesDAO;
+    private final LoanDAO loanDAO;
 
-    public MemberBookController(Member member, LibraryFacade facade) throws SQLException {
-        this.member = member;
+    @Autowired
+    public MemberBookController(LibraryFacade facade, BookCopySearchService searchService,
+                                BookCopiesDAO bookCopiesDAO, LoanDAO loanDAO) {
         this.facade = facade;
-        this.searchService = new BookCopySearchService();
+        this.searchService = searchService;
+        this.bookCopiesDAO = bookCopiesDAO;
+        this.loanDAO = loanDAO;
     }
 
-    public void borrowBookCopy(Long copyId) throws SQLException {
-        BookCopiesDAO bookCopiesDAO = new BookCopiesDAO();
+    public void borrowBookCopy(Member member, Long copyId) throws SQLException {
         Optional<BookCopy> bookCopyOpt = bookCopiesDAO.getCopyById(copyId);
 
         if (bookCopyOpt.isEmpty()) {
             System.err.printf("There is no copy present with this id %s%n", copyId); // suggested by IntelliJ
             return;
         }
-        boolean borrowSuccess = facade.borrowBook(this.member, bookCopyOpt.get());
+        boolean borrowSuccess = facade.borrowBook(member, bookCopyOpt.get());
         if (!borrowSuccess) {
             System.err.println("Copy borrowing failed.");
         }
     }
 
-    public void borrowBookCopy(BookCopy copy) throws SQLException {
+    public void borrowBookCopy(Member member, BookCopy copy) throws SQLException {
         if (copy == null) {
             System.err.println("BookCopy is null, cannot borrow.");
             return;
         }
-        BookCopiesDAO bookCopiesDAO = new BookCopiesDAO();
         Optional<BookCopy> bookCopyOpt = bookCopiesDAO.getCopyById(copy.getCopyId());
         if (bookCopyOpt.isEmpty()) {
             System.err.printf("There is no copy present with this id %s%n", copy.getCopyId());
             return;
         }
-        boolean borrowSuccess = facade.borrowBook(this.member, bookCopyOpt.get());
+        boolean borrowSuccess = facade.borrowBook(member, bookCopyOpt.get());
         if (!borrowSuccess) {
             System.err.println("Copy borrowing failed.");
         }
@@ -63,7 +69,7 @@ public class MemberBookController {
         }
     }
 
-    public void reserveBookCopy(BookCopy copy) {
+    public void reserveBookCopy(Member member, BookCopy copy) {
         if (copy == null) {
             System.err.println("BookCopy is null, cannot reserve.");
             return;
@@ -76,7 +82,7 @@ public class MemberBookController {
         }
     }
 
-    public void reserveBookCopy(Long copyId) {
+    public void reserveBookCopy(Member member, Long copyId) {
         if (copyId == null) {
             System.err.println("Copy ID is null, cannot reserve.");
             return;
@@ -89,15 +95,15 @@ public class MemberBookController {
         }
     }
 
-    public boolean cancelReservation(Long reservationId) {
+    public boolean cancelReservation(Member member, Long reservationId) {
         if (reservationId == null) {
             System.err.println("Reservation ID cannot be null.");
             return false;
         }
-        return facade.cancelReservation(reservationId, this.member);
+        return facade.cancelReservation(reservationId, member);
     }
 
-    public List<Reservation> getActiveReservations() {
+    public List<Reservation> getActiveReservations(Member member) {
         try {
             List<Reservation> allReservations = facade.getMemberReservations(member);
             List<Reservation> activeReservations = new ArrayList<>();
@@ -115,7 +121,7 @@ public class MemberBookController {
         }
     }
 
-    public List<Reservation> getAllReservations() {
+    public List<Reservation> getAllReservations(Member member) {
         try {
             return facade.getMemberReservations(member);
         } catch (Exception e) {
@@ -124,30 +130,27 @@ public class MemberBookController {
         }
     }
 
-    public List<Loan> getActiveLoans() {
+    public List<Loan> getActiveLoans(Member member) {
         try {
-            LoanDAO loanDAO = new LoanDAO();
-            return loanDAO.findActiveLoansByMember(this.member);
+            return loanDAO.findActiveLoansByMember(member);
         } catch (Exception e) {
             System.err.println("Error fetching active loans: " + e.getMessage());
             return List.of();
         }
     }
 
-    public List<Loan> getOverdueLoans() {
+    public List<Loan> getOverdueLoans(Member member) {
         try {
-            LoanDAO loanDAO = new LoanDAO();
-            return loanDAO.findMemberOverdueLoans(this.member.getId());
+            return loanDAO.findMemberOverdueLoans(member.getId());
         } catch (Exception e) {
             System.err.println("Error fetching overdue loans: " + e.getMessage());
             return List.of();
         }
     }
 
-    public List<Loan> getAllLoans() {
+    public List<Loan> getAllLoans(Member member) {
         try {
-            LoanDAO loanDAO = new LoanDAO();
-            return loanDAO.findLoansByMember(this.member);
+            return loanDAO.findLoansByMember(member);
         } catch (Exception e) {
             System.err.println("Error fetching all loans: " + e.getMessage());
             return List.of();
