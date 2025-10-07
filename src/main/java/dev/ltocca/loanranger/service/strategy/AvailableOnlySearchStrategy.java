@@ -1,4 +1,4 @@
-package dev.ltocca.loanranger.businessLogic.strategy;
+package dev.ltocca.loanranger.service.strategy;
 
 import dev.ltocca.loanranger.domainModel.BookCopy;
 import dev.ltocca.loanranger.domainModel.State.AvailableState;

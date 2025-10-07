@@ -3,22 +3,30 @@ package dev.ltocca.loanranger.ORM;
 import dev.ltocca.loanranger.domainModel.Book;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IBookDAO;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.sql.DataSource;
+import java.sql.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class BookDAO implements IBookDAO {
-    private final Connection connection;
+    private final DataSource dataSource;
 
-    public BookDAO() throws SQLException, ClassNotFoundException {
-        this.connection = ConnectionManager.getInstance().getConnection();
+    @Autowired
+    public BookDAO(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
     public Book createBook(Book book) {
         String sql = "INSERT INTO books (title, author, publication_year, genre) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, book.getTitle());
             pstmt.setString(2, book.getAuthor());
             pstmt.setInt(3, book.getPublicationYear());
@@ -40,8 +48,8 @@ public class BookDAO implements IBookDAO {
     @Override
     public Optional<Book> getBookByIsbn(String isbn) {
         String sql = "SELECT * FROM books WHERE isbn = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, isbn);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -57,8 +65,8 @@ public class BookDAO implements IBookDAO {
     @Override
     public Optional<Book> getBookByTitle(String title) {
         String sql = "SELECT * FROM books WHERE title = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, title);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -75,7 +83,8 @@ public class BookDAO implements IBookDAO {
     public List<Book> getAllBooks() {
         String sql = "SELECT * FROM books ORDER BY title";
         List<Book> books = new ArrayList<>();
-        try (Statement stmt = connection.prepareStatement(sql)) { // no need fort a PreparedMethod, it is a static queru
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();) { // no need fort a PreparedMethod, it is a static queru
             try (ResultSet rs = stmt.executeQuery(sql)) {
                 while (rs.next()) {
                     books.add(mapRowToBook(rs));
@@ -93,7 +102,8 @@ public class BookDAO implements IBookDAO {
     public List<Book> findBooksByAuthor(String author) {
         String sql = "SELECT * FROM books WHERE author = ? ORDER BY title";
         List<Book> books = new ArrayList<>();
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, author);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -110,7 +120,8 @@ public class BookDAO implements IBookDAO {
     public List<Book> findBooksByPublicationYear(int publicationYear) {
         String sql = "SELECT * FROM books WHERE publication_year = ? ORDER BY title";
         List<Book> books = new ArrayList<>();
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, publicationYear);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -127,7 +138,8 @@ public class BookDAO implements IBookDAO {
     public List<Book> findBookByIsbn(String isbn) {
         String sql = "SELECT * FROM books WHERE isbn = ? ORDER BY title";
         List<Book> books = new ArrayList<>();
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, "%" + isbn+ "%"); // partial string search
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -146,7 +158,8 @@ public class BookDAO implements IBookDAO {
             throw new IllegalArgumentException("ISBN cannot be null or empty.");
         }
         String sql = "DELETE FROM books WHERE isbn = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, isbn);
             pstmt.executeUpdate();
         } catch (SQLException e) {

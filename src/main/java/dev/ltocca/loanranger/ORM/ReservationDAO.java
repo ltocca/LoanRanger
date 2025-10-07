@@ -8,13 +8,18 @@ import dev.ltocca.loanranger.domainModel.State.ReservedState;
 import dev.ltocca.loanranger.domainModel.State.UnderMaintenanceState;
 import dev.ltocca.loanranger.ORM.DAOInterfaces.IReservationDAO;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class ReservationDAO implements IReservationDAO {
-    private final Connection connection;
+    private final DataSource dataSource;
     private static final String RESERVATION_SELECT_SQL =
             "SELECT r.reservation_id, r.reservation_date, r.status AS reservation_status, " +
                     "       u.user_id, u.username, u.name AS user_name, u.email AS user_email, u.password, u.role, " +
@@ -28,14 +33,16 @@ public class ReservationDAO implements IReservationDAO {
                     "JOIN books b ON bc.isbn = b.isbn " +
                     "JOIN libraries l ON bc.library_id = l.library_id";
 
-    public ReservationDAO() throws SQLException {
-        this.connection = ConnectionManager.getInstance().getConnection();
+    @Autowired
+    public ReservationDAO(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
     public Reservation createReservation(Reservation reservation) {
         String sql = "INSERT INTO reservations (copy_id, member_id, reservation_date, status) VALUES (?, ?, ?, ?::reservation_status)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setLong(1, reservation.getBookCopy().getCopyId());
             pstmt.setLong(2, reservation.getMember().getId());
             pstmt.setDate(3, Date.valueOf(reservation.getReservationDate()));
@@ -58,7 +65,8 @@ public class ReservationDAO implements IReservationDAO {
     @Override
     public Optional<Reservation> getReservationById(Long id) {
         String sql = RESERVATION_SELECT_SQL + " WHERE r.reservation_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -74,7 +82,8 @@ public class ReservationDAO implements IReservationDAO {
     @Override
     public Optional<Reservation> getReservationMemberBook(Member member, BookCopy bookCopy) {
         String sql = RESERVATION_SELECT_SQL + " WHERE r.member_id = ? AND r.copy_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, member.getId());
             pstmt.setLong(2, bookCopy.getCopyId());
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -92,7 +101,8 @@ public class ReservationDAO implements IReservationDAO {
     @Override
     public void updateReservation(Reservation reservation) {
         String sql = "UPDATE reservations SET copy_id = ?, member_id = ?, reservation_date = ?, status = ?::reservation_status WHERE reservation_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, reservation.getBookCopy().getCopyId());
             pstmt.setLong(2, reservation.getMember().getId());
             pstmt.setDate(3, Date.valueOf(reservation.getReservationDate()));
@@ -115,7 +125,8 @@ public class ReservationDAO implements IReservationDAO {
     @Override
     public void updateStatus(Long id, ReservationStatus status) {
         String sql = "UPDATE reservations SET status = ?::reservation_status WHERE reservation_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, status.name());
             pstmt.setLong(2, id);
             pstmt.executeUpdate();
@@ -135,7 +146,8 @@ public class ReservationDAO implements IReservationDAO {
     @Override
     public void deleteReservation(Long id) {
         String sql = "DELETE FROM reservations WHERE reservation_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -155,7 +167,8 @@ public class ReservationDAO implements IReservationDAO {
     public List<Reservation> findMemberReservations(Long memberId) {
         List<Reservation> reservations = new ArrayList<>();
         String sql = RESERVATION_SELECT_SQL + " WHERE r.member_id = ? ORDER BY r.reservation_date DESC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, memberId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -172,7 +185,8 @@ public class ReservationDAO implements IReservationDAO {
     public List<Reservation> findCopyReservation(Long copyId){
         List<Reservation> reservations = new ArrayList<>();
         String sql = RESERVATION_SELECT_SQL + " WHERE r.copy_id = ? ORDER BY r.reservation_date DESC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, copyId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -202,7 +216,8 @@ public class ReservationDAO implements IReservationDAO {
         String sql = RESERVATION_SELECT_SQL +
                 " WHERE r.copy_id = ? AND r.status = 'WAITING'" +
                 " ORDER BY r.reservation_date ASC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, copyId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -224,7 +239,8 @@ public class ReservationDAO implements IReservationDAO {
         String sql = RESERVATION_SELECT_SQL +
                 " WHERE r.copy_id = ? AND r.status = 'PENDING'" +
                 " ORDER BY r.reservation_date ASC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, copyId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -244,7 +260,8 @@ public class ReservationDAO implements IReservationDAO {
         }
         List<Reservation> reservations = new ArrayList<>();
         String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? ORDER BY r.reservation_date ASC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, libraryId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -265,7 +282,8 @@ public class ReservationDAO implements IReservationDAO {
         }
         List<Reservation> reservations = new ArrayList<>();
         String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? AND r.status IN ('PENDING', 'WAITING') ORDER BY r.reservation_date ASC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, libraryId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -285,7 +303,8 @@ public class ReservationDAO implements IReservationDAO {
         }
         List<Reservation> reservations = new ArrayList<>();
         String sql = RESERVATION_SELECT_SQL + " WHERE l.library_id = ? AND r.status IN ('CANCELLED', 'FULFILLED') ORDER BY r.reservation_date ASC";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, libraryId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -303,7 +322,8 @@ public class ReservationDAO implements IReservationDAO {
     @Override
     public boolean hasOtherPendingReservations(Long copyId, Long reservationIdToExclude) {
         String sql = "SELECT 1 FROM reservations WHERE copy_id = ? AND status = 'PENDING' AND reservation_id != ? LIMIT 1";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setLong(1, copyId);
             pstmt.setLong(2, reservationIdToExclude);
             try (ResultSet rs = pstmt.executeQuery()) {

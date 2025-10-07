@@ -10,6 +10,9 @@ public class PasswordHasher {
     }
 
     public static boolean check(String plainPassword, String hashedPassword) {
+        if (hashedPassword == null || hashedPassword.isEmpty() || plainPassword == null || plainPassword.isEmpty()) {
+            return false;
+        }
         return encoder.matches(plainPassword, hashedPassword);
     }
 }

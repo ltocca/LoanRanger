@@ -3,17 +3,19 @@ package dev.ltocca.loanranger.businessLogic;
 import dev.ltocca.loanranger.domainModel.Admin;
 import dev.ltocca.loanranger.domainModel.Library;
 import dev.ltocca.loanranger.ORM.LibraryDAO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.List;
 
+@Service
 public class AdminBookController {
-    private final Admin admin;
     private final LibraryDAO libraryDAO;
 
-    public AdminBookController(Admin admin) throws SQLException {
-        this.admin = admin;
-        this.libraryDAO = new LibraryDAO();
+    @Autowired
+    public AdminBookController(LibraryDAO libraryDAO) throws SQLException {
+        this.libraryDAO = libraryDAO;
     }
 
     public void addLibrary(String name, String address, String phone, String email) {

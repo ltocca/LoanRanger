@@ -1,21 +1,24 @@
-package dev.ltocca.loanranger.businessLogic;
+package dev.ltocca.loanranger.service;
 
-import dev.ltocca.loanranger.businessLogic.strategy.*;
+import dev.ltocca.loanranger.service.strategy.*;
 import dev.ltocca.loanranger.domainModel.BookCopy;
 import dev.ltocca.loanranger.ORM.BookCopiesDAO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-
+@Service
 public class BookCopySearchService {
     private final BookCopiesDAO bookCopiesDAO;
     private final Map<SearchType, BookCopySearchStrategy> searchStrategies;
     private BookCopySearchStrategy currentStrategy;
 
-    public BookCopySearchService() throws SQLException {
-        this.bookCopiesDAO = new BookCopiesDAO();
+    @Autowired
+    public BookCopySearchService(BookCopiesDAO bookCopiesDAO) throws SQLException {
+        this.bookCopiesDAO = bookCopiesDAO;
         this.searchStrategies = Map.of(
                 SearchType.TITLE, new TitleSearchStrategy(),
                 SearchType.AUTHOR, new AuthorSearchStrategy(),
