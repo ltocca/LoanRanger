@@ -5,28 +5,33 @@ import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.domainModel.State.*;
 import dev.ltocca.loanranger.ORM.*;
 
+
+import dev.ltocca.loanranger.service.EmailService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class LibraryFacade {
     private final UserDAO userDAO;
     private final BookCopiesDAO bookCopiesDAO;
     private final LoanDAO loanDAO;
     private final ReservationDAO reservationDAO;
     private final BookDAO bookDAO;
+    private final EmailService emailService;
 
-    public LibraryFacade() throws SQLException {
-        this.userDAO = new UserDAO();
-        this.bookCopiesDAO = new BookCopiesDAO();
-        this.loanDAO = new LoanDAO();
-        this.reservationDAO = new ReservationDAO();
-        try {
-            this.bookDAO = new BookDAO(); // Initialize BookDAO
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Database driver not found", e);
-        }
+    @Autowired
+    public LibraryFacade(UserDAO userDAO, BookCopiesDAO bookCopiesDAO, LoanDAO loanDAO,
+                         ReservationDAO reservationDAO, BookDAO bookDAO, EmailService emailService) {
+        this.userDAO = userDAO;
+        this.bookCopiesDAO = bookCopiesDAO;
+        this.loanDAO = loanDAO;
+        this.reservationDAO = reservationDAO;
+        this.bookDAO = bookDAO;
+        this.emailService = emailService;
     }
 
     public BookCopy createBookCopy(String isbn, Library library) {
@@ -137,18 +142,13 @@ public class LibraryFacade {
                 return false;
             }
 
-            copy.returnCopy(); // FIXME: THIS METHOD IS CALLED TWO TIMES INSTEAD OF ONE
-
             loan.setReturnDate(LocalDate.now());
-            //loan.endLoan();
             loanDAO.updateLoan(loan);
+
+            copy.returnCopy();
+
             System.out.printf("Book copy %d returned. Processing next steps...%n", copyId);
             processWaitingList(copy);
-
-            /*bookCopiesDAO.updateCopyStatus(copy);
-
-            System.out.printf("Book copy %d returned%n", copyId);
-            notifyReservations(copy.getBook().getIsbn()); // FIXME: maybe is not required anymore*/
 
             return true;
         } catch (Exception e) {
@@ -284,6 +284,11 @@ public class LibraryFacade {
                     bookCopy.getCopyId(), nextInQueue.getMember().getUsername());
 
             nextInQueue.getMember().onBookCopyAvailable(bookCopy);
+            String message = "Dear " + nextInQueue.getMember().getName() + ",\n" +
+                    "The book '" + bookCopy.getBook().getTitle() + "' by " + bookCopy.getBook().getAuthor() +
+                    " (Copy ID: " + bookCopy.getCopyId() + ") that you reserved is now available.\n" +
+                    "Please visit the library " + bookCopy.getLibrary().getName() + " soon to borrow it!";
+            emailService.sendEmail(nextInQueue.getMember().getEmail(), "Your book is available", message);
 
         } else { // no more waiting reservations
             bookCopy.markAsAvailable();
@@ -320,12 +325,10 @@ public class LibraryFacade {
                 System.err.printf("Book copy %d is not under maintenance.%n", bookCopy.getCopyId());
                 return;
             }
-            /*bookCopy.markAsAvailable(); // ensure implemented in BookCopy
-            bookCopiesDAO.updateCopyStatus(bookCopy);
-            System.out.printf("Book copy %d removed from maintenance and available.%n", bookCopy.getCopyId());*/
-            System.out.printf("Book copy %d removed from maintenance. Processing...%n", bookCopy.getCopyId());
-            processWaitingList(bookCopy);
+            bookCopy.markAsAvailable();
+            System.out.printf("Book copy %d removed from maintenance. Processing waiting list...%n", bookCopy.getCopyId());
 
+            processWaitingList(bookCopy);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Error removing book copy %s from maintenance!", bookCopy.getCopyId()), e);
         }
