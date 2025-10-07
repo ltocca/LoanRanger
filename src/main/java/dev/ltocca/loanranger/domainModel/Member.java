@@ -1,7 +1,7 @@
 package dev.ltocca.loanranger.domainModel;
 
 import dev.ltocca.loanranger.businessLogic.observer.BookCopyObserver;
-import dev.ltocca.loanranger.businessLogic.EmailService;
+import dev.ltocca.loanranger.service.EmailService;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
@@ -30,12 +30,11 @@ public class Member extends User implements BookCopyObserver {
 
     @Override
     public void onBookCopyAvailable(BookCopy bookCopy) {
-        EmailService emailService = new EmailService();
-        String subject = "Book Copy Available - " + bookCopy.getBook().getTitle();
+        System.out.println("Book Copy Available - " + bookCopy.getBook().getTitle());
         String message = "Dear " + this.getName() + ",\n" +
                 "The book '" + bookCopy.getBook().getTitle() + "' by " + bookCopy.getBook().getAuthor() +
                 " (Copy ID: " + bookCopy.getCopyId() + ") that you reserved is now available.\n" +
                 "Please visit the library " + bookCopy.getLibrary().getName() + " soon to borrow it!";
-        emailService.sendEmail(this.getEmail(), subject, message);
+       System.out.println(message);
     }
 }
