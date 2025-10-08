@@ -5,6 +5,7 @@ import dev.ltocca.loanranger.ORM.UserDAO;
 import dev.ltocca.loanranger.util.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 
@@ -17,6 +18,7 @@ public class AdminAccountController {
         this.userDAO = userDAO;
     }
 
+    @Transactional
     public void changeEmail(Admin admin, String newEmail){
         if (newEmail == null || newEmail.trim().isEmpty()) {
             throw new IllegalArgumentException("Error: the new email cannot be null or empty");
@@ -33,11 +35,16 @@ public class AdminAccountController {
             }
             admin.setEmail(newEmail);
             this.userDAO.updateEmail(admin.getId(), newEmail.trim());
-        } catch (Exception e) {
+        }
+        catch (IllegalArgumentException e) {
+            throw e;
+        }
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    @Transactional
     public void changePassword(Admin admin, String currentPassword, String newPassword) {
         if (newPassword == null || newPassword.trim().length() < 8) {
             throw new IllegalArgumentException("Error: the new password cannot be null or empty, at least 8 characters");

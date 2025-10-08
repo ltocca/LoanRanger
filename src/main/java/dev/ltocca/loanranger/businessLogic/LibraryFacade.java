@@ -9,6 +9,8 @@ import dev.ltocca.loanranger.ORM.*;
 import dev.ltocca.loanranger.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -51,6 +53,7 @@ public class LibraryFacade {
     }
 
     /** Borrow a book copy */
+    @Transactional
     public boolean borrowBook(Member member, BookCopy bookCopy) {
         try {
             if (!isCopyBorrowable(member, bookCopy)) return false;
@@ -78,6 +81,8 @@ public class LibraryFacade {
         }
     }
 
+    @Transactional
+
     public boolean borrowBook(Member member, BookCopy bookCopy, LocalDate dueDate) {
         try {
             if (!isCopyBorrowable(member, bookCopy)) return false;
@@ -104,6 +109,7 @@ public class LibraryFacade {
         }
     }
 
+    @Transactional
     public boolean renewLoan(Loan loan, int days) {
         try {
             LocalDate newDueDate = loan.getDueDate().plusDays(days);
@@ -116,6 +122,7 @@ public class LibraryFacade {
         }
     }
 
+    @Transactional
     public boolean renewLoan(Loan loan) {
         return renewLoan(loan, 30);
     }
@@ -157,6 +164,7 @@ public class LibraryFacade {
     }
 
     /** Place a reservation for a book copy */
+    @Transactional
     public boolean placeReservation(Member member, BookCopy bookCopy) {
         try {
             if (member == null) {
@@ -212,6 +220,7 @@ public class LibraryFacade {
         }
     }
 
+    @Transactional
     public boolean placeReservation(long memberId, long copyId) {
         Optional<User> memberOpt = userDAO.getUserById(memberId);
         if (memberOpt.isEmpty() || !(memberOpt.get() instanceof Member member)) {
@@ -271,6 +280,7 @@ public class LibraryFacade {
         }
     }
 
+    @Transactional
     private void processWaitingList(BookCopy bookCopy) {
         List<Reservation> waitingList = reservationDAO.findCopyWaitingReservation(bookCopy.getCopyId());
 
@@ -297,6 +307,7 @@ public class LibraryFacade {
         bookCopiesDAO.updateCopyStatus(bookCopy);
     }
 
+    @Transactional
     public void putUnderMaintenance(BookCopy bookCopy) {
         try {
             if (bookCopy.getState() instanceof ReservedState) {
@@ -319,6 +330,7 @@ public class LibraryFacade {
         }
     }
 
+    @Transactional
     public void removeFromMaintenance(BookCopy bookCopy) {
         try {
             if (!(bookCopy.getState() instanceof UnderMaintenanceState)) {
@@ -334,6 +346,7 @@ public class LibraryFacade {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Reservation> getMemberReservations(Member member) {
         if (member == null || member.getId() == null) {
             throw new IllegalArgumentException("Member cannot be null.");

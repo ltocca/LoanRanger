@@ -5,6 +5,7 @@ import dev.ltocca.loanranger.ORM.*;
 import dev.ltocca.loanranger.util.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -22,6 +23,7 @@ public class MemberAccountController {
         this.reservationDAO = reservationDAO;
     }
 
+    @Transactional
     public void changeUsername(Member member, String newUsername) {
         if (newUsername == null || newUsername.trim().isEmpty()) {
             throw new IllegalArgumentException("Error: the new username cannot be null or empty");
@@ -40,6 +42,7 @@ public class MemberAccountController {
         }
     }
 
+    @Transactional
     public void changeEmail(Member member, String newEmail){
         if (newEmail == null || newEmail.trim().isEmpty()) {
             throw new IllegalArgumentException("Error: the new email cannot be null or empty");
@@ -61,6 +64,7 @@ public class MemberAccountController {
         }
     }
 
+    @Transactional
     public void changePassword(Member member, String currentPassword, String newPassword) {
         if (newPassword == null || newPassword.trim().length() < 8) {
             throw new IllegalArgumentException("Error: the new password cannot be null or empty, at least 8 characters");
@@ -82,6 +86,7 @@ public class MemberAccountController {
         }
     }
 
+    @Transactional
     public void deleteAccount(Member member, String password){
         // FIXME: maybe it is too risky
         try{

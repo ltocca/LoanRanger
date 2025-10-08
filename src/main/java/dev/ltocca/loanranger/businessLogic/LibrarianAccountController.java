@@ -5,10 +5,12 @@ import dev.ltocca.loanranger.ORM.UserDAO;
 import dev.ltocca.loanranger.util.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 
 @Service
+@Transactional
 public class LibrarianAccountController {
     private final UserDAO userDAO;
 

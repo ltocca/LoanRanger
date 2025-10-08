@@ -6,6 +6,7 @@ import dev.ltocca.loanranger.ORM.LoanDAO;
 import dev.ltocca.loanranger.service.BookCopySearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class MemberBookController {
         this.loanDAO = loanDAO;
     }
 
+    @Transactional
     public void borrowBookCopy(Member member, Long copyId) throws SQLException {
         Optional<BookCopy> bookCopyOpt = bookCopiesDAO.getCopyById(copyId);
 
@@ -41,6 +43,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional
     public void borrowBookCopy(Member member, BookCopy copy) throws SQLException {
         if (copy == null) {
             System.err.println("BookCopy is null, cannot borrow.");
@@ -58,6 +61,7 @@ public class MemberBookController {
 
     }
 
+    @Transactional
     public void returnCopy(Long copyId) throws SQLException {
         if (copyId == null) {
             System.err.println("Copy id is null, cannot borrow.");
@@ -69,6 +73,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional
     public void reserveBookCopy(Member member, BookCopy copy) {
         if (copy == null) {
             System.err.println("BookCopy is null, cannot reserve.");
@@ -82,6 +87,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional
     public void reserveBookCopy(Member member, Long copyId) {
         if (copyId == null) {
             System.err.println("Copy ID is null, cannot reserve.");
@@ -95,6 +101,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional
     public boolean cancelReservation(Member member, Long reservationId) {
         if (reservationId == null) {
             System.err.println("Reservation ID cannot be null.");
@@ -103,6 +110,7 @@ public class MemberBookController {
         return facade.cancelReservation(reservationId, member);
     }
 
+    @Transactional(readOnly = true)
     public List<Reservation> getActiveReservations(Member member) {
         try {
             List<Reservation> allReservations = facade.getMemberReservations(member);
@@ -121,6 +129,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Reservation> getAllReservations(Member member) {
         try {
             return facade.getMemberReservations(member);
@@ -130,6 +139,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Loan> getActiveLoans(Member member) {
         try {
             return loanDAO.findActiveLoansByMember(member);
@@ -139,6 +149,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Loan> getOverdueLoans(Member member) {
         try {
             return loanDAO.findMemberOverdueLoans(member.getId());
@@ -148,6 +159,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Loan> getAllLoans(Member member) {
         try {
             return loanDAO.findLoansByMember(member);
@@ -157,6 +169,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBooksByTitle(String title) {
         try {
             return searchService.search(title, BookCopySearchService.SearchType.TITLE);
@@ -166,6 +179,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBooksByAuthor(String author) {
         try {
             return searchService.search(author, BookCopySearchService.SearchType.AUTHOR);
@@ -175,6 +189,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBooksByIsbn(String isbn) {
         try {
             return searchService.search(isbn, BookCopySearchService.SearchType.ISBN);
@@ -184,6 +199,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBookCopyGeneric(String query) {
         try {
             return searchService.smartSearch(query);
@@ -193,6 +209,7 @@ public class MemberBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBooksByType(String query, BookCopySearchService.SearchType type) {
         return switch (type) {
             case TITLE -> searchBooksByTitle(query);

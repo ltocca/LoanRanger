@@ -24,20 +24,27 @@ public class BookDAO implements IBookDAO {
 
     @Override
     public Book createBook(Book book) {
-        String sql = "INSERT INTO books (title, author, publication_year, genre) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO books (isbn, title, author, publication_year, genre) VALUES (?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setString(1, book.getTitle());
-            pstmt.setString(2, book.getAuthor());
-            pstmt.setInt(3, book.getPublicationYear());
-            pstmt.setString(4, book.getGenre());
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            pstmt.setString(1, book.getIsbn());
+            pstmt.setString(2, book.getTitle());
+            pstmt.setString(3, book.getAuthor());
+            if (book.getPublicationYear() != null) {
+                pstmt.setInt(4, book.getPublicationYear());
+            } else {
+                pstmt.setNull(4, Types.INTEGER);
+            }
+            if (book.getGenre() != null && !book.getGenre().trim().isEmpty()) {
+                pstmt.setString(5, book.getGenre());
+            } else {
+                pstmt.setNull(5, Types.VARCHAR);
+            }
+
             int affectedRows = pstmt.executeUpdate();
-            if (affectedRows > 0) {
-                try (ResultSet rs = pstmt.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        book.setIsbn(rs.getString(1)); // extracts the first column
-                    }
-                }
+            if (affectedRows == 0) {
+                throw new SQLException("Creating book failed, no rows affected.");
             }
             return book;
         } catch (SQLException e) {

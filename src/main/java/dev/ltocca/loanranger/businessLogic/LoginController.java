@@ -7,6 +7,7 @@ import dev.ltocca.loanranger.ORM.UserDAO;
 import dev.ltocca.loanranger.util.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -21,6 +22,7 @@ public class LoginController {
         this.userDAO = userDAO;
     }
 
+    @Transactional(readOnly = true)
     public Optional<User> login(String email, String password) throws SQLException {
         if (email == null || password == null) {
             System.err.println("Error: No email or password provided!");
@@ -55,6 +57,7 @@ public class LoginController {
     }
 */
 
+    @Transactional
     public User register(UserRole role, String username, String name, String email, String password, Library workLibrary) throws SQLException {
         try {
             validateRegistrationParameters(role, username, email, password, workLibrary);
