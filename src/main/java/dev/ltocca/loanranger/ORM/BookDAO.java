@@ -143,7 +143,7 @@ public class BookDAO implements IBookDAO {
 
     @Override
     public List<Book> findBookByIsbn(String isbn) {
-        String sql = "SELECT * FROM books WHERE isbn = ? ORDER BY title";
+        String sql = "SELECT * FROM books WHERE isbn  LIKE ? ORDER BY title";
         List<Book> books = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(sql)) {

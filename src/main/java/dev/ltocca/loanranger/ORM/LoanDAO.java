@@ -57,7 +57,7 @@ public class LoanDAO implements ILoanDAO {
             if (affectedRows > 0) {
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
-                        loan.setId(rs.getLong("loan_id"));
+                        loan.setId(rs.getLong(1)); // FIX: Use column index instead of name
                     }
                 }
             }
@@ -71,7 +71,7 @@ public class LoanDAO implements ILoanDAO {
     public Loan createLoan(BookCopy bookCopy, Member member) {
         String sql = "INSERT INTO loans (copy_id, member_id, loan_date, due_date, return_date) VALUES (?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+             PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             Loan loan = new Loan(bookCopy, member, LocalDate.now());
             pstmt.setLong(1, loan.getBookCopy().getCopyId());
             pstmt.setLong(2, loan.getMember().getId());
@@ -83,7 +83,7 @@ public class LoanDAO implements ILoanDAO {
             if (affectedRows > 0) {
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
                     if (rs.next()) {
-                        loan.setId(rs.getLong("loan_id"));
+                        loan.setId(rs.getLong(1));
                     }
                 }
             }

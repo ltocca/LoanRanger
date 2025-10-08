@@ -45,7 +45,7 @@ CREATE TABLE book_copies
 CREATE TABLE loans
 (
     loan_id     BIGSERIAL PRIMARY KEY,
-    copy_id     BIGINT NOT NULL UNIQUE, -- a copy can only be on one active loan at a time
+    copy_id     BIGINT NOT NULL, -- a copy can only be on one active loan at a time
     member_id   BIGINT NOT NULL,
     loan_date   DATE   NOT NULL DEFAULT CURRENT_DATE,
     due_date    DATE   NOT NULL,
