@@ -38,9 +38,11 @@ public class MemberAccountController {
             member.setUsername(newUsername);
             this.userDAO.updateUsername(member.getId(), newUsername.trim());
         } catch (Exception e) {
-            throw new RuntimeException("Error updating username: " + e.getMessage());
+            if (e instanceof IllegalArgumentException) {
+                    throw e;
+                }
+            }
         }
-    }
 
     @Transactional
     public void changeEmail(Member member, String newEmail){
@@ -60,19 +62,21 @@ public class MemberAccountController {
             member.setEmail(newEmail);
             this.userDAO.updateEmail(member.getId(), newEmail.trim());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (e instanceof IllegalArgumentException) {
+                throw e;
+            }
         }
     }
 
     @Transactional
     public void changePassword(Member member, String currentPassword, String newPassword) {
-        if (newPassword == null || newPassword.trim().length() < 8) {
-            throw new IllegalArgumentException("Error: the new password cannot be null or empty, at least 8 characters");
-        }
-        if (newPassword.equals(member.getPassword())) {
-            throw new IllegalArgumentException("Error: the new password  cannot be the old one");
-        }
         try {
+            if (newPassword == null || newPassword.trim().length() < 8) {
+                throw new IllegalArgumentException("Error: the new password cannot be null or empty, at least 8 characters");
+            }
+            if (newPassword.equals(member.getPassword())) {
+                throw new IllegalArgumentException("Error: the new password cannot be the old one");
+            }
             if (!PasswordHasher.check(currentPassword, member.getPassword()) || currentPassword == null) {
                 throw new IllegalArgumentException("Error: inserted incorrect current password");
             }
@@ -82,7 +86,9 @@ public class MemberAccountController {
             String hashedPassword = PasswordHasher.hash(newPassword);
             this.userDAO.updatePassword(member.getId(), hashedPassword);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (e instanceof IllegalArgumentException) {
+                throw e;
+            }
         }
     }
 

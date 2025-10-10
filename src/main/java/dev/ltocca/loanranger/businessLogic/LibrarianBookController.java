@@ -96,7 +96,10 @@ public class LibrarianBookController {
             System.err.println("Error fetching book copy: " + e.getMessage());
             return false;
         }
-        if (!checkCopyBelongsToLibrary(librarian, copy)) {
+        if (copy == null) {
+            System.err.printf("No book copy found with id %d%n", copyId);
+            return false;
+        }        if (!checkCopyBelongsToLibrary(librarian, copy)) {
             System.err.printf("This book copy with id %d is has not been borrowed in this Library, but it is in %s!%n", copyId, copy.getLibrary().getName() + " id: " + copy.getLibrary().getId());
             return false;
         }
@@ -136,7 +139,13 @@ public class LibrarianBookController {
             System.err.println("Error fetching book copy: " + e.getMessage());
             return false;
         }
+
         if (copy == null || !checkCopyBelongsToLibrary(librarian, copy)) return false;
+
+        if (!(copy.getState() instanceof dev.ltocca.loanranger.domainModel.State.AvailableState)) {
+            System.err.printf("Book copy %d is not available, so it cannot be placed under maintenance.%n", copyId);
+            return false;
+        }
 
         libraryFacade.putUnderMaintenance(copy);
         return true;
