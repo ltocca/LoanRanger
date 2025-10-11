@@ -5,6 +5,7 @@ import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.service.BookCopySearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
@@ -14,9 +15,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
+@ConditionalOnProperty(
+        prefix = "app",
+        name = "cli.enabled",
+        havingValue = "true",
+        matchIfMissing = true // Ensures the CLI runs by default if the property is not set (e.g., in production)
+)
 @Component
 public class MainCLI implements CommandLineRunner {
-    private final Scanner scanner = new Scanner(System.in);
+    private Scanner scanner;
     private User currentUser;
 
     // All controllers are injected by Spring
@@ -50,6 +57,7 @@ public class MainCLI implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
+            this.scanner = new Scanner(System.in);
             runPreLoginLoop();
         } catch (Exception e) {
             System.err.println("A fatal error occurred. Exiting application.");

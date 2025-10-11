@@ -2,6 +2,9 @@ package dev.ltocca.loanranger.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -9,6 +12,8 @@ import org.springframework.stereotype.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
+
+//@PropertySource("classpath:application-dev.properties")
 @Service
 public class EmailService {
 
@@ -43,7 +48,9 @@ public class EmailService {
             helper.setText(body, false);
             mailSender.send(message);
             System.out.println("Email sent successfully to: " + to);
-        } catch (MessagingException e) {
+        } catch (MailException e) {
+            System.err.println("Failed to send email to " + to + ": " + e.getMessage());
+        } catch (MessagingException | RuntimeException e) {
             System.err.println("Failed to send email to " + to + ": " + e.getMessage());
         }
     }

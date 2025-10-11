@@ -27,24 +27,12 @@ import java.sql.SQLException;
 @Import({BookDAO.class, BookCopiesDAO.class, LibraryDAO.class, UserDAO.class, LoanDAO.class, ReservationDAO.class})
 @Transactional 
 
-public abstract class OrmIntegrationTestBase {
+public abstract class OrmIntegrationTestBase extends PostgresIntegrationTestBase {
 
-    
-    @Container
-    protected static final PostgreSQLContainer<?> postgresqlContainer =
-            new PostgreSQLContainer<>("postgres:17-alpine") 
-                    .withDatabaseName("loanranger_test")
-                    .withUsername("test")
-                    .withPassword("test");
+    ///
+    /// removed container generation in order to share the containers between the tests
+    ///
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresqlContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresqlContainer::getUsername);
-        registry.add("spring.datasource.password", postgresqlContainer::getPassword);
-    }
-
-    
     @Autowired
     protected DataSource dataSource; 
 
