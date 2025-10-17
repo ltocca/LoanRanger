@@ -5,10 +5,12 @@ import dev.ltocca.loanranger.ORM.UserDAO;
 import dev.ltocca.loanranger.util.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 
 @Service
+@Transactional
 public class LibrarianAccountController {
     private final UserDAO userDAO;
 
@@ -31,6 +33,9 @@ public class LibrarianAccountController {
             librarian.setUsername(newUsername.trim());
             this.userDAO.updateUsername(librarian.getId(), newUsername.trim());
         } catch (Exception e) {
+            if (e instanceof IllegalArgumentException) {
+                throw e;
+            }
             throw new RuntimeException("A database error occurred while updating the username.", e);
         }
     }
@@ -52,7 +57,9 @@ public class LibrarianAccountController {
             librarian.setEmail(newEmail.trim());
             this.userDAO.updateEmail(librarian.getId(), newEmail.trim());
         } catch (Exception e) {
-            throw new RuntimeException("A database error occurred while updating the email address.", e);
+            if (e instanceof IllegalArgumentException) {
+                throw e;
+            }
         }
     }
 

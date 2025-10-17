@@ -2,6 +2,7 @@ package dev.ltocca.loanranger.businessLogic;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.io.BufferedReader;
@@ -22,6 +23,7 @@ public class AdminDatabaseController {
         this.dataSource = dataSource;
     }
 
+    @Transactional
     public void recreateSchemaAndAdmin() {
         System.out.println("Executing database reset...");
         try {
@@ -32,6 +34,7 @@ public class AdminDatabaseController {
         }
     }
 
+    @Transactional
     public void generateDefaultDatabase() {
         System.out.println("Generating default database...");
         try {

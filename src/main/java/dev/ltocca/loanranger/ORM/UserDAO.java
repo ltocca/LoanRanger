@@ -267,7 +267,7 @@ public class UserDAO implements IUserDAO {
 
     @Override
     public void updateUser(User user) {
-        String sql = "UPDATE users SET username = ?, name = ?, email = ?, role = ?, library_id = ? WHERE user_id = ?";
+        String sql = "UPDATE users SET username = ?, name = ?, email = ?, role = ?::user_role, library_id = ? WHERE user_id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, user.getUsername());

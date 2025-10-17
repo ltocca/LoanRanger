@@ -5,6 +5,7 @@ import dev.ltocca.loanranger.domainModel.*;
 import dev.ltocca.loanranger.service.BookCopySearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
@@ -14,9 +15,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
+@ConditionalOnProperty(
+        prefix = "app",
+        name = "cli.enabled",
+        havingValue = "true",
+        matchIfMissing = true // Ensures the CLI runs by default if the property is not set (e.g., in production)
+)
 @Component
 public class MainCLI implements CommandLineRunner {
-    private final Scanner scanner = new Scanner(System.in);
+    private Scanner scanner;
     private User currentUser;
 
     // All controllers are injected by Spring
@@ -50,6 +57,7 @@ public class MainCLI implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
+            this.scanner = new Scanner(System.in);
             runPreLoginLoop();
         } catch (Exception e) {
             System.err.println("A fatal error occurred. Exiting application.");
@@ -165,26 +173,33 @@ public class MainCLI implements CommandLineRunner {
             System.out.println("11. Change Email");
             System.out.println("12. Change Password");
             System.out.println("13. Logout");
-        } else if (currentUser instanceof Admin) {
+        }
+        if (currentUser instanceof Admin) {
             System.out.println("--- Admin Menu ---");
             System.out.println("--- Library Management ---");
             System.out.println("1. Add New Library");
             System.out.println("2. Update Library Information");
             System.out.println("3. Remove Library");
             System.out.println("4. List All Libraries");
+            System.out.println("--- Book Management ---");
+            System.out.println("5. Add New Book");
+            System.out.println("6. Remove Book");
+            System.out.println("7. List All Books");
+            System.out.println("8. View Book Details");
             System.out.println("--- User Management ---");
-            System.out.println("5. Register New Librarian");
-            System.out.println("6. Re-assign Librarian");
-            System.out.println("7. Delete a User Account");
-            System.out.println("8. List All Users");
+            System.out.println("9. Register New Librarian");
+            System.out.println("10. Re-assign Librarian");
+            System.out.println("11. Delete a User Account");
+            System.out.println("12. List All Users");
             System.out.println("--- System ---");
-            System.out.println("9. Seed Database with Default Data");
-            System.out.println("10. Recreate Database (Schema + Admin)");
+            System.out.println("13. Seed Database with Default Data");
+            System.out.println("14. Recreate Database (Schema + Admin)");
             System.out.println("--- My Account ---");
-            System.out.println("11. Change Email");
-            System.out.println("12. Change Password");
-            System.out.println("13. Logout");
+            System.out.println("15. Change Email");
+            System.out.println("16. Change Password");
+            System.out.println("17. Logout");
         }
+
     }
 
     // --- MEMBER ACTION HANDLERS ---
@@ -762,30 +777,42 @@ public class MainCLI implements CommandLineRunner {
                 handleAdminListLibraries();
                 break;
             case "5":
-                handleAdminRegisterLibrarian();
+                handleAdminAddBook();
                 break;
             case "6":
-                handleAdminReassignLibrarian();
+                handleAdminRemoveBook();
                 break;
             case "7":
-                handleAdminDeleteUser(admin);
+                handleAdminListBooks();
                 break;
             case "8":
-                handleAdminListUsers();
+                handleAdminViewBookDetails();
                 break;
             case "9":
-                handleAdminDefaultDatabase();
+                handleAdminRegisterLibrarian();
                 break;
             case "10":
-                handleAdminRecreateDatabase();
+                handleAdminReassignLibrarian();
                 break;
             case "11":
-                handleAdminChangeEmail(admin);
+                handleAdminDeleteUser(admin);
                 break;
             case "12":
-                handleAdminChangePassword(admin);
+                handleAdminListUsers();
                 break;
             case "13":
+                handleAdminDefaultDatabase();
+                break;
+            case "14":
+                handleAdminRecreateDatabase();
+                break;
+            case "15":
+                handleAdminChangeEmail(admin);
+                break;
+            case "16":
+                handleAdminChangePassword(admin);
+                break;
+            case "17":
                 currentUser = null;
                 break;
             default:
@@ -851,6 +878,84 @@ public class MainCLI implements CommandLineRunner {
         if (librarianId != null && libraryId != null) {
             adminUsersController.assignLibrarianToLibrary(librarianId, libraryId);
         }
+    }
+
+    private void handleAdminAddBook() {
+        System.out.println("\n--- Add New Book ---");
+        System.out.print("Enter ISBN (required): ");
+        String isbn = scanner.nextLine();
+        System.out.print("Enter title (required): ");
+        String title = scanner.nextLine();
+        System.out.print("Enter author (required): ");
+        String author = scanner.nextLine();
+        System.out.print("Enter publication year (or press Enter to skip): ");
+        String yearInput = scanner.nextLine();
+        System.out.print("Enter genre (or press Enter to skip): ");
+        String genre = scanner.nextLine();
+
+        Integer publicationYear = null;
+        if (!yearInput.trim().isEmpty()) {
+            try {
+                publicationYear = Integer.parseInt(yearInput.trim());
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid year format. Skipping publication year.");
+            }
+        }
+
+        // Use empty string instead of null for optional fields
+        String genreValue = genre.trim().isEmpty() ? null : genre.trim();
+
+        adminBookController.addBook(isbn, title, author, publicationYear, genreValue);
+    }
+
+    private void handleAdminRemoveBook() {
+        System.out.print("Enter ISBN of the book to remove: ");
+        String isbn = scanner.nextLine();
+
+        if (isbn.trim().isEmpty()) {
+            System.err.println("ISBN cannot be empty.");
+            return;
+        }
+
+        System.err.print("WARNING: This will permanently delete the book from the system. Type 'CONFIRM' to proceed: ");
+        String confirmation = scanner.nextLine();
+        if (confirmation.equals("CONFIRM")) {
+            adminBookController.removeBook(isbn);
+        } else {
+            System.out.println("Book removal cancelled.");
+        }
+    }
+
+    private void handleAdminListBooks() {
+        List<Book> books = adminBookController.listAllBooks();
+        if (books.isEmpty()) {
+            System.out.println("No books found in the system.");
+        } else {
+            System.out.println("\n--- All Books ---");
+            String format = "%-15s | %-30.30s | %-20.20s | %-6s | %-15s%n";
+            System.out.printf(format, "ISBN", "Title", "Author", "Year", "Genre");
+            System.out.println(String.join("", java.util.Collections.nCopies(95, "-")));
+            for (Book book : books) {
+                System.out.printf(format,
+                        book.getIsbn(),
+                        book.getTitle(),
+                        book.getAuthor(),
+                        book.getPublicationYear() != null ? book.getPublicationYear() : "N/A",
+                        book.getGenre() != null && !book.getGenre().isEmpty() ? book.getGenre() : "N/A");
+            }
+        }
+    }
+
+    private void handleAdminViewBookDetails() {
+        System.out.print("Enter ISBN of the book to view details: ");
+        String isbn = scanner.nextLine();
+
+        if (isbn.trim().isEmpty()) {
+            System.err.println("ISBN cannot be empty.");
+            return;
+        }
+
+        adminBookController.viewBookDetails(isbn);
     }
 
     private void handleAdminRegisterLibrarian() {

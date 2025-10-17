@@ -5,6 +5,7 @@ import dev.ltocca.loanranger.ORM.*;
 import dev.ltocca.loanranger.service.BookCopySearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -31,7 +32,7 @@ public class LibrarianBookController {
         this.searchService = searchService;
     }
 
-
+    @Transactional
     public void addBookCopy(Librarian librarian, String isbn) throws SQLException {
         try {
             BookCopy newCopy = libraryFacade.createBookCopy(isbn, librarian.getWorkLibrary());
@@ -45,6 +46,7 @@ public class LibrarianBookController {
         }
     }
 
+    @Transactional
     public Boolean loanBookToMember(Librarian librarian, Long memberId, Long copyId, LocalDate dueDate) {
         User user = null;
         try {
@@ -80,6 +82,7 @@ public class LibrarianBookController {
         }
     }
 
+    @Transactional
     public boolean processReturn(Librarian librarian, Long copyId) {
         if (copyId == null) {
             System.err.println("No copy inserted! Try again.");
@@ -93,13 +96,17 @@ public class LibrarianBookController {
             System.err.println("Error fetching book copy: " + e.getMessage());
             return false;
         }
-        if (!checkCopyBelongsToLibrary(librarian, copy)) {
+        if (copy == null) {
+            System.err.printf("No book copy found with id %d%n", copyId);
+            return false;
+        }        if (!checkCopyBelongsToLibrary(librarian, copy)) {
             System.err.printf("This book copy with id %d is has not been borrowed in this Library, but it is in %s!%n", copyId, copy.getLibrary().getName() + " id: " + copy.getLibrary().getId());
             return false;
         }
         return libraryFacade.returnBook(copyId);
     }
 
+    @Transactional
     public boolean renewLoan(Librarian librarian, Long loanId, Integer days) {
         Loan loan = null;
         try {
@@ -123,6 +130,7 @@ public class LibrarianBookController {
         }
     }
 
+    @Transactional
     public boolean putCopyUnderMaintenance(Librarian librarian, Long copyId) {
         BookCopy copy;
         try {
@@ -131,12 +139,19 @@ public class LibrarianBookController {
             System.err.println("Error fetching book copy: " + e.getMessage());
             return false;
         }
+
         if (copy == null || !checkCopyBelongsToLibrary(librarian, copy)) return false;
+
+        if (!(copy.getState() instanceof dev.ltocca.loanranger.domainModel.State.AvailableState)) {
+            System.err.printf("Book copy %d is not available, so it cannot be placed under maintenance.%n", copyId);
+            return false;
+        }
 
         libraryFacade.putUnderMaintenance(copy);
         return true;
     }
 
+    @Transactional
     public boolean removeCopyFromMaintenance(Librarian librarian, Long copyId) {
         BookCopy copy;
         try {
@@ -156,6 +171,7 @@ public class LibrarianBookController {
         return true;
     }
 
+    @Transactional(readOnly = true)
     public List<Loan> getActiveLoans(Librarian librarian) {
         try {
             return loanDAO.findActiveLoansByLibrary(librarian.getWorkLibrary());
@@ -165,6 +181,7 @@ public class LibrarianBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Loan> getOverdueLoans(Librarian librarian) {
         java.util.List<Loan> overdueLoans = new java.util.ArrayList<Loan>();
         try {
@@ -177,6 +194,7 @@ public class LibrarianBookController {
         return overdueLoans;
     }
 
+    @Transactional(readOnly = true)
     public List<Reservation> getActiveReservations(Librarian librarian) throws SQLException {
         try {
             return reservationDAO.findActiveReservationsByLibrary(librarian.getWorkLibrary().getId());
@@ -186,6 +204,7 @@ public class LibrarianBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Reservation> getPastReservations(Librarian librarian) throws SQLException {
         try {
             return reservationDAO.findPastReservationsByLibrary(librarian.getWorkLibrary().getId());
@@ -195,6 +214,7 @@ public class LibrarianBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<Reservation> getAllReservations(Librarian librarian) throws SQLException {
         try {
             return reservationDAO.findReservationsByLibrary(librarian.getWorkLibrary().getId());
@@ -204,39 +224,47 @@ public class LibrarianBookController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBookCopies(Librarian librarian, String query) {
         List<BookCopy> results = searchService.smartSearch(query);
         return filterCopiesByLibrary(librarian, results);
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBookCopies(Librarian librarian, String query, BookCopySearchService.SearchType type) {
         List<BookCopy> results = searchService.search(query, type);
         return filterCopiesByLibrary(librarian, results);
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchAvailableBookCopies(Librarian librarian, String query) {
         List<BookCopy> results = searchService.smartSearchAvailableOnly(query);
         return filterCopiesByLibrary(librarian, results);
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchAvailableBookCopies(Librarian librarian, String query, BookCopySearchService.SearchType baseType) {
         List<BookCopy> results = searchService.searchAvailableOnly(query, baseType);
         return filterCopiesByLibrary(librarian, results);
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBookCopiesElsewhere(String query) {
         // skip library filter, search in all the system
         return searchService.smartSearch(query);
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchBookCopiesElsewhere(String query, BookCopySearchService.SearchType type) {
         return searchService.search(query, type);
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchAvailableBookCopiesElsewhere(String query) {
         return searchService.smartSearchAvailableOnly(query);
     }
 
+    @Transactional(readOnly = true)
     public List<BookCopy> searchAvailableBookCopiesElsewhere(String query,BookCopySearchService.SearchType baseType) {
         return searchService.searchAvailableOnly(query, baseType);
     }

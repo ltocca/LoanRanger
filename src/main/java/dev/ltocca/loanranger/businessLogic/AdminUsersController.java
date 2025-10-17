@@ -5,6 +5,7 @@ import dev.ltocca.loanranger.ORM.LibraryDAO;
 import dev.ltocca.loanranger.ORM.UserDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -23,6 +24,7 @@ public class AdminUsersController {
         this.loginController = loginController;
     }
 
+    @Transactional
     public void registerNewLibrarian(String username, String name, String email, String password, Long libraryId) {
         try {
             Optional<Library> libraryOpt = libraryDAO.getLibraryById(libraryId);
@@ -37,6 +39,7 @@ public class AdminUsersController {
         }
     }
 
+    @Transactional
     public void deleteUser(Admin admin, Long userId) {
         try {
             if (userId.equals(admin.getId())) {
@@ -50,6 +53,7 @@ public class AdminUsersController {
         }
     }
 
+    @Transactional
     public void assignLibrarianToLibrary(Long librarianId, Long newLibraryId) {
         try {
             Optional<User> userOpt = userDAO.getUserById(librarianId);
@@ -64,6 +68,7 @@ public class AdminUsersController {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<User> listAllUsers() {
         try {
             return userDAO.getAllUsers();

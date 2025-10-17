@@ -114,7 +114,7 @@ public class BookCopySearchService {
     }
 
     private boolean looksLikeAuthorName(String query) {
-        return query.contains(",") || query.split("\\s+").length >= 2;
+        return query.contains(" ") || query.split("\\s+").length >= 2;
     }
 
     private boolean looksLikeTitle(String query) {
