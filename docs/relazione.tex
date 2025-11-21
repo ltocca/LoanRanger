@@ -1,0 +1,2562 @@
+%%
+% Copyright (c) 2017 - 2025, Pascal Wagler;
+% Copyright (c) 2014 - 2025, John MacFarlane
+%
+% All rights reserved.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions
+% are met:
+%
+% - Redistributions of source code must retain the above copyright
+% notice, this list of conditions and the following disclaimer.
+%
+% - Redistributions in binary form must reproduce the above copyright
+% notice, this list of conditions and the following disclaimer in the
+% documentation and/or other materials provided with the distribution.
+%
+% - Neither the name of John MacFarlane nor the names of other
+% contributors may be used to endorse or promote products derived
+% from this software without specific prior written permission.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+% FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+% COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+% INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+% BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+% LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+% CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+% LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+% ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+% POSSIBILITY OF SUCH DAMAGE.
+%%
+
+%%
+% This is the Eisvogel pandoc LaTeX template.
+%
+% For usage information and examples visit the official GitHub page:
+% https://github.com/Wandmalfarbe/pandoc-latex-template
+%%
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names,table}{xcolor}
+\documentclass[
+  italian,
+  paper=a4,
+  ,captions=tableheading
+]{scrbook}
+\usepackage{xcolor}
+% load footmisc in order to customize footnotes (footmisc has to be loaded before hyperref, cf. https://tex.stackexchange.com/a/169124/144087)
+\usepackage[hang,flushmargin,bottom,multiple]{footmisc}
+\setlength{\footnotemargin}{0.8em} % set space between footnote nr and text
+\setlength{\footnotesep}{\baselineskip} % set space between multiple footnotes
+\setlength{\skip\footins}{0.3cm} % set space between page content and footnote
+\setlength{\footskip}{0.9cm} % set space between footnote and page bottom
+\usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm]{geometry}
+\usepackage{amsmath,amssymb}
+
+\usepackage[export]{adjustbox}
+\usepackage{graphicx}
+
+% add backlinks to footnote references, cf. https://tex.stackexchange.com/questions/302266/make-footnote-clickable-both-ways
+\usepackage{footnotebackref}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+  \setmainfont[]{TeX Gyre Pagella}
+  \setsansfont[]{TeX Gyre Heros}
+  \setmonofont[]{JetBrains Mono}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+
+% Use setspace anyway because we change the default line spacing.
+% The spacing is changed early to affect the titlepage and the TOC.
+\usepackage{setspace}
+\setstretch{1.2}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
+\lstset{defaultdialect=[5.3]Lua}
+\lstset{defaultdialect=[x86masm]Assembler}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+% Make use of float-package and set default placement for figures to H.
+% The option H means 'PUT IT HERE' (as  opposed to the standard h option which means 'You may put it here if you like').
+\usepackage{float}
+\floatplacement{figure}{H}
+\makeatother
+\ifLuaTeX
+\usepackage[bidi=basic,shorthands=off,]{babel}
+\else
+\usepackage[bidi=default,shorthands=off,]{babel}
+\fi
+\ifPDFTeX
+\else
+\babelfont{rm}[]{TeX Gyre Pagella}
+\fi
+\ifLuaTeX
+  \usepackage{selnolig} % disable illegal ligatures
+\fi
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\PassOptionsToPackage{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue}{hyperref}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue}
+\lstset{breaklines=true}
+\usepackage[table]{xcolor}
+\definecolor{rowblue}{rgb}{0.9,0.93,1.0}
+\newcommand{\usecasetab}[2]{%
+  \begin{table}[H]
+  \centering
+  \renewcommand{\arraystretch}{1.3}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{rowblue}
+    \multicolumn{2}{|l|}{\textbf{#1}} \\ \hline
+    #2
+    \hline
+  \end{tabular}
+  \end{table}
+
+}
+\newcommand{\usecasetabNF}[2]{%
+  \renewcommand{\arraystretch}{1.3}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{rowblue}
+    \multicolumn{2}{|l|}{\textbf{#1}} \\ \hline
+    #2
+    \hline
+  \end{tabular}
+}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\definecolor{default-linkcolor}{HTML}{A50000}
+\definecolor{default-filecolor}{HTML}{A50000}
+\definecolor{default-citecolor}{HTML}{4077C0}
+\definecolor{default-urlcolor}{HTML}{4077C0}
+
+\hypersetup{
+  pdftitle={Relazione di progetto: LoanRanger},
+  pdfauthor={Leonardo Toccafondi},
+  pdflang={it},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={default-filecolor},
+  citecolor={default-citecolor},
+  urlcolor={NavyBlue},
+  breaklinks=true,
+  pdfcreator={LaTeX via pandoc with the Eisvogel template}}
+
+\title{Relazione di progetto: LoanRanger}
+\author{Leonardo Toccafondi}
+\date{2025-11-14}
+
+
+%
+% for the background color of the title page
+%
+\usepackage{pagecolor}
+\usepackage{afterpage}
+\usepackage{tikz}
+
+%
+% break urls
+%
+\PassOptionsToPackage{hyphens}{url}
+
+%
+% When using babel or polyglossia with biblatex, loading csquotes is recommended
+% to ensure that quoted texts are typeset according to the rules of your main language.
+%
+\usepackage{csquotes}
+
+%
+% captions
+%
+\definecolor{caption-color}{HTML}{777777}
+\usepackage[font={stretch=1.2}, textfont={color=caption-color}, position=top, skip=4mm, labelfont=bf, singlelinecheck=false, justification=raggedright]{caption}
+\setcapindent{0em}
+
+%
+% blockquote
+%
+\definecolor{blockquote-border}{RGB}{221,221,221}
+\definecolor{blockquote-text}{RGB}{119,119,119}
+\usepackage{mdframed}
+\newmdenv[rightline=false,bottomline=false,topline=false,linewidth=3pt,linecolor=blockquote-border,skipabove=\parskip]{customblockquote}
+\renewenvironment{quote}{\begin{customblockquote}\list{}{\rightmargin=0em\leftmargin=0em}%
+\item\relax\color{blockquote-text}\ignorespaces}{\unskip\unskip\endlist\end{customblockquote}}
+
+%
+% Source Sans Pro as the default font family
+% Source Code Pro for monospace text
+%
+% 'default' option sets the default
+% font family to Source Sans Pro, not \sfdefault.
+%
+% Note that the font has been officially renamed to `Source Sans 3`, and
+% the version provided by the `sourcesanspro` package is slightly outdated.
+% You can install the newer version locally and use it, for example, with
+% `mainfont: "Source Sans 3"` in the YAML metadata (requires XeTeX or LuaTeX).
+%
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+    \usepackage[default]{sourcesanspro}
+  \usepackage{sourcecodepro}
+  \else % if not pdftex
+    \fi
+
+%
+% heading color
+%
+\definecolor{heading-color}{RGB}{40,40,40}
+% By default, the KOMA-Script classes will typeset sectioning headings in
+% sans-serif. Use the normal body font for headings.
+\addtokomafont{disposition}{\normalfont\color{heading-color}\bfseries}
+
+%
+% variables for title, author and date
+%
+\usepackage{titling}
+\title{Relazione di progetto: LoanRanger}
+\author{Leonardo Toccafondi}
+\date{2025-11-14}
+
+%
+% tables
+%
+
+%
+% remove paragraph indentation
+%
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+
+%
+%
+% Listings
+%
+%
+
+
+%
+% general listing colors
+%
+\definecolor{listing-background}{HTML}{F7F7F7}
+\definecolor{listing-rule}{HTML}{B3B2B3}
+\definecolor{listing-numbers}{HTML}{B3B2B3}
+\definecolor{listing-text-color}{HTML}{000000}
+\definecolor{listing-keyword}{HTML}{435489}
+\definecolor{listing-keyword-2}{HTML}{1284CA} % additional keywords
+\definecolor{listing-keyword-3}{HTML}{9137CB} % additional keywords
+\definecolor{listing-identifier}{HTML}{435489}
+\definecolor{listing-string}{HTML}{00999A}
+\definecolor{listing-comment}{HTML}{8E8E8E}
+
+\lstdefinestyle{eisvogel_listing_style}{
+  language         = java,
+  numbers          = left,
+  xleftmargin      = 2.7em,
+  framexleftmargin = 2.5em,
+  backgroundcolor  = \color{listing-background},
+  basicstyle       = \color{listing-text-color}\linespread{1.0}%
+                      \lst@ifdisplaystyle%
+                      \small%
+                      \fi\ttfamily{},
+  breaklines       = true,
+  frame            = single,
+  framesep         = 0.19em,
+  rulecolor        = \color{listing-rule},
+  frameround       = ffff,
+  tabsize          = 4,
+  numberstyle      = \color{listing-numbers},
+  aboveskip        = 1.0em,
+  belowskip        = 0.1em,
+  abovecaptionskip = 0em,
+  belowcaptionskip = 1.0em,
+  keywordstyle     = {\color{listing-keyword}\bfseries},
+  keywordstyle     = {[2]\color{listing-keyword-2}\bfseries},
+  keywordstyle     = {[3]\color{listing-keyword-3}\bfseries\itshape},
+  sensitive        = true,
+  identifierstyle  = \color{listing-identifier},
+  commentstyle     = \color{listing-comment},
+  stringstyle      = \color{listing-string},
+  showstringspaces = false,
+  escapeinside     = {/*@}{@*/}, % Allow LaTeX inside these special comments
+  literate         =
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+  {À}{{\`A}}1 {È}{{\`E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+  {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+  {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+  {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+  {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+  {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+  {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+  {€}{{\EUR}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+  {»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1
+  {…}{{\ldots}}1 {≥}{{>=}}1 {≤}{{<=}}1 {„}{{\glqq}}1 {“}{{\grqq}}1
+  {”}{{''}}1
+}
+\lstset{style=eisvogel_listing_style}
+
+%
+% Java (Java SE 12, 2019-06-22)
+%
+\lstdefinelanguage{Java}{
+  morekeywords={
+    % normal keywords (without data types)
+    abstract,assert,break,case,catch,class,continue,default,
+    do,else,enum,exports,extends,final,finally,for,if,implements,
+    import,instanceof,interface,module,native,new,package,private,
+    protected,public,requires,return,static,strictfp,super,switch,
+    synchronized,this,throw,throws,transient,try,volatile,while,
+    % var is an identifier
+    var
+  },
+  morekeywords={[2] % data types
+    % primitive data types
+    boolean,byte,char,double,float,int,long,short,
+    % String
+    String,
+    % primitive wrapper types
+    Boolean,Byte,Character,Double,Float,Integer,Long,Short
+    % number types
+    Number,AtomicInteger,AtomicLong,BigDecimal,BigInteger,DoubleAccumulator,DoubleAdder,LongAccumulator,LongAdder,Short,
+    % other
+    Object,Void,void
+  },
+  morekeywords={[3] % literals
+    % reserved words for literal values
+    null,true,false,
+  },
+  sensitive,
+  morecomment  = [l]//,
+  morecomment  = [s]{/*}{*/},
+  morecomment  = [s]{/**}{*/},
+  morestring   = [b]",
+  morestring   = [b]',
+}
+
+\lstdefinelanguage{XML}{
+  morestring      = [b]",
+  moredelim       = [s][\bfseries\color{listing-keyword}]{<}{\ },
+  moredelim       = [s][\bfseries\color{listing-keyword}]{</}{>},
+  moredelim       = [l][\bfseries\color{listing-keyword}]{/>},
+  moredelim       = [l][\bfseries\color{listing-keyword}]{>},
+  morecomment     = [s]{<?}{?>},
+  morecomment     = [s]{<!--}{-->},
+  commentstyle    = \color{listing-comment},
+  stringstyle     = \color{listing-string},
+  identifierstyle = \color{listing-identifier}
+}
+
+%
+% header and footer
+%
+\usepackage[headsepline,footsepline]{scrlayer-scrpage}
+
+\newpairofpagestyles{eisvogel-header-footer}{
+  \clearpairofpagestyles
+  \ihead*{Università degli Studi di Firenze}
+  \chead*{}
+  \ohead*{Corso di Ingegneria del Software}
+  \ifoot*{Leonardo Toccafondi}
+  \cfoot*{}
+  \ofoot*{\thepage}
+  \addtokomafont{pageheadfoot}{\upshape}
+}
+\pagestyle{eisvogel-header-footer}
+
+\deftripstyle{ChapterStyle}{}{}{}{}{\pagemark}{}
+\renewcommand*{\chapterpagestyle}{ChapterStyle}
+
+
+%
+% Define watermark
+%
+
+\begin{document}
+
+\begin{titlepage}
+\newgeometry{top=2cm, right=4cm, bottom=3cm, left=4cm}
+\definecolor{titlepage-color}{HTML}{003366}
+\newpagecolor{titlepage-color}\afterpage{\restorepagecolor}
+\tikz[remember picture,overlay] \node[inner sep=0pt] at (current page.center){\includegraphics[width=\paperwidth,height=\paperheight]{img/background.pdf}};
+\newcommand{\colorRule}[3][black]{\textcolor[HTML]{#1}{\rule{#2}{#3}}}
+\begin{flushleft}
+\noindent
+\\[-1em]
+\color[HTML]{FFFFFF}
+\makebox[0pt][l]{\colorRule[435488]{1.3\textwidth}{4pt}}
+\par
+\noindent
+
+% The titlepage with a background image has other text spacing and text size
+{
+  \setstretch{2}
+  \vfill
+  \vskip -8em
+  \noindent {\huge \textbf{\textsf{Relazione di progetto: LoanRanger}}}
+    \vskip 2em
+  \noindent {\Large \textsf{Leonardo
+Toccafondi} \vskip 0.6em \textsf{2025-11-14}}
+  \vfill
+}
+
+\noindent
+\includegraphics[width=35 mm, left]{img/unifi\_logo\_reverse.png}
+
+\end{flushleft}
+\end{titlepage}
+\restoregeometry
+\pagenumbering{arabic}
+
+\frontmatter
+% don't generate the default title
+% \maketitle
+
+
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{3}
+\tableofcontents
+\newpage
+}
+\mainmatter
+\chapter{Introduzione}\label{introduzione}
+
+La seguente relazione riguarda l'elaborato per il superamento dell'esame
+di Ingegneria del Software, appartenente al modulo Basi di Dati /
+Ingegneria del Software del corso di Laurea Triennale in Ingegneria
+Informatica dell'Università degli Studi di Firenze.\\
+Il progetto è stato sviluppato da Leonardo Toccafondi, matricola
+7003929, durante il periodo di Agosto - Ottobre 2025 (a.a.~2024/2025).\\
+Il codice sorgente è disponibile su \emph{GitHub} al seguente indirizzo:
+\url{https://github.com/ltocca/loanranger}.
+
+\section{Obiettivo e descrizione del
+progetto}\label{obiettivo-e-descrizione-del-progetto}
+
+Con questo progetto si vuole realizzare un software in grado di gestire
+i prestiti e le prenotazioni di copie di libri all'interno di una
+\textbf{rete bibliotecaria}, come potrebbe essere quella del comune di
+Firenze.
+
+Il sistema dovrà supportare la creazione e la gestione di account
+utente, suddivisi in tre attori principali: il membro (\emph{Member}),
+il bibliotecario (\emph{Librarian}) e l'amministratore del sistema
+(\emph{Admin}). I primi dovranno poter cercare, prenotare e prendere in
+prestito copie disponibili in tutta la rete; i bibliotecari saranno
+responsabili della gestione delle operazioni di prestito, restituzione e
+manutenzione dei volumi della propria biblioteca, oltre all'aggiunta di
+nuove copie; mentre gli amministratori avranno la possibilità di
+sovrintendere l'intero sistema, modificando dati attinenti a libri,
+biblioteche e utenti. A tutte le tipologie di utenti dovrà esser data la
+possibilità di aggiornare le proprie credenziali.
+
+Il programma, oltre a catalogare i titoli da rendere disponibili, dovrà
+tracciare ogni copia individualmente: ogni prestito viene registrato con
+una data di inizio e una di scadenza, permettendo un
+\textbf{monitoraggio costante dei prestiti}.
+
+Il software dovrà includere un servizio di notifica via email,
+configurato per l'invio automatico di comunicazioni nel momento in cui
+una copia prenotata diventa disponibile e viene riservata all'utente in
+attesa. In tal caso, l'utente riceverà un messaggio che lo inviterà a
+recarsi presso la biblioteca per ritirare la copia entro il termine
+stabilito.
+
+L'applicativo è usufruibile come interfaccia a riga di comando (CLI) per
+consentire l'utilizzo e la verifica delle funzionalità senza la
+necessità di un frontend grafico.
+
+\section{Architettura del progetto}\label{architettura-del-progetto}
+
+La figura (\ref{fig:archdiagram}) mostra lo schema architetturale del
+progetto, che sarà affrontato in maniera più dettagliata nei capitoli
+successivi:
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.5\textwidth]{img/ArchitectureDiagram.png}
+\caption{Diagramma di architettura}
+\label{fig:archdiagram}
+\end{figure}
+
+Il software è stato sviluppato in \textbf{Java} utilizzando il framework
+\textbf{Spring Boot}, il quale semplifica la configurazione e lo
+sviluppo di applicazioni stand-alone (improntato allo sviluppo di
+applicazioni web-based). Per la gestione dei dati è stato utilizzato un
+database PostgreSQL. Nello sviluppo è stato implementato il pattern DAO
+(segnalando a Spring Boot che le classi sono delle
+\passthrough{\lstinline!@Repository!}) per l'accesso ai dati e
+utilizzando JDBC puro per l'esecuzione delle query. Inoltre Spring Boot
+viene sfruttato per la gestione delle dipendenze, delle transazioni
+(tramite l'annotazione \passthrough{\lstinline!@Transaction!}) e del
+ciclo di vita di questi componenti DAO.
+
+Per mantenere una netta separazione delle responsabilità, il progetto è
+stato organizzato in più livelli (layers) per garantire una chiara
+separazione delle responsabilità. Il ``punto di ingresso''
+dell'applicazione è il \textbf{presentationLayer}, il quale gestisce
+l'interazione con l'utente tramite interfaccia a riga di comando. Il
+package \textbf{businessLogic} contiene i controller e la classe
+\passthrough{\lstinline!LibraryFacade!}, che coordinano le operazioni,
+applicano le regole di business e fungono da intermediari tra la
+presentazione e l'accesso ai dati. \textbf{Service} fornisce servizi di
+\emph{supporto} alla logica di business, come l'invio di notifiche o la
+ricerca dei libri. Il package \textbf{Domain Model} definisce le entità
+principali del sistema, le loro relazioni e gli stati. Infine, lo
+\textbf{strato di persistenza}, sviluppato nel package ORM, gestisce la
+comunicazione con il database PostgreSQL tramite JDBC, utilizzando
+classi DAO per eseguire query SQL e mappare i risultati sugli oggetti
+del modello di dominio.
+
+Per la progettazione sono stati utilizzati diagrammi UML (Unified
+Modeling Language). Per la fase di testing sono stati impiegati
+\textbf{JUnit 5} e \textbf{Mockito} per i test unitari, e
+\textbf{Testcontainers} per i test di integrazione, garantendo un
+ambiente di test isolato e riproducibile.
+
+\chapter{Progettazione}\label{progettazione}
+
+\section{Casi d'uso}\label{casi-duso}
+
+Il sistema è stato progettato per supportare le operazioni di tre attori
+principali:
+
+\begin{itemize}
+\item
+  \textbf{Membri}: possono cercare libri, visualizzare la disponibilità
+  delle copie, effettuare prenotazioni di specifiche copie e consultare
+  lo stato dei propri prestiti.
+\item
+  \textbf{Bibliotecari}: gestiscono le operazioni di circolazione come
+  prestiti e restituzioni, l'inventario delle copie dei libri (anche con
+  l'aggiunta di nuove copie), ed il monitoraggio delle prenotazioni e
+  dei prestiti scaduti.
+\item
+  \textbf{Amministratori}: hanno il controllo completo sul sistema,
+  inclusa la gestione e creazioni di utenti, libri, biblioteche e
+  operazioni a livello di database, quali il reset dello schema dello
+  stesso e il seeding con dati predefiniti.
+\end{itemize}
+
+È presente anche un quarto attore ``implicito'' detto \textbf{Guest},
+che rappresenta un utente ancora non registrato. La
+Figura~\ref{fig:use-case-diagram} mostra i casi d'uso principali per
+ciascun ruolo, evidenziando le interazioni e le funzionalità a loro
+disposizione.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/UseCase.png}
+    \caption{Diagramma dei casi d'uso} 
+    \label{fig:use-case-diagram}
+\end{figure}
+
+\begin{table}[H]
+\centering
+
+\begin{minipage}{0.45\textwidth}
+\centering
+\resizebox{\textwidth}{!}{%
+%
+  \renewcommand{\arraystretch}{1.3}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{rowblue}
+    \multicolumn{2}{|l|}{\textbf{Use Case 1: Ricercare un libro}} \\ \hline
+    
+\textbf{ID} & UC-MEM-01 \\ \hline
+\textbf{Nome Use Case} & Ricercare un libro nel catalogo \\ \hline
+\textbf{Attore Primario} & Utente (Membro) \\ \hline
+\textbf{Breve Descrizione} & L'utente cerca nel catalogo i libri di suo interesse per verificarne la disponibilità e la collocazione nelle varie biblioteche. \\ \hline
+\textbf{Precondizioni} & 1.\;L'utente ha effettuato l'accesso al sistema. \\ \hline
+\textbf{Postcondizioni} & 1.\;Il sistema mostra una lista di libri che corrispondono ai criteri, indicando per ogni copia la disponibilità e la biblioteca di appartenenza. \\ \hline
+\textbf{Flusso Principale} & 1.\;L'utente avvia la funzione di ricerca.\\
+ & 2.\;Il sistema richiede i criteri di ricerca (es. per titolo, autore).\\
+ & 3.\;L'utente inserisce la sua richiesta.\\
+ & 4.\;Il sistema interroga il catalogo in base ai criteri.\\
+ & 5.\;Il sistema presenta i risultati all'utente. \\ \hline
+\textbf{Flussi Alternativi} & 4a.\;Nessun risultato trovato: il sistema informa l'utente.\\
+ & 4b.\;Richiesta di ricerca non valida (es. troppo generica). \\ \hline
+
+    \hline
+  \end{tabular}
+}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\centering
+\resizebox{\textwidth}{!}{%
+%
+  \renewcommand{\arraystretch}{1.3}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{rowblue}
+    \multicolumn{2}{|l|}{\textbf{Use Case 2: Prenotare una copia di un libro}} \\ \hline
+    
+\textbf{ID} & UC-MEM-02 \\ \hline
+\textbf{Nome Use Case} & Prenotare una copia di un libro \\ \hline
+\textbf{Attore Primario} & Utente (Membro) \\ \hline
+\textbf{Breve Descrizione} & L'utente prenota una copia specifica di un libro. Se non è disponibile, viene messo in lista d'attesa. \\ \hline
+\textbf{Precondizioni} & 1.\;L'utente ha effettuato l'accesso.\\
+ & 2.\;L'utente ha identificato la copia da prenotare. \\ \hline
+\textbf{Postcondizioni} & 1.\;Viene creata una nuova prenotazione.\\
+ & 2.\;Se la copia è libera, viene riservata per l'utente.\\
+ & 3.\;Altrimenti, l'utente viene aggiunto alla lista d'attesa. \\ \hline
+\textbf{Flusso Principale} & 1.\;L'utente seleziona la copia da prenotare.\\
+ & 2.\;Il sistema verifica la disponibilità della copia.\\
+ & 3.\;Se disponibile, la copia viene riservata e la prenotazione confermata.\\
+ & 4.\;Se non disponibile, l'utente viene aggiunto alla coda e notificato. \\ \hline
+\textbf{Flussi Alternativi} & 2a.\;La copia selezionata non esiste o non è valida. \\ \hline
+
+    \hline
+  \end{tabular}
+}
+\end{minipage}
+\caption{Templates di usecase per l'utente di tipo Membro.}
+
+\end{table}
+
+\begin{table}[h!]
+\centering
+
+\begin{minipage}{0.45\textwidth}
+\centering
+\resizebox{\textwidth}{!}{%
+%
+  \renewcommand{\arraystretch}{1.3}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{rowblue}
+    \multicolumn{2}{|l|}{\textbf{Use Case 3: Registrare un prestito}} \\ \hline
+    
+\textbf{ID} & UC-LIB-01 \\ \hline
+\textbf{Nome Use Case} & Registrare un prestito \\ \hline
+\textbf{Attore Primario} & Bibliotecario \\ \hline
+\textbf{Breve Descrizione} & Il bibliotecario registra l'uscita di una copia per un prestito a un utente. \\ \hline
+\textbf{Precondizioni} & 1.\;Il bibliotecario ha effettuato l'accesso.\\
+ & 2.\;L'utente e la copia sono identificati.\\
+ & 3.\;La copia appartiene alla biblioteca di competenza. \\ \hline
+\textbf{Postcondizioni} & 1.\;Viene registrato un nuovo prestito.\\
+ & 2.\;La copia risulta "in prestito".\\
+ & 3.\;Se l'utente aveva una prenotazione attiva su quella copia, questa viene contrassegnata come "soddisfatta". \\ \hline
+\textbf{Flusso Principale} & 1.\;Il bibliotecario identifica utente e copia.\\
+ & 2.\;Il sistema valida che l'operazione sia permessa (es. stato della copia idoneo).\\
+ & 3.\;Il sistema registra il prestito, aggiorna lo stato della copia e conferma l'operazione. \\ \hline
+\textbf{Flussi Alternativi} & 2a.\;L'utente o la copia non sono validi.\\
+ & 2b.\;La copia non è disponibile per il prestito.\\
+ & 2c.\;La copia non appartiene alla biblioteca. \\ \hline
+
+    \hline
+  \end{tabular}
+}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\centering
+\resizebox{\textwidth}{!}{%
+%
+  \renewcommand{\arraystretch}{1.3}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{rowblue}
+    \multicolumn{2}{|l|}{\textbf{Use Case 4: Processare una restituzione}} \\ \hline
+    
+\textbf{ID} & UC-LIB-02 \\ \hline
+\textbf{Nome Use Case} & Processare una restituzione \\ \hline
+\textbf{Attore Primario} & Bibliotecario \\ \hline
+\textbf{Breve Descrizione} & Il bibliotecario registra il rientro di una copia precedentemente in prestito. \\ \hline
+\textbf{Precondizioni} & 1.\;Il bibliotecario ha effettuato l'accesso.\\
+ & 2.\;La copia restituita è identificata. \\ \hline
+\textbf{Postcondizioni} & 1.\;Il prestito viene chiuso.\\
+ & 2.\;Se non ci sono utenti in attesa, la copia torna "disponibile".\\
+ & 3.\;Se ci sono utenti in attesa, la copia viene riservata per il primo della coda e quest'ultimo viene notificato. \\ \hline
+\textbf{Flusso Principale} & 1.\;Il bibliotecario identifica la copia restituita.\\
+ & 2.\;Il sistema chiude il prestito associato.\\
+ & 3.\;Il sistema controlla la lista d'attesa per quella copia e aggiorna lo stato di conseguenza (disponibile o riservata).\\
+ & 4.\;Il sistema conferma l'operazione. \\ \hline
+\textbf{Flussi Alternativi} & 2a.\;La copia non risulta essere in prestito. \\ \hline
+
+    \hline
+  \end{tabular}
+}
+\end{minipage}
+\caption{Templates di usecase per l'utente di tipo Bibliotecario.}
+\end{table}
+
+\begin{table}[h!]
+\centering
+
+\begin{minipage}{0.45\textwidth}
+\centering
+\resizebox{\textwidth}{!}{%
+%
+  \renewcommand{\arraystretch}{1.3}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{rowblue}
+    \multicolumn{2}{|l|}{\textbf{Use Case 5: Aggiungere un nuovo libro}} \\ \hline
+    
+\textbf{ID} & UC-ADM-01 \\ \hline
+\textbf{Nome Use Case} & Aggiungere un nuovo libro \\ \hline
+\textbf{Attore Primario} & Amministratore \\ \hline
+\textbf{Breve Descrizione} & L'amministratore inserisce un nuovo titolo nel catalogo generale del sistema. \\ \hline
+\textbf{Precondizioni} & 1.\;L'amministratore ha effettuato l'accesso. \\ \hline
+\textbf{Postcondizioni} & 1.\;Un nuovo titolo è stato aggiunto al catalogo generale del sistema. \\ \hline
+\textbf{Flusso Principale} & 1.\;L'amministratore inserisce i dati del libro (ISBN, titolo, etc.).\\
+ & 2.\;Il sistema valida i dati (es. unicità dell'ISBN).\\
+ & 3.\;Il libro viene salvato nel catalogo.\\
+ & 4.\;Il sistema conferma l'operazione. \\ \hline
+\textbf{Flussi Alternativi} & 2a.\;Dati obbligatori mancanti.\\
+ & 2b.\;L'ISBN inserito è già presente nel catalogo. \\ \hline
+
+    \hline
+  \end{tabular}
+}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+\centering
+\resizebox{\textwidth}{!}{%
+%
+  \renewcommand{\arraystretch}{1.3}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{|p{4.5cm}|p{10cm}|}
+    \hline
+    \rowcolor{rowblue}
+    \multicolumn{2}{|l|}{\textbf{Use Case 6: Registrare un nuovo bibliotecario}} \\ \hline
+    
+\textbf{ID} & UC-ADM-02 \\ \hline
+\textbf{Nome Use Case} & Registrare un nuovo bibliotecario \\ \hline
+\textbf{Attore Primario} & Amministratore \\ \hline
+\textbf{Breve Descrizione} & L'amministratore crea un account per un bibliotecario e lo assegna a una sede. \\ \hline
+\textbf{Precondizioni} & 1.\;L'amministratore ha effettuato l'accesso.\\
+ & 2.\;La biblioteca di destinazione esiste. \\ \hline
+\textbf{Postcondizioni} & 1.\;Esiste un nuovo account utente con privilegi da bibliotecario.\\
+ & 2.\;L'account è collegato a una biblioteca specifica. \\ \hline
+\textbf{Flusso Principale} & 1.\;L'amministratore fornisce i dati del nuovo utente e la biblioteca di assegnazione.\\
+ & 2.\;Il sistema verifica che i dati siano validi (es. email unica, biblioteca esistente).\\
+ & 3.\;Il nuovo account viene creato e associato alla biblioteca.\\
+ & 4.\;Il sistema conferma l'operazione. \\ \hline
+\textbf{Flussi Alternativi} & 2a.\;La biblioteca specificata non esiste.\\
+ & 2b.\;L'email o l'username sono già in uso. \\ \hline
+
+    \hline
+  \end{tabular}
+}
+\end{minipage}
+\caption{Templates di usecase per l'utente di tipo Admin.}
+\end{table}
+
+\section{Class Diagram}\label{class-diagram}
+
+Il diagramma di classe mostrato nella figura \ref{fig:ClassDiagram} alla
+pagina seguente presenta le classi implementate e le loro interazioni.
+
+Il progetto è stato articolato in packages, i quali seguono la
+suddivisione in layer citata nell'introduzione, ognuno con scopi
+specifici:
+
+\begin{itemize}
+\item
+  \textbf{Presentation Layer}: È il punto di ingresso dell'applicazione
+  e gestisce l'interazione con l'utente. Nel nostro caso, è
+  rappresentato dalla classe \passthrough{\lstinline!MainCLI!}, che
+  implementa un'interfaccia a riga di comando. In base alla tipologia di
+  utente offre diverse opzioni.
+\item
+  \textbf{Business Logic Layer}: Contiene i controller, i quali
+  specificano delle operazioni che ogni tipologia di utente può fare
+  (es. \passthrough{\lstinline!MemberAccountController!} per la gestione
+  dell'account di un membro) e la classe
+  \passthrough{\lstinline!LibraryFacade!}\footnote{Implementazione design pattern strategy.},
+  che si occupa di fornire tutte le possibili ``attività'' riguardanti
+  libri e copie. Questo layer orchestra le operazioni, applica le regole
+  di business e funge da intermediario tra il livello di presentazione e
+  quello di accesso ai dati.
+\item
+  \textbf{Service Layer}: Fornisce funzionalità specializzate e
+  trasversali utilizzate dalla Business Logic. Ne sono un esempio
+  \passthrough{\lstinline!EmailService!} per l'invio di notifiche e
+  \passthrough{\lstinline!BookCopySearchService!}, che implementa la
+  logica di ricerca dei libri con diverse strategie, utilizzando il
+  pattern \passthrough{\lstinline!strategy!}.
+\item
+  \textbf{Domain Model}: Definisce le entità fondamentali del sistema,
+  le loro relazioni e i loro stati. Contiene le classi principali come
+  \passthrough{\lstinline!Book!}, \passthrough{\lstinline!Loan!},
+  \passthrough{\lstinline!User!} e le sue sottoclassi, oltre a
+  componenti del modello come gli stati, applicazione del design pattern
+  \passthrough{\lstinline!State!}
+  (\passthrough{\lstinline!AvailableState!},
+  \passthrough{\lstinline!LoanedState!}, etc.).
+\item
+  \textbf{Persistence Layer}: Sviluppato all'interno del package
+  \passthrough{\lstinline!ORM!}, contiene le classi DAO (Data Access
+  Object) che si occupano della persistenza dei dati. Questo strato
+  comunica direttamente con il database PostgreSQL tramite JDBC,
+  astraendo le operazioni SQL dal resto dell'applicazione. Ogni DAO è
+  responsabile della scrittura di query SQL esplicite e della mappatura
+  manuale dei risultati sugli oggetti del Domain Model.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/LoanRanger.pdf}
+    \caption{Diagramma delle classi}
+    \label{fig:ClassDiagram}
+\end{figure}
+
+\section{Diagramma ER e Modello
+Relazionale}\label{diagramma-er-e-modello-relazionale}
+
+La progettazione del database è partita da un diagramma Entità-Relazione
+(Figura~\ref{fig:er-schema}) che definisce le entità, gli attributi e le
+relazioni. Da questo è stato derivato la versione alternativa (Figura
+\ref{fig:alt-er}) che riprende la struttura a ``tabelle'' del database
+PostgreSQL. Le tabelle principali sono: \passthrough{\lstinline!users!},
+\passthrough{\lstinline!libraries!}, \passthrough{\lstinline!books!},
+\passthrough{\lstinline!book\_copies!}, \passthrough{\lstinline!loans!}
+e \passthrough{\lstinline!reservations!}.
+
+\begin{figure}[H] 
+    \centering 
+    \includegraphics[width=0.6\textwidth]{img/ERLoanRanger.drawio.png}
+    \caption{Schema ER del progetto} 
+    \label{fig:er-schema}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{img/erboh.png}
+  \caption{Schema ER alternativo}
+  \label{fig:alt-er}
+\end{figure}
+
+\begin{figure}[H]
+    \centering 
+    \begin{itemize}
+        \item \textbf{Libraries}
+        (\underline{\text{\color{red}library\_id}}, name, address, phone, email)
+
+        \item \textbf{Users}
+        (\underline{\text{\color{ForestGreen}user\_id}}, username, name, email, password, role, {\color{red!60}library\_id})
+
+        \item \textbf{Books}
+        (\underline{\text{\color{orange}isbn}}, title, author, publication\_year, genre)
+
+        \item \textbf{Book\_Copies}
+        (\underline{\text{\color{purple}copy\_id}}, {\color{orange!60}isbn}, {\color{red!60}library\_id}, status)
+
+        \item \textbf{Loans}
+        (\underline{\text{\color{Magenta}loan\_id}}, {\color{purple!60}copy\_id}, {\color{ForestGreen!60}member\_id}, loan\_date, due\_date, return\_date, created\_at )
+
+        \item \textbf{Reservations}
+        (\underline{\text{\color{blue}reservation\_id}}, {\color{purple!60}copy\_id}, {\color{ForestGreen!60}member\_id}, reservation\_date, status )
+    \end{itemize}
+    \caption{Schema relazionale del progetto} 
+    \label{fig:library_schema_list}
+\end{figure}
+
+\section{Design Patterns}\label{design-patterns}
+
+Durante la fase di progettazione del progetto sono stati utilizzati
+alcuni design pattern, al fine di migliorare la flessibilità del codice
+(soprattutto in previsione della fase di test), disaccoppiare i vari
+componenti e cercare di irrobustire quanto possibile il codice. Di
+seguito saranno introdotti i pattern implementati.
+
+\subsection{DAO (Data Access Object)}\label{dao-data-access-object}
+
+Il DAO, acronimo di \emph{Data Access Object} è un pattern
+architetturale\footnote{Per pattern architetturale (o strutturale) si intendono quelle “soluzioni” che si concentrano sull’organizzazione di classi ed oggetti per formare strutture più grandi.},
+il quale fornisce un'interfaccia ``astratta'' per la gestione della
+persistenza dei dati in un database. Infatti questo pattern offre, alle
+classi che ne hanno bisogno, tutte le operazioni CRUD (``Create, Read,
+Update, Delete'') che devono svolgere sui dati persistenti, ma senza
+esporre direttamente tutti i dettagli implementativi del database. In
+questo modo si aderisce al \emph{principio di singola responsabilità}.
+
+Nel caso del progetto ogni singola entità del dominio ha la propria
+interfaccia, che definisce tutte le possibili operazioni, e una classe
+che andrà ad implementare tutti i metodi definiti in precedenza. Le
+singole classi non gestiscono direttamente le connessioni al database,
+ma sfruttano i \passthrough{\lstinline!DataSource!} forniti dal
+framework Spring Boot: in questo modo ne sfruttiamo il pool delle
+connessioni e rendiamo più semplice lo sviluppo dei test. È importante
+notare che, data la natura relazionale del dominio, alcuni DAO
+collaborano tra loro; ad esempio, \passthrough{\lstinline!UserDAO!}, per
+costruire un oggetto \passthrough{\lstinline!Librarian!} completo,
+necessita di interagire con \passthrough{\lstinline!LibraryDAO!} per
+recuperare l'oggetto \passthrough{\lstinline!Library!} associato
+(tramite un metodo ``helper'' privato).
+
+\subsection{State}\label{state}
+
+Il design pattern \textbf{State} è un pattern
+comportamentale\footnote{Con pattern comportamentale ci si riferisce a tutti quei design pattern che si occupano di algoritmi o di assegnazione di responsabilità tra oggetti. In generale trattano dell’interazione tra oggetti.}
+che permette ad un oggetto di alterare il suo comportamento quando il
+suo ``stato'' interno cambia. Ciò appare come un cambio di classe da
+parte dell'oggetto stesso. Viene utilizzato per evitare grandi costrutti
+condizionali.
+
+All'interno del progetto il suddetto pattern è stato implementato per
+rappresentare i vari stati delle singole
+\passthrough{\lstinline!BookCopy!}, al fine di gestirne la
+disponibilità. Viene ``descritta'' un'interfaccia
+(\passthrough{\lstinline!AvailabilityState!}) che definisce tutte le
+operazioni possibili relative allo stato della copia: queste saranno poi
+implementate concretamente in classi singole, una per stato
+(\passthrough{\lstinline!AvailableState!},
+\passthrough{\lstinline!LoanedState!},
+\passthrough{\lstinline!ReservedState!},
+\passthrough{\lstinline!UnderMaintenanceState!}). Tornando alla classe
+\passthrough{\lstinline!BookCopy!}, ovvero al contesto, viene mantenuto
+un riferimento all'oggetto stato, delegandogli l'esecuzione dei relativi
+metodi. Ad esempio, invocare il metodo \passthrough{\lstinline!loan()!}
+ad una copia che è nello stato \passthrough{\lstinline!AvailableState!},
+comporterà una transizione allo stato
+\passthrough{\lstinline!LoanedState!}.
+
+\subsection{Observer}\label{observer}
+
+\textbf{Observer} è un altro pattern comportamentale\footnotemark[3] che
+consente di definire un meccanismo di sottoscrizione per notificare a
+più oggetti eventuali eventi che si verificano sull'oggetto che stanno
+osservando, aggiornandoli automaticamente.
+
+All'interno del progetto, questo pattern è stato utilizzato per
+implementare il sistema di notifiche per le prenotazioni. La classe
+\passthrough{\lstinline!BookCopy!} rappresenta il soggetto: mantiene una
+lista di \passthrough{\lstinline!BookCopyObserver!}, fornendo metodi per
+aggiungerli e rimuoverli. La classe \passthrough{\lstinline!Member!}
+agisce da osservatore concreto, implementando l'interfaccia
+\passthrough{\lstinline!BookCopyObserver!} e il suo metodo
+\passthrough{\lstinline!onBookCopyAvailable()!}. Quando un membro prova
+a prenotare una copia non disponibile, viene registrato come osservatore
+di quella copia. Non appena la copia torna disponibile (ad esempio, dopo
+una restituzione o dopo il rientro dalla manutenzione), il metodo
+\passthrough{\lstinline!notifyAvailabilityToWatchers()!} della
+\passthrough{\lstinline!BookCopy!} viene invocato. Questo esegue un
+ciclo su tutti gli osservatori registrati e chiama il loro metodo
+\passthrough{\lstinline!onBookCopyAvailable()!}, innescando la logica di
+notifica (che può essere un messaggio a console e, se abilitato con
+l'apposito flag, l'invio di un'email).
+
+\subsection{Strategy}\label{strategy}
+
+Anche \textbf{Strategy} è un design pattern
+comportamentale\footnotemark[3]: permette di definire una famiglia di
+algoritmi, ``incapsularli'' in varie classi separate e rendere i loro
+oggetti intercambiabili. In questo modo è possibile variare l'algoritmo
+utilizzato dal client indipendentemente da quest'ultimo.
+
+Nel nostro caso è stato utilizzato per realizzare ed offrire modalità di
+ricerca di \emph{libri} all'interno di tutto il sistema bibliotecario,
+attraverso \passthrough{\lstinline!BookCopySearchService!}. Questa
+interfaccia definisce il metodo \passthrough{\lstinline!search()!}, che
+poi sarà implementato concretamente nelle classi
+\passthrough{\lstinline!TitleSearchStrategy!},
+\passthrough{\lstinline!AuthorSearchStrategy!} e
+\passthrough{\lstinline!IsbnSearchStrategy!}: così facendo viene
+delegata la query al DAO più appropriato. È stata implementata anche una
+logica di ricerca ``smart'': questa si occupa di interpretare la query
+inserita dall'utente, per poi selezionare la strategia più adatta (ad
+esempio se la query sembra un ISBN, ovvero è una stringa di almeno sei
+numeri, usa \passthrough{\lstinline!IsbnSearchStrategy!}). In definitiva
+\passthrough{\lstinline!BookCopySearchService!} riesce a cambiare
+\emph{dinamicamente} la strategia da utilizzare.
+
+\subsection{Factory}\label{factory}
+
+Il design pattern \textbf{Factory} è un pattern
+creazionale\footnote{I pattern creazionali rientrano nelle tecniche di sviluppo software volte alla creazione di oggetti, permettendo il riutilizzo del codice. L’obiettivo quindi è l’astrazione e l’incapsulamento della logica di istanziazione degli oggetti.}
+che fornisce un'interfaccia per la creazione di oggetti in una
+superclasse, ma consente alle sottoclassi di modificarne il tipo, al
+fine di ``svincolare'' le classi che ne fanno uso dalla creazione
+diretta degli oggetti.
+
+Per quanto riguarda LoanRanger, ne è stata adottata una variante
+chiamata \textbf{\emph{Static Factory}}, implementata nella classe
+\passthrough{\lstinline!UserFactory!}. Il metodo statico
+\passthrough{\lstinline!createUser()!} implementata in quest'ultima,
+centralizza di fatto l'intera logica di creazione dei diversi tipi di
+utente (\passthrough{\lstinline!Member!},
+\passthrough{\lstinline!Librarian!}, \passthrough{\lstinline!Admin!}).
+In base al \passthrough{\lstinline!UserRole!} passato come parametro, il
+metodo istanzia la sottoclasse corretta di
+\passthrough{\lstinline!User!}. Questo approccio è vantaggioso perché
+incapsula la logica di istanziazione, compresa la gestione di
+precondizioni (come la validazione dell'input e la presenza di una
+\passthrough{\lstinline!workLibrary!} per i bibliotecari) e operazioni
+comuni a tutte le creazioni, come l'hashing della password tramite
+\passthrough{\lstinline!PasswordHasher!}, garantendo che ogni oggetto
+utente venga creato in modo consistente e corretto.
+
+\subsection{Facade}\label{facade}
+
+Questo pattern è invece un pattern
+\textbf{\emph{strutturale}}\footnote{Per design pattern strutturale s’intendono quei pattern che risolvono problemi relativi all’organizzazione e alla composizione delle classi e degli oggetti all’interno di un sistema software. Quindi si occupano di definire come le strutture delle classi e degli oggetti possono essere combinate per formare strutture più grandi e significative.}:
+infatti \passthrough{\lstinline!Facade!} svolge il ruolo di
+intermediario tra le classi specifiche degli utenti fornendo un punto
+d'accesso unico a un insieme di classi che operano in un sottosistema.
+In questo modo nasconde la complessità interna e consente ai client di
+interagire con il sistema tramite un'unica classe.
+
+Questo pattern è stato implementato attraverso la classe
+\passthrough{\lstinline!LibraryFacade!}, che offre i metodi per prendere
+in prestito un libro oppure ad esempio restituirlo, non comunicando più
+con i singoli DAO, ma invocando un metodo ``unificato''. Questo
+approccio semplifica il codice, ne migliora la leggibilità e riduce
+l'accoppiamento con il livello di persistenza.
+
+\subsection{Dependency Injection (via Spring
+Boot):}\label{dependency-injection-via-spring-boot}
+
+La Dependency Injection è un pattern architetturale\footnotemark[2] in
+cui un oggetto riceve le altre istanze di oggetti di cui ha bisogno (le
+sue ``dipendenze'') da una fonte esterna, invece di crearle
+internamente. Il framework Spring Boot si basa massicciamente su questo
+principio, gestendo il ciclo di vita degli oggetti (chiamati ``bean'') e
+``iniettandoli'' dove necessario.
+
+Nel progetto LoanRanger questo pattern viene sfruttato tramite
+l'annotazione \passthrough{\lstinline!@Autowired!} di Spring. Invece di
+istanziare manualmente le dipendenze (ad esempio con
+\passthrough{\lstinline!UserDAO userDAO = new UserDAO()!} all'interno
+del costruttore di una classe), le classi di servizio
+(\passthrough{\lstinline!@Service!}) e di persistenza
+(\passthrough{\lstinline!@Repository!}) dichiarano le dipendenze come
+campi e lasciano che il container di Spring le risolva e le fornisca al
+momento della creazione del bean. Ad esempio, un controller come
+\passthrough{\lstinline!MemberBookController!} riceve direttamente
+tramite il suo costruttore tutte le istanze dei DAO e dei servizi di cui
+ha bisogno per funzionare. Questo approccio, noto come ``Inversion of
+Control'' serve ad ottenere a un codice più disaccoppiato e più facile
+da testare. Durante la fase di unit testing, infatti, è possibile
+``iniettare'' versioni mock delle dipendenze (utilizzando le annotazioni
+\passthrough{\lstinline!@Mock!} e \passthrough{\lstinline!@InjectMocks!}
+di Mockito) invece di quelle reali, permettendo di testare una classe
+nella maniera più ``isolata'' possibile.
+
+\chapter{Implementazione}\label{implementazione}
+
+L'implementazione segue un'architettura a più livelli, cercando di
+essere il più possibile coerenti con il ``paradigma'' del
+\textbf{\emph{Domain Driven Design}}, applicando i concetti espressi
+nella fase di progettazione. Il codice sorgente è suddiviso in packages
+che riflettono questa struttura, descritti nelle successive sezioni.
+
+\section{Domain Model}\label{domain-model}
+
+Il package \passthrough{\lstinline!domainModel!} contiene le
+\textbf{entità} che descrivono i concetti fondamentali del sistema di
+gestione bibliotecaria. Le classi sono progettate come classici oggetti
+e seguono principi di incapsulamento, immutabilità logica e coerenza
+semantica. Molte di esse implementano pattern strutturali e
+comportamentali per gestire in modo chiaro le transizioni di stato e le
+notifiche. Inoltre, questa classi fanno uso delle annotazioni della
+libreria Lombok, che tramite \passthrough{\lstinline!@Getter!}
+\passthrough{\lstinline!@Setter!} o \passthrough{\lstinline!@Data!}
+generano automaticamente i metodi getter e setter, oltre che i metodi
+\passthrough{\lstinline!toString()!} nel caso di
+\passthrough{\lstinline!@Data!}.
+
+\begin{itemize}
+\item
+  \textbf{User}: classe astratta che rappresenta un generico utente del
+  sistema. Contiene attributi comuni come \passthrough{\lstinline!id!},
+  \passthrough{\lstinline!name!}, \passthrough{\lstinline!email!},
+  \passthrough{\lstinline!username!}, \passthrough{\lstinline!password!}
+  e \passthrough{\lstinline!role!}. Definisce i metodi base di accesso e
+  modifica dei dati e viene estesa da \passthrough{\lstinline!Member!},
+  \passthrough{\lstinline!Librarian!} e \passthrough{\lstinline!Admin!}.
+
+  \begin{itemize}
+  \item
+    \textbf{Member}: rappresenta un utente registrato come lettore.
+    Implementa il metodo
+    \passthrough{\lstinline!onBookCopyAvailable(BookCopy bookCopy)!}
+    dell'interfaccia \passthrough{\lstinline!BookCopyObserver!}, che
+    consente di ricevere notifiche quando una copia \emph{osservata}
+    diventa disponibile.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Metodo implementazione observer: crea messaggio che informa l\textquotesingle utente che il libro che stava aspettando è ora disponibile.}, label={lst:member\_obs}, label=lst:Member]
+@Override
+public void onBookCopyAvailable(BookCopy bookCopy) {
+    System.out.println("Book Copy Available - " + bookCopy.getBook().getTitle());
+    String message = "Dear " + this.getName() + ",\n" +
+            "The book '" + bookCopy.getBook().getTitle() + "' by " + bookCopy.getBook().getAuthor() +
+            " (Copy ID: " + bookCopy.getCopyId() + ") that you reserved is now available.\n" +
+            "Please visit the library " + bookCopy.getLibrary().getName() + " soon to borrow it!";
+   System.out.println(message);
+}
+\end{lstlisting}
+  \item
+    \textbf{Librarian}: rappresenta il bibliotecario responsabile di una
+    specifica biblioteca. Specializza ed estende
+    \passthrough{\lstinline!User!} aggiungendo l'attributo
+    \passthrough{\lstinline!private Library workLibrary!} per
+    memorizzare la biblioteca di appartenenza, imponendo che tale
+    associazione sia sempre presente. La logica è rafforzata nel metodo
+    \passthrough{\lstinline!setWorkLibrary(Library workLibrary)!}, che
+    contiene una clausola di guardia per lanciare
+    un'\passthrough{\lstinline!IllegalArgumentException!} qualora si
+    tenti di associare una biblioteca nulla o priva di ID, garantendo
+    così l'integrità dei dati.
+  \item
+    \textbf{Admin}: rappresenta l'amministratore del sistema. Estende
+    \passthrough{\lstinline!User!} e definisce costruttori semplificati
+    per la creazione di account amministrativi. Non introduce nuovi
+    attributi ma imposta automaticamente il ruolo a
+    \passthrough{\lstinline!ADMIN!}, svolgendo il ruolo di ``type
+    marker''.
+  \end{itemize}
+\item
+  \textbf{Library}: modella una biblioteca fisica. Contiene attributi
+  identificativi come \passthrough{\lstinline!id!} ed informativi come
+  \passthrough{\lstinline!name!}, \passthrough{\lstinline!address!},
+  \passthrough{\lstinline!phone!} e \passthrough{\lstinline!email!}. È
+  utilizzata per associare a una sede specifica e per organizzare
+  l'inventario dei libri, (per le singole copie).
+\item
+  \textbf{Book}: rappresenta un'opera bibliografica. Specifica
+  informazioni come \passthrough{\lstinline!isbn!},
+  \passthrough{\lstinline!title!}, \passthrough{\lstinline!author!},
+  \passthrough{\lstinline!publicationYear!} e
+  \passthrough{\lstinline!genre!} (questi ultimi due possono essere
+  nulli). Ogni istanza rappresenta un titolo univoco nel sistema e non è
+  modificabile dopo la creazione.
+\item
+  \textbf{BookCopy}: rappresenta una singola copia fisica di un libro in
+  una biblioteca. Contiene riferimenti al libro, alla biblioteca e al
+  proprio stato corrente
+  (\passthrough{\lstinline!private AvailabilityState state!}). Come già
+  illustrato utilizza il \textbf{pattern State}: i suoi metodi
+  (\passthrough{\lstinline!loan()!},
+  \passthrough{\lstinline!returnCopy()!},
+  \passthrough{\lstinline!reserve()!}, etc.) delegano l'esecuzione al
+  metodo corrispondente dell'oggetto \passthrough{\lstinline!state!}
+  corrente (es. \passthrough{\lstinline!state.loan(this)!}). Agisce
+  anche come soggetto nell' \textbf{Observer}: gestisce una lista di
+  osservatori tramite i metodi \passthrough{\lstinline!addObserver()!} e
+  \passthrough{\lstinline!removeObserver()!} e li notifica invocando
+  \passthrough{\lstinline!notifyAvailabilityToWatchers()!}.
+\item
+  \textbf{Loan}: rappresenta un prestito di una copia a un membro.
+  Contiene gli attributi \passthrough{\lstinline!id!},
+  \passthrough{\lstinline!bookCopy!}, \passthrough{\lstinline!member!},
+  \passthrough{\lstinline!loanDate!}, \passthrough{\lstinline!dueDate!}
+  e \passthrough{\lstinline!returnDate!} (questi ultimi tre attributi
+  sono di tipo \passthrough{\lstinline!LocalDate!}). Implementa metodi
+  di rinnovo, chiusura e verifica della validità del prestito attraverso
+  metodi come \passthrough{\lstinline!renewLoan()!} (con
+  \emph{overloading} per diverse modalità di rinnovo),
+  \passthrough{\lstinline!isExpired()!} (per verificare se la data di
+  scadenza è passata) e \passthrough{\lstinline!getRemainingDays()!}
+  (per calcolare i giorni rimanenti alla scadenza)..
+\item
+  \textbf{Reservation}: modella una prenotazione effettuata da un membro
+  su una copia di un libro. Contiene gli attributi
+  \passthrough{\lstinline!id!}, \passthrough{\lstinline!bookCopy!},
+  \passthrough{\lstinline!member!},
+  \passthrough{\lstinline!reservationDate!} e
+  \passthrough{\lstinline!status!}. Quest'ultimo (di tipo
+  \passthrough{\lstinline!ReservationStatus!}) è fondamentale per
+  tracciare il ciclo di vita di una prenotazione, dallo stato di attesa
+  per una copia non disponibile (\passthrough{\lstinline!WAITING!}), a
+  quello in cui il membro aspetta l'approvazione del prestito da parte
+  del bibliotecario (\passthrough{\lstinline!PENDING!}) a quello di
+  completamento (\passthrough{\lstinline!FULFILLED!}) o cancellazione
+  (\passthrough{\lstinline!CANCELLED!}).
+\item
+  \textbf{\emph{Subpackage}} \passthrough{\lstinline!state!}
+
+  \begin{itemize}
+  \item
+    \textbf{AvailabilityState}: interfaccia che definisce i
+    comportamenti generali di una copia in base al suo stato. Le
+    operazioni principali (\passthrough{\lstinline!loan!},
+    \passthrough{\lstinline!returnCopy!},
+    \passthrough{\lstinline!reserve!},
+    \passthrough{\lstinline!markAvailable!}) vengono implementate dalle
+    classi concrete.
+  \item
+    \textbf{AvailableState}: rappresenta una copia attualmente
+    disponibile per il prestito. Gestisce il passaggio dallo stato di
+    disponibilità a quello di prestito o prenotazione.
+  \item
+    \textbf{LoanedState}: rappresenta una copia attualmente in prestito.
+    Impedisce nuove prenotazioni e gestisce il passaggio allo stato di
+    disponibilità al momento della restituzione.
+  \end{itemize}
+
+\begin{lstlisting}[language=Java, language=Java, caption={Contenuto della classe loanedState.}, label={lst:LoanedState}, label=lst:LoanedState]
+  public class LoanedState implements AvailabilityState {
+  private final BookStatus bookStatus = BookStatus.LOANED;
+  @Override
+  public void loan(BookCopy copy) {
+      System.err.println("Error: Book is already loaned out.");
+  }
+  @Override
+  public void returnCopy(BookCopy copy) {
+      copy.changeState(new AvailableState());
+      copy.notifyAvailabilityToWatchers();
+      System.out.println("Book returned successfully.");
+  }
+  @Override
+  public void reserve(BookCopy copy) {
+      System.err.println("Error: Cannot reserve a book that is already loaned out.");
+  }
+  @Override
+  public void placeUnderMaintenance(BookCopy copy) {
+      System.err.println("Error: Cannot place a loaned book under maintenance.");
+  }
+  @Override
+  public void markAsAvailable(BookCopy copy) { // ONLY RETURNING CAN MARK AS AVAILABLE THE COPY
+      System.err.println("Error: Cannot mark loaned book as available (after maintenance method).");
+  }
+  @Override
+  public String getStatus() {
+      return bookStatus.toString();
+  }
+}
+\end{lstlisting}
+
+  \begin{itemize}
+  \item
+    \textbf{ReservedState}: rappresenta una copia prenotata da un
+    utente. Impedisce nuovi prestiti fino all'annullamento della
+    prenotazione o al suo completamento.
+  \item
+    \textbf{UnderMaintenanceState}: rappresenta una copia
+    temporaneamente indisponibile perché in manutenzione. Gestisce il
+    ritorno allo stato disponibile una volta completata la procedura.
+
+    Ad esempio, \passthrough{\lstinline!LoanedState!} implementa
+    \passthrough{\lstinline!returnCopy()!} per cambiare lo stato della
+    \passthrough{\lstinline!BookCopy!} in
+    \passthrough{\lstinline!AvailableState!} e notificare gli
+    osservatori, mentre la sua implementazione di
+    \passthrough{\lstinline!loan()!} si limita a stampare un messaggio
+    di errore, poiché l'azione non è valida in quello stato.
+  \end{itemize}
+\item
+  \textbf{BookStatus}: enumerativo che elenca i possibili stati di una
+  copia (\passthrough{\lstinline!AVAILABLE!},
+  \passthrough{\lstinline!LOANED!}, \passthrough{\lstinline!RESERVED!},
+  \passthrough{\lstinline!UNDER\_MAINTENANCE!}).
+\item
+  \textbf{UserRole}: enumerativo che definisce i ruoli possibili degli
+  utenti (\passthrough{\lstinline!MEMBER!},
+  \passthrough{\lstinline!LIBRARIAN!}, \passthrough{\lstinline!ADMIN!}).
+\item
+  \textbf{ReservationStatus}: enumerativo che descrive lo stato di una
+  prenotazione (\passthrough{\lstinline!PENDING!},
+  \passthrough{\lstinline!FULFILLED!},
+  \passthrough{\lstinline!CANCELLED!},
+  \passthrough{\lstinline!WAITING!}).
+\end{itemize}
+
+\section{Business Logic}\label{business-logic}
+
+Il package \passthrough{\lstinline!businessLogic!} contiene i componenti
+che implementano le regole operative del sistema e coordinano le
+interazioni tra gli oggetti del dominio e il livello di persistenza.
+Ogni classe è gestita da Spring come \passthrough{\lstinline!@Service!}
+e, quando necessario, integra il supporto transazionale: indicando i
+metodi con l'annotazione sempre gestita da Spring
+\passthrough{\lstinline!@Transactional!}, tutte le operazioni che hanno
+a che fare indirettamente con operazioni di scrittura sul database
+saranno trattate come transazioni, in modo tale da poter effettuare
+operazioni di rollback se vi sono problemi.
+
+Le classi denominate ``controller'' sono state pensate come pagine web
+indipendenti, al fine di separare sia per ogni tipologia di utente che
+per funzionalità le operazioni del software.
+
+\begin{itemize}
+\item
+  \textbf{LoginController}: gestisce i processi di autenticazione e
+  registrazione. Durante l'esecuzione del metodo
+  \passthrough{\lstinline!login()!} interagisce con il
+  \passthrough{\lstinline!UserDAO!} per recuperare l'utente utilizzando
+  il metodo statico \passthrough{\lstinline!PasswordHasher.check()!} per
+  confrontare in modo sicuro la password fornita con l'hash salvato. È
+  presente il metodo \passthrough{\lstinline!register(...)!}, il quale
+  gestisce la creazione di un nuovo utente: prima invoca
+  \passthrough{\lstinline!validateRegistrationParameters()!} per
+  controlli preliminari, poi delega la creazione dell'oggetto alla
+  \passthrough{\lstinline!UserFactory!} e infine lo persiste tramite
+  \passthrough{\lstinline!UserDAO!}.
+\item
+  \textbf{MemberAccountController}: permette ai membri di aggiornare le
+  proprie informazioni personali (username, email e password) e di
+  eliminare l'account. La classe espone metodi come
+  \passthrough{\lstinline!changeUsername()!},
+  \passthrough{\lstinline!changeEmail()!} e
+  \passthrough{\lstinline!changePassword()!}, ognuno dei quali contiene
+  una logica di validazione stringente (es. controllo di unicità per
+  l'email, formato, lunghezza minima della password), prima di invocare
+  il metodo di aggiornamento corrispondente sul
+  \passthrough{\lstinline!UserDAO!}.
+\item
+  \textbf{LibrarianAccountController}: consente ai bibliotecari di
+  gestire le proprie credenziali e informazioni di contatto. Simile al
+  \passthrough{\lstinline!MemberAccountController!}, fornisce i metodi
+  \passthrough{\lstinline!changeUsername()!},
+  \passthrough{\lstinline!changeEmail()!} e
+  \passthrough{\lstinline!changePassword()!}.
+\item
+  \textbf{AdminAccountController}: gestisce i dati dell'amministratore.
+  Come per le altre tipologie di utenti la classe espone i metodi
+  \passthrough{\lstinline!changeEmail()!} e
+  \passthrough{\lstinline!changePassword()!}, contenenti la stessa
+  logica di validazione.
+\item
+  \textbf{MemberBookController}: fornisce ai membri i metodi per
+  esplorare il catalogo, effettuare prenotazioni e visualizzare lo
+  storico personale dei prestiti. Per le ricerche (es.
+  \passthrough{\lstinline!searchBooksByTitle()!},
+  \passthrough{\lstinline!searchBookCopyGeneric()!}), delega le
+  operazioni al \passthrough{\lstinline!BookCopySearchService!},
+  sfruttando così il pattern Strategy. Per le operazioni che modificano
+  lo stato del sistema, come \passthrough{\lstinline!reserveBookCopy()!}
+  o \passthrough{\lstinline!cancelReservation()!}, si appoggia alla
+  \passthrough{\lstinline!LibraryFacade!}, gestendo le interazioni
+  complesse tra i vari DAO. I metodi di visualizzazione
+  (\passthrough{\lstinline!getActiveLoans()!},
+  \passthrough{\lstinline!getAllReservations()!}) interrogano
+  direttamente i DAO competenti.
+\item
+  \textbf{LibrarianBookController}: gestisce l'attività quotidiana del
+  bibliotecario, come l'emissione-approvazione dei prestiti, la
+  registrazione delle restituzioni e la gestione dello stato delle
+  copie. Contiene metodi come
+  \passthrough{\lstinline!loanBookToMember()!} o
+  \passthrough{\lstinline!processReturn()!}, che utilizzano metodi di
+  utility privati
+  (\passthrough{\lstinline!checkCopyBelongsToLibrary()!}) per
+  assicurarsi che il bibliotecario stia operando solo su copie
+  appartenenti alla propria \passthrough{\lstinline!workLibrary!}.
+  Invece, per le operazioni complesse (prestito, restituzione,
+  manutenzione) si affida alla \passthrough{\lstinline!LibraryFacade!}.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Metodo che dimostra la logica dietro al prestito di una copia.}, label={lst:librarianbookcontroller}, label=lst:librarianbookcontroller]
+  @Transactional
+  public Boolean loanBookToMember(Librarian librarian, Long memberId, Long copyId, LocalDate dueDate) {
+      User user = null;
+      try {
+          user = userDAO.getUserById(memberId).orElse(null); 
+      } catch (Exception e) {
+          System.err.println("Error fetching member: " + e.getMessage());
+          return false;
+      }
+      if (!(user instanceof Member member)) {
+          System.err.println("The user provided (" + memberId + ") is not a user! try again");
+          return false;
+      }
+
+      BookCopy copy;
+      try {
+          copy = bookCopiesDAO.getCopyById(copyId).orElse(null);
+      } catch (Exception e) {
+          System.err.println("Error fetching book copy: " + e.getMessage());
+          return false;
+      }
+      if (copy == null) {
+          System.err.println("No copy inserted! Try again.");
+          return false;
+      } else if (!checkCopyBelongsToLibrary(librarian, copy)) {
+          System.err.printf("This book copy with id %d is not in this Library, but it is in %s!%n", copy.getCopyId(), copy.getLibrary().getName());
+          return false;
+      }
+
+      if (dueDate == null) {
+          return libraryFacade.borrowBook(member, copy);
+      } else {
+          return libraryFacade.borrowBook(member, copy, dueDate);
+      }
+  }
+\end{lstlisting}
+\item
+  \textbf{AdminBookController}: gestisce il catalogo generale e le
+  informazioni relative alle biblioteche. I suoi metodi, come
+  \passthrough{\lstinline!addBook()!},
+  \passthrough{\lstinline!removeBook()!},
+  \passthrough{\lstinline!addLibrary()!} e
+  \passthrough{\lstinline!updateLibrary()!}, interagiscono direttamente
+  con \passthrough{\lstinline!BookDAO!} e
+  \passthrough{\lstinline!LibraryDAO!}. In particolare il metodo
+  \passthrough{\lstinline!removeBook()!} prima di eliminare un libro
+  controlla tramite \passthrough{\lstinline!BookCopiesDAO!} che non
+  esistano più copie di quel libro nel sistema, prevenendo così la
+  creazione di record orfani.
+\item
+  \textbf{AdminUsersController}: consente la gestione degli utenti da
+  parte dell'amministratore. Con il metodo
+  \passthrough{\lstinline!registerNewLibrarian()!} permette la creazione
+  di un bibliotecario, verificando prima l'esistenza della biblioteca
+  tramite \passthrough{\lstinline!LibraryDAO!} e poi delegando la
+  registrazione al \passthrough{\lstinline!LoginController!}. Altri
+  metodi come \passthrough{\lstinline!deleteUser()!} e
+  \passthrough{\lstinline!assignLibrarianToLibrary()!} interagiscono
+  direttamente con il \passthrough{\lstinline!UserDAO!} per eseguire le
+  modifiche.
+\item
+  \textbf{AdminDatabaseController}: fornisce strumenti per la
+  manutenzione del database, come la ricreazione dello schema o il
+  ripristino dei dati iniziali, quindi funzionalità a \emph{basso
+  livello} per la gestione del database. I metodi
+  \passthrough{\lstinline!recreateSchemaAndAdmin()!} e
+  \passthrough{\lstinline!generateDefaultDatabase()!} utilizzano un
+  \passthrough{\lstinline!DataSource!} iniettato da Spring per ottenere
+  una connessione al database ed eseguire script SQL contenuti nei file
+  di risorse (\passthrough{\lstinline!reset.sql!},
+  \passthrough{\lstinline!default.sql!}), offrendo la possibilità di
+  gestire lo stato del database..
+\item
+  \textbf{UserFactory}: applica il pattern \emph{Factory} per la
+  creazione delle istanze di \passthrough{\lstinline!User!}. Il suo
+  unico metodo pubblico, \passthrough{\lstinline!createUser()!}, riceve
+  come parametri un \passthrough{\lstinline!UserRole!} e i dati
+  dell'utente. Al suo interno, uno \passthrough{\lstinline!switch!} sul
+  ruolo determina quale classe concreta
+  (\passthrough{\lstinline!Member!},
+  \passthrough{\lstinline!Librarian!}, o
+  \passthrough{\lstinline!Admin!}) istanziare. Centralizza anche la
+  logica di validazione dell'input (es. campi non nulli) e l'hashing
+  della password, garantendo che ogni oggetto utente sia creato in uno
+  stato valido.
+\item
+  \textbf{LibraryFacade}: implementa il pattern \emph{Facade} per
+  semplificare le operazioni che coinvolgono più componenti del sistema.
+  Rappresenta un punto di accesso unificato per le operazioni complesse
+  del sistema bibliotecario. Metodi come
+  \passthrough{\lstinline!borrowBook()!},
+  \passthrough{\lstinline!returnBook()!} e
+  \passthrough{\lstinline!placeReservation()!} nascondono la complessità
+  di coordinare le varie chiamate a \passthrough{\lstinline!LoanDAO!},
+  \passthrough{\lstinline!BookCopiesDAO!} e
+  \passthrough{\lstinline!ReservationDAO!}. Ad esempio,
+  \passthrough{\lstinline!returnBook()!} non solo aggiorna il
+  \passthrough{\lstinline!Loan!}, ma cambia lo stato della
+  \passthrough{\lstinline!BookCopy!} e invoca
+  \passthrough{\lstinline!processWaitingList()!}, che a sua volta può
+  creare una nuova prenotazione e notificare un utente tramite
+  \passthrough{\lstinline!EmailService!}.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Metodo di LibraryFacade che espone la logica dietro al prestito di una copia.}, label={lst:LoanBookToMember}, label=lst:loanBookToMember]
+  @Transactional
+  public Boolean loanBookToMember(Librarian librarian, Long memberId, Long copyId, LocalDate dueDate) {
+      User user = null;
+      try {
+          user = userDAO.getUserById(memberId).orElse(null);
+      } catch (Exception e) {
+          System.err.println("Error fetching member: " + e.getMessage());
+          return false;
+      }
+      if (!(user instanceof Member member)) {
+          System.err.println("The user provided (" + memberId + ") is not a user! try again");
+          return false;
+      }
+
+      BookCopy copy;
+      try {
+          copy = bookCopiesDAO.getCopyById(copyId).orElse(null);
+      } catch (Exception e) {
+          System.err.println("Error fetching book copy: " + e.getMessage());
+          return false;
+      }
+      if (copy == null) {
+          System.err.println("No copy inserted! Try again.");
+          return false;
+      } else if (!checkCopyBelongsToLibrary(librarian, copy)) {
+          System.err.printf("This book copy with id %d is not in this Library, but it is in %s!%n", copy.getCopyId(), copy.getLibrary().getName());
+          return false;
+      }
+
+      if (dueDate == null) {
+          return libraryFacade.borrowBook(member, copy);
+      } else {
+          return libraryFacade.borrowBook(member, copy, dueDate);
+      }
+  }
+\end{lstlisting}
+\end{itemize}
+
+\section{\texorpdfstring{Package
+\texttt{util}}{Package util}}\label{package-util}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{PasswordHasher}: fornisce funzioni di \emph{hashing e
+  verifica} delle password basate su algoritmi sicuri della libreria
+  \passthrough{\lstinline!spring-security-crypto!}, nel caso specifico
+  sono criptate utilizzando BCrypt2, con un istanza statica di
+  \passthrough{\lstinline!BCryptPasswordEncoder!}.Il metodo
+  \passthrough{\lstinline!hash(String plainPassword)!} prende una
+  password in chiaro e restituisce il suo hash BCrypt, che include un
+  salt generato casualmente. Invece
+  \passthrough{\lstinline!check(String plainPassword, String hashedPassword)!}
+  confronta una password in chiaro con un hash esistente in modo sicuro,
+  senza esporre l'hash, garantendo che le password non siano mai salvate
+  in chiaro nel database.
+\end{itemize}
+
+\section{\texorpdfstring{Package
+\texttt{service}}{Package service}}\label{package-service}
+
+\begin{itemize}
+\item
+  \textbf{EmailService}: gestisce l'invio delle email di notifica agli
+  utenti. È utilizzato principalmente da
+  \passthrough{\lstinline!LibraryFacade!} per comunicare la
+  disponibilità di una copia prenotata o altre variazioni di stato
+  rilevanti. Il suo comportamento è condizionato dalla proprietà
+  \passthrough{\lstinline!mail.enabled!} contenuta nel file
+  \passthrough{\lstinline!application.properties!}. Se essa è
+  \passthrough{\lstinline!true!}, utilizza un'istanza di
+  \passthrough{\lstinline!JavaMailSender!} (iniettata da Spring) per
+  inviare una vera email tramite un server SMTP
+  \footnote{Sarà approfondito in seguito.}. Se
+  \passthrough{\lstinline!false!}, il metodo
+  \passthrough{\lstinline!sendEmail()!} stampa l'email sulla console,
+  fornendo una simulazione (mock) utile per gli ambienti di sviluppo e
+  test senza la necessità di configurare un server di posta.
+
+\begin{lstlisting}[language=Java, language=Java, caption={In questo metodo viene specificato come sono inviate le notifiche agli utenti.}, label={lst:emailservice}, label=lst:emailservice]
+  public void sendEmail(String to, String subject, String body) {
+      if (!enabled) {
+          System.out.println("Mock email (sending disabled):");
+          System.out.println("To: " + to);
+          System.out.println("Subject: " + subject);
+          System.out.println("Body: " + body);
+          return;
+      }
+
+      try {
+          MimeMessage message = mailSender.createMimeMessage();
+          MimeMessageHelper helper = new MimeMessageHelper(message, true);
+          helper.setFrom(fromAddress);
+          helper.setTo(to);
+          helper.setSubject(subject);
+          helper.setText(body, false);
+          mailSender.send(message);
+          System.out.println("Email sent successfully to: " + to);
+      } catch (MailException e) {
+          System.err.println("Failed to send email to " + to + ": " + e.getMessage());
+      } catch (MessagingException | RuntimeException e) {
+          System.err.println("Failed to send email to " + to + ": " + e.getMessage());
+      }
+  }
+\end{lstlisting}
+\item
+  \textbf{BookCopySearchService}: implementa le logiche di ricerca
+  avanzata di libri e copie. Contiene una \passthrough{\lstinline!Map!}
+  che associa un \passthrough{\lstinline!SearchType!} (enum) a
+  un'implementazione concreta di
+  \passthrough{\lstinline!BookCopySearchStrategy!}. Il metodo
+  \passthrough{\lstinline!search(String query, SearchType type)!}
+  seleziona la strategia appropriata dalla mappa e la esegue. Inoltre il
+  metodo \passthrough{\lstinline!smartSearch(String query)!} aggiunge un
+  livello di complessità : analizza la query con metodi privati
+  (\passthrough{\lstinline!looksLikeISBN!},
+  \passthrough{\lstinline!looksLikeAuthorName!}) per dedurre il tipo di
+  ricerca più probabile e applicare la strategia corrispondente in
+  automatico.
+\item
+  \textbf{\emph{Subpackage}} \passthrough{\lstinline!service.strategy!}
+
+  Questo subpackage contiene l'implementazione del \textbf{design
+  pattern Strategy}, utilizzato per diversificare gli algoritmi di
+  ricerca dei libri.
+
+  \begin{itemize}
+  \item
+    \textbf{BookCopySearchStrategy}: è un'interfaccia
+    \passthrough{\lstinline!sealed!}\footnote{Tipologia di interfaccia che limita le classi che la possono implementare, descrivendo un insieme predefinito.}
+    che definisce il contratto per tutte le strategie di ricerca.
+    Dichiara i metodi
+    \passthrough{\lstinline!search(String query, BookCopiesDAO bookCopiesDAO)!},
+    \passthrough{\lstinline!getDescription()!} e un metodo
+    \passthrough{\lstinline!default!}
+    \passthrough{\lstinline!getMinQueryLength()!} che fornisce una
+    lunghezza minima di default per la query.
+  \item
+    \textbf{TitleSearchStrategy}: è una classe
+    \passthrough{\lstinline!final!} che implementa
+    \passthrough{\lstinline!BookCopySearchStrategy!} per la ricerca
+    basata sul titolo del libro. Il metodo
+    \passthrough{\lstinline!search()!} viene implementato delegando la
+    chiamata al metodo
+    \passthrough{\lstinline!bookCopiesDAO.searchByTitle(query)!}.
+    Rappresenta la logica specifica per la ricerca per titolo, compresa
+    la validazione sulla lunghezza minima della query (sovrascrivendo
+    \passthrough{\lstinline!getMinQueryLength()!} per richiedere almeno
+    2 caratteri), andando ad astrarre questa logica dal
+    \passthrough{\lstinline!BookCopySearchService!} che la utilizza.
+  \item
+    \textbf{AuthorSearchStrategy}: è una classe
+    \passthrough{\lstinline!final!} che implementa
+    \passthrough{\lstinline!BookCopySearchStrategy!} per la ricerca
+    basata sull'autore. Analogamente a
+    \passthrough{\lstinline!TitleSearchStrategy!}, questa classe
+    implementa il metodo \passthrough{\lstinline!search()!} invocando
+    \passthrough{\lstinline!bookCopiesDAO.searchByAuthor(query)!}. Isola
+    l'algoritmo di ricerca per autore.
+  \item
+    \textbf{IsbnSearchStrategy}: è una classe
+    \passthrough{\lstinline!final!} che implementa
+    \passthrough{\lstinline!BookCopySearchStrategy!} per la ricerca
+    basata sul codice ISBN. La sua implementazione del metodo
+    \passthrough{\lstinline!search()!} ``sanifica'' la query in input
+    tramite la regex
+    \passthrough{\lstinline!replaceAll("[\^0-9X]", "")!} per rimuovere
+    trattini o spazi,dopodiché esegue la ricerca tramite
+    \passthrough{\lstinline!bookCopiesDAO.searchByIsbn(cleanQuery)!}.
+    Definisce anche una lunghezza minima della query più restrittiva
+    (\passthrough{\lstinline!getMinQueryLength()!} restituisce 6) per
+    evitare ricerche ambigue.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Esempio di implementazione del metodo search() per la ricerca per ISBN.}, label={lst:isbnstrategy}, label=lst:isbnstrategy]
+  @Override
+  public List<BookCopy> search(String query, BookCopiesDAO bookCopiesDAO) {
+    if (query == null || query.trim().isEmpty()){
+        System.err.println("Error: the query is null or empty");
+        return List.of();
+    }
+    // Regex added to remove all characters apart from the numbers and the X for ISBN10
+    String cleanQuery = query.trim().replaceAll("[^0-9X]", "");
+    try{
+        return bookCopiesDAO.searchByIsbn(cleanQuery);
+    } catch (Exception e) { // broad exception check
+        throw new RuntimeException("Error searching book copies by isbn", e);
+    }
+  }
+\end{lstlisting}
+  \item
+    \textbf{FullTextSearchStrategy}: è una classe
+    \passthrough{\lstinline!final!} che implementa
+    \passthrough{\lstinline!BookCopySearchStrategy!} per una ricerca
+    generica su più campi. La classe combina i risultati di altre
+    strategie. Il suo metodo \passthrough{\lstinline!search()!} esegue
+    tre chiamate separate al DAO:
+    \passthrough{\lstinline!searchByTitle()!},
+    \passthrough{\lstinline!searchByAuthor()!} e
+    \passthrough{\lstinline!searchByIsbn()!}. Successivamente, unisce i
+    risultati delle tre liste in un'unica lista, utilizzando un
+    \passthrough{\lstinline!HashSet!} per garantire che ogni
+    \passthrough{\lstinline!BookCopy!} appaia una sola volta, anche se è
+    stata trovata da più criteri di ricerca.
+  \end{itemize}
+\end{itemize}
+
+\section{Object-Relational Mapping
+(ORM)}\label{object-relational-mapping-orm}
+
+Il package \passthrough{\lstinline!ORM!} gestisce l'interazione diretta
+con il database PostgreSQL tramite JDBC. Ogni classe DAO è sviluppata
+con una specifica entità del dominio: è presente un subpackage
+\passthrough{\lstinline!DAOInterfaces!} che contiene tutte le interfacce
+che definiscono le operazioni da utilizzare. Per evitare la possibilità
+di SQL injection, vengono utilizzate delle query
+\textbf{\emph{parametriche}}\footnote{Tramite le query parametriche è possibile creare prima una stringa che definisce la query, specificando in seguito i valori desiderati i quali andranno a sostituire dei segnaposto all’interno della stringa. Per questo viene detta parametrica}
+tramite oggetti della classe
+\passthrough{\lstinline!PreparedStatement!}. Inoltre è stato
+implementato in modo sistematico il costrutto
+\passthrough{\lstinline!try-with-resources!} in ogni metodo che
+coinvolga risorse del tipo \passthrough{\lstinline!AutoCloseable!}, come
+\passthrough{\lstinline!Connection!},
+\passthrough{\lstinline!Statement!} e
+\passthrough{\lstinline!ResultSet!}: così facendo ogni risorsa
+``sensibile'' viene chiusa in modo deterministico al termine del blocco
+try. Le connessioni al database sono basate su un
+\passthrough{\lstinline!DataSource!} configurato da Spring Boot (basato
+su HikariCP) per la gestione efficiente del connection pooling. Ciò
+consente una migliore integrazione con l'ambiente di test
+\passthrough{\lstinline!Testcontainers!}.
+
+\begin{itemize}
+\item
+  \textbf{UserDAO}: si occupa della persistenza degli utenti del
+  sistema. Implementa l'interfaccia \passthrough{\lstinline!IUserDAO!}.
+  Il metodo \passthrough{\lstinline!createUser()!} gestisce la logica di
+  inserimento per le diverse sottoclassi di
+  \passthrough{\lstinline!User!}, immettendo correttamente il parametro
+  \passthrough{\lstinline!library\_id!} esclusivamente nel caso in cui
+  l'utente sia un \passthrough{\lstinline!Librarian!}. Il metodo
+  \passthrough{\lstinline!mapRowToUser()!} è fondamentale: legge un
+  \passthrough{\lstinline!ResultSet!} e, in base al valore della colonna
+  \passthrough{\lstinline!role!}, procede ad istanziare la corretta
+  tipologia di utente (\passthrough{\lstinline!Member!},
+  \passthrough{\lstinline!Librarian!} o
+  \passthrough{\lstinline!Admin!}), recuperando se necessario la
+  \passthrough{\lstinline!Library!} associata per i bibliotecari.
+  Gestisce la cifratura e verifica delle password in collaborazione con
+  \passthrough{\lstinline!PasswordHasher!}. Sono presenti inoltre i
+  metodi \passthrough{\lstinline!getUserById()!},
+  \passthrough{\lstinline!getUserByEmail()!} e
+  \passthrough{\lstinline!getUserByUsername()!} per il recupero di
+  singoli utenti, \passthrough{\lstinline!getAllUsers()!} per ottenerne
+  un elenco completo, e altri metodi di aggiornamento specifici come
+  \passthrough{\lstinline!updateUsername()!},
+  \passthrough{\lstinline!updatePassword()!},
+  \passthrough{\lstinline!updateEmail()!} e
+  \passthrough{\lstinline!librarianUpdateLibrary()!} per modifiche
+  atomiche dei parametri.
+\item
+  \textbf{BookDAO}: gestisce le operazioni relative ai libri nel
+  catalogo generale. Implementa il metodo
+  \passthrough{\lstinline!createBook()!}, che gestisce correttamente
+  l'inserimento di valori \passthrough{\lstinline!NULL!} per gli
+  attributi opzionali come \passthrough{\lstinline!publication\_year!} e
+  \passthrough{\lstinline!genre!}. I metodi di ricerca come
+  \passthrough{\lstinline!findBooksByAuthor()!} e
+  \passthrough{\lstinline!findBookByIsbn()!} utilizzano query SQL con
+  clausole \passthrough{\lstinline!WHERE!} e
+  \passthrough{\lstinline!ORDER BY!} per recuperare e ordinare i dati
+  direttamente dal database. Anche questa classe possiede un metodo
+  \passthrough{\lstinline!mapRowToBook()!} per convertire un
+  \passthrough{\lstinline!ResultSet!} in un oggetto di tipo
+  \passthrough{\lstinline!Book!}. Vengono forniti anche metodi di
+  recupero di oggetti \passthrough{\lstinline!Book!} come
+  \passthrough{\lstinline!getBookByIsbn()!},
+  \passthrough{\lstinline!getBookByTitle()!},
+  \passthrough{\lstinline!getAllBooks()!} e
+  \passthrough{\lstinline!findBooksByPublicationYear()!}.È presente
+  anche \passthrough{\lstinline!deleteBook()!}, quest'ultimo con
+  overloading per accettare sia un ISBN (quindi una
+  \passthrough{\lstinline!String!} che rappresenta univocamente il
+  libro) sia un oggetto \passthrough{\lstinline!Book!}.
+\item
+  \textbf{BookCopiesDAO}: classe responsabile della persistenza degli
+  oggetti \passthrough{\lstinline!BookCopy!} nel database. È presente
+  una costante \passthrough{\lstinline!BOOK\_COPY\_SELECT\_SQL!} che
+  definisce la query \passthrough{\lstinline!JOIN!} principale,
+  riutilizzata da quasi tutti i metodi di lettura per recuperare non
+  solo i dati della copia, ma anche quelli del
+  \passthrough{\lstinline!Book!} e della
+  \passthrough{\lstinline!Library!} associati con un'unica chiamata. Il
+  metodo \passthrough{\lstinline!mapRowToBookCopy()!} è complesso:
+  ricostruisce l'intera struttura degli oggetti
+  (\passthrough{\lstinline!BookCopy!}, \passthrough{\lstinline!Book!},
+  \passthrough{\lstinline!Library!}), invocando contestualmente il
+  metodo ``helper'' \passthrough{\lstinline!mapStatusToState()!} al fine
+  di convertire lo stato testuale del database (es. ``LOANED'')
+  nell'oggetto di tipo \passthrough{\lstinline!State!} corretto (es.
+  \passthrough{\lstinline!new LoanedState()!}). La classe inoltre espone
+  metodi di ricerca come \passthrough{\lstinline!searchByTitle()!},
+  \passthrough{\lstinline!searchByAuthor()!} e
+  \passthrough{\lstinline!searchByIsbn()!}, i quali sfruttano
+  \passthrough{\lstinline!ILIKE!} per ricerche
+  parziali\footnote{Non è necessario fornire ad esempio il nome completo dell’autore per effettuare le ricerca.}.
+  Sono presenti anche metodi ``utility'' come
+  \passthrough{\lstinline!findAllBookCopies(Book book)!} per trovare
+  tutte le copie di un dato libro e
+  \passthrough{\lstinline!updateCopyStatus()!} per modificare lo stato
+  di una copia.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Metodo per ricreare un oggetto di tipo BookCopy da una riga del database.}, label={lst:bookcopiesdao}, label=lst:bookcopiesdao]
+private BookCopy mapRowToBookCopy(ResultSet rs) throws SQLException {
+      // 1. Build the nested Book object
+      Book book = new Book(
+              rs.getString("isbn"),
+              rs.getString("title"),
+              rs.getString("author"),
+              rs.getInt("publication_year"),
+              rs.getString("genre")
+      );
+
+      // 2. Build the nested Library object
+      Library library = new Library(
+              rs.getLong("library_id"),
+              rs.getString("library_name"),
+              rs.getString("address"),
+              rs.getString("phone"),
+              rs.getString("library_email")
+      );
+
+      // 3. Build the main BookCopy object
+      BookCopy copy = new BookCopy();
+      copy.setCopyId(rs.getLong("copy_id"));
+
+      // 4. Assemble the object graph
+      copy.setBook(book);
+      copy.setLibrary(library);
+
+      // 5. Convert status string to concrete State object
+      copy.setState(mapStatusToState(rs.getString("status")));
+
+      return copy;
+  }
+\end{lstlisting}
+\end{itemize}
+
+\begin{itemize}
+\item
+  \textbf{LoanDAO}: si occupa della gestione dei prestiti. Come
+  \passthrough{\lstinline!BookCopiesDAO!}, la classe utilizza una query
+  \passthrough{\lstinline!JOIN!} predefinita
+  (\passthrough{\lstinline!LOAN\_SELECT\_SQL!}) per recuperare tutte le
+  informazioni correlate a un prestito. Fornisce metodi di ricerca
+  specializzati come \passthrough{\lstinline!findActiveLoansByMember()!}
+  e \passthrough{\lstinline!findOverdueLoans()!}, che saranno utilizzati
+  all'interno delle classi in \passthrough{\lstinline!businessLogic!}
+  (es. \passthrough{\lstinline!WHERE l.return\_date IS NULL!} o
+  \passthrough{\lstinline!WHERE l.due\_date < CURRENT\_DATE!}).
+
+\begin{lstlisting}[language=Java, language=Java, caption={Esempio di metodo in LoanDAO per trovare i prestiti scaduti.}, label={lst:loandao}, label=lst:loandao]
+@Override
+public List<Loan> findOverdueLoans() {
+    List<Loan> loans = new ArrayList<>();
+    String sql = LOAN_SELECT_SQL + " WHERE l.due_date < CURRENT_DATE AND l.return_date IS NULL ORDER BY l.due_date ASC";
+    try (Connection connection = dataSource.getConnection();
+        Statement stmt = connection.createStatement();
+        ResultSet rs = stmt.executeQuery(sql)) {
+        while (rs.next()) {
+            loans.add(mapRowToLoan(rs));
+        }
+    } catch (SQLException e) {
+        throw new RuntimeException("Error finding overdue loans", e);
+    }
+    return loans;
+}
+\end{lstlisting}
+
+  Oltre ai metodi principali quali
+  \passthrough{\lstinline!createLoan()!},
+  \passthrough{\lstinline!getLoanById()!},
+  \passthrough{\lstinline!updateLoan()!} e
+  \passthrough{\lstinline!deleteLoan()!}, sono stati implementati metodi
+  di interrogazione del database a supporto dei casi d'uso del software,
+  quali \passthrough{\lstinline!findLoansByMember()!},
+  \passthrough{\lstinline!findActiveLoansByLibrary()!},
+  \passthrough{\lstinline!findOverdueLoans()!} e
+  \passthrough{\lstinline!findMemberOverdueLoans(Long memberId)!}.
+  Ognuno di questi definisce una query SQL specifica in modo tale da
+  filtrare efficientemente i risultati.
+\item
+  \textbf{ReservationDAO}: gestisce le prenotazioni dei membri. Come
+  nelle classi precedenti è stata create una query
+  \passthrough{\lstinline!JOIN!} di default
+  (\passthrough{\lstinline!RESERVATION\_SELECT\_SQL!}) per recuperare
+  tutti i dati correlati. Offre metodi di ricerca come
+  \passthrough{\lstinline!findCopyWaitingReservation()!}, il quale
+  recupera le prenotazioni per una data copia in stato
+  \passthrough{\lstinline!WAITING!} e le ordina per data, implementando
+  la logica della ``coda di attesa'' direttamente a livello di database.
+
+  La classe definisce metodi CRUD standard come
+  \passthrough{\lstinline!createReservation()!},
+  \passthrough{\lstinline!getReservationById()!} e
+  \passthrough{\lstinline!deleteReservation()!}. Altri metodi più
+  specifici comprendono
+  \passthrough{\lstinline!findMemberReservations(Member member)!} per
+  mostrare lo storico di un utente,
+  \passthrough{\lstinline!findReservationsByLibrary(Long libraryId)!}
+  per il monitoraggio delle prenotazioni da parte dei bibliotecari, e il
+  cruciale \passthrough{\lstinline!hasOtherPendingReservations()!}, il
+  quale esegue una query ottimizzata
+  (\passthrough{\lstinline!SELECT 1 ... LIMIT 1!}) per verificare
+  rapidamente se esistono altre prenotazioni attive su una copia.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Esempio di metodo in reservationDAO per creare/inserire un oggetto all\textquotesingle interno del database.}, label={lst:reservationdao}, label=lst:ReservationDAO]
+@Override
+  public Reservation createReservation(Reservation reservation) {
+      String sql = "INSERT INTO reservations (copy_id, member_id, reservation_date, status) VALUES (?, ?, ?, ?::reservation_status)";
+      try (Connection connection = dataSource.getConnection();
+           PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+          pstmt.setLong(1, reservation.getBookCopy().getCopyId());
+          pstmt.setLong(2, reservation.getMember().getId());
+          pstmt.setDate(3, Date.valueOf(reservation.getReservationDate()));
+          pstmt.setString(4, reservation.getStatus().name());
+
+          int affectedRows = pstmt.executeUpdate();
+          if (affectedRows > 0) {
+              try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                  if (rs.next()) {
+                      reservation.setId(rs.getLong("reservation_id"));
+                  }
+              }
+          }
+          return reservation;
+      } catch (SQLException e) {
+          throw new RuntimeException("Error creating reservation", e);
+      }
+  }
+\end{lstlisting}
+\item
+  \textbf{LibraryDAO}: gestisce la persistenza delle biblioteche.
+  Consente l'inserimento di nuove biblioteche, la modifica dei dati e la
+  rimozione di record, oltre al recupero dell'elenco completo delle
+  strutture registrate. Ad esempio il metodo
+  \passthrough{\lstinline!findLibrariesByName()!} utilizza l'operatore
+  \passthrough{\lstinline!ILIKE!} di PostgreSQL per eseguire una ricerca
+  testuale case-insensitive, una scelta che migliora l'usabilità della
+  ricerca.
+
+  Oltre ai metodi CRUD \passthrough{\lstinline!createLibrary()!},
+  \passthrough{\lstinline!updateLibrary()!} e
+  \passthrough{\lstinline!deleteLibrary()!}, fornisce i metodi di
+  lettura \passthrough{\lstinline!getLibraryById()!} per recuperare una
+  singola entità tramite \passthrough{\lstinline!Optional!}, e
+  \passthrough{\lstinline!getAllLibraries()!} per ottenere l'elenco
+  completo delle biblioteche presenti nel sistema, ordinate per nome.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Esempio di metodo in LibraryDAO per la ricerca per nome.}, label={lst:librarydao}, label=lst:librarydao]
+  @Override
+  public List<Library> findLibrariesByName(String name) {
+      List<Library> libraries = new ArrayList<>();
+      String sql = "SELECT * FROM libraries WHERE name ILIKE ?"; // ILIKE used for case-insensitivity
+      try (Connection connection = dataSource.getConnection();
+          PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+          pstmt.setString(1, "%" + name + "%");
+          try (ResultSet rs = pstmt.executeQuery()) {
+              while (rs.next()) {
+                  libraries.add(mapRowToLibrary(rs));
+              }
+          }
+      } catch (SQLException e) {
+          throw new RuntimeException(String.format("No library contains: %s", name), e);
+      }
+      return libraries;
+  }
+\end{lstlisting}
+\end{itemize}
+
+\section{\texorpdfstring{Package \texttt{presentationLayer} (interfaccia
+CLI)}{Package presentationLayer (interfaccia CLI)}}\label{package-presentationlayer-interfaccia-cli}
+
+L'interfaccia utente è sviluppata nella classe
+\passthrough{\lstinline!MainCLI!}, che implementa l'interfaccia
+\passthrough{\lstinline!CommandLineRunner!} di Spring Boot. Questa
+classe si occupa di gestire il ciclo di vita dell'applicazione,
+mostrando menu contestuali basati sul ruolo dell'utente loggato
+(\passthrough{\lstinline!Member!}, \passthrough{\lstinline!Librarian!},
+\passthrough{\lstinline!Admin!}), invocando i metodi appropriati dei
+controller della Business Logic in base all'input dell'utente.
+
+Usa l'annotazione \passthrough{\lstinline!@Component!} di Spring Boot,
+oltre ad usare \passthrough{\lstinline!@ConditionalOnProperty!} per
+specificare delle proprietà dell'applicazione.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth,keepaspectratio]{img/cli_1.png}
+    \caption{Menù principale all'avvio dell'applicazione.}
+    \label{fig:cli1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth,keepaspectratio]{img/cli_user.png}
+    \caption{Menù contestuale per l'utente di tipo Membro.}
+    \label{fig:cli_user}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth,keepaspectratio]{img/cli_librarian.png}
+    \caption{Menù contestuale per l'utente di tipo Bibliotecario.}
+    \label{fig:cli_librarian}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth,keepaspectratio]{img/cli_admin.png}
+    \caption{Menù contestuale per l'utente di tipo Amministratore.}
+    \label{fig:cli_admin}
+\end{figure}
+
+\section{Self-hosting server email}\label{self-hosting-server-email}
+
+Per evitare di utilizzare un servizio di terze parti per l'invio di
+notifiche, si è deciso di provare ad implementare un server email
+autogestito. Il sistema utilizzato prevede un VPS ospitato da
+\href{www.ovhcloud.it}{OVH} con una macchina virtuale con OS Rocky Linux
+9, utilizzando \href{mailcow.email}{Mailcow} per avere direttamente
+tutta l'architettura necessaria all'interno di un container Docker. In
+questo modo tutti i servizi più complessi sono già preconfigurati, come
+Postfix e Dovecot, incapsulati in ambienti isolati per semplificarne sia
+la gestione che l'aggiornamento.
+
+Non è stato semplice ottenere immediatamente una buona reputazione per
+il server, difatti per i primi giorni tutte le email mandate dal server
+venivano bloccate dai server antispam dei vari servizi di posta più
+famosi. Dopo qualche giorno la configurazione dei record DNS del dominio
+\url{mail.ltocca.dev} si è propagata e le email arrivano passando il
+filtro spam. Tornando alla configurazione oltre al record
+\passthrough{\lstinline!MX!}, sono stati implementati tutti gli standard
+moderni di autenticazione del mittente:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{SPF (Sender Policy Framework)}, per dichiarare gli IP
+  autorizzati a inviare email.
+\item
+  \textbf{DKIM (DomainKeys Identified Mail)}, per apporre una firma
+  digitale a ogni email, verificandone l'integrità.
+\item
+  \textbf{DMARC}, per istruire i server riceventi su come gestire i
+  fallimenti di autenticazione.
+\end{itemize}
+
+La sicurezza della connessione tra l'applicazione e il server è
+garantita dalla cifratura TLS, con l'applicazione Spring Boot che si
+connette sulla porta \passthrough{\lstinline!587!} utilizzando STARTTLS.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.7\linewidth,height=\textheight,keepaspectratio,alt={Esempio di notifica email mandata dall'indirizzo loanranger@mail.ltocca.dev}]{img/email.png}
+\caption{Esempio di notifica email mandata dall'indirizzo
+\protect\passthrough{\lstinline!loanranger@mail.ltocca.dev!}}
+\end{figure}
+
+\section{Implementazione ed utilizzo del framework Spring
+Boot}\label{implementazione-ed-utilizzo-del-framework-spring-boot}
+
+L'adozione del framework Spring Boot è stata fondamentale durante
+l'implementazione del progetto. Sebbene l'utilizzo sia stato previsto
+fin dall'inizio per creare più semplicemente l'ambiente di sviluppo con
+gli \passthrough{\lstinline!spring-boot-starters!}, al momento del
+testing è stato effettuato un refactoring della parte ORM. Questo perché
+applicare il pattern Inversion of Control era un passaggio necessario
+per semplificare la costruzione dei test applicando le classi create con
+Mockito.
+
+Inoltre utilizzare una configurazione esterna in
+\passthrough{\lstinline!application.properties!} ha permesso di
+\emph{isolare} dal codice informazioni sensibili come le crendeziali del
+database PostgreSQL e quelle dell'account email utilizzato, senza
+intervenire sul codice sorgente poi pubblicato su Github.
+
+\chapter{Testing}\label{testing}
+
+Per garantire la correttezza e la robustezza dell'applicazione sono
+stati implementati test unitari, di integrazione e end-to-end. In questo
+modo si mira ad assicurare che ogni layer del software funzioni come
+previsto.
+
+Nel determinare una convenzione per i nomi dei metodi di test, è stato
+seguito il formato
+\passthrough{\lstinline!metodoTestato\_condizioneTestata\_risultatoAtteso()!},
+in modo tale da descrivere il più possibile il comportamento del test.
+Questo stile, derivato dal \emph{Behavior-Driven Development (BDD)},
+rende i test praticamente auto-documentati e migliora la manutenzione e
+l'individuazione di errori in caso di fallimento.
+
+\section{Unit Testing}\label{unit-testing}
+
+Questi test sono stati scritti per le classi del package
+\passthrough{\lstinline!businessLogic!},
+\passthrough{\lstinline!service!} e \passthrough{\lstinline!utility!},
+per verificare la logica di business in isolamento dalle dipendenze
+esterne come il database. Per ottenere questo isolamento, ogni classe è
+stata testata simulando tutte le sue dipendenze esterne (come i DAO, gli
+helper o il servizio di hashing delle password) attraverso oggetti
+\emph{mock} creati con il framework \textbf{Mockito}. In questo modo,
+nessun test unitario dipende dal database o da uno stato persistente: il
+comportamento atteso è stato verificato esclusivamente tramite la logica
+interna della classe.
+
+\subsection{\texorpdfstring{package
+\texttt{businessLogic}}{package businessLogic}}\label{package-businesslogic}
+
+Sono state testate tutte le classi di ``tipo Controller'', creando
+svariati test al fine di coprire diversi scenari: sono stati testati
+tutti i percorsi logici che implementano le regole di business. Ad
+esempio, nella classe
+\passthrough{\lstinline!LibrarianAccountControllerTest!}, è presente il
+metodo di test
+\passthrough{\lstinline!changeUsername\_whenUsernameIsTaken\_throwsIllegalArgumentException()!}
+nel quale viene verificato che, il tentativo di modifica dell'username
+(da parte di un bibliotecario) con uno nuovo ma già presente nel
+database, sollevi correttamente un eccezione di tipo
+\passthrough{\lstinline!IllegalArgumentException!}.
+
+Passando ad un altro esempio, contenuto nella classe
+\passthrough{\lstinline!LibrarianBookController!} (nel test
+\passthrough{\lstinline!loanBookToMember\_onBookInAnotherLibrary\_fails!})
+viene simulato lo scenario in cui un bibliotecario prova ad effettuare
+un prestito per una copia di un libro registrato in un'altra biblioteca.
+Tramite Mockito, \passthrough{\lstinline!BookCopiesDAO!} viene
+configurato affinché restituisca un oggetto
+\passthrough{\lstinline!BookCopy!} associato a una biblioteca diversa da
+quella del bibliotecario. L'asserzione del test deve verificare quindi
+che il metodo restituisca false e, cosa ancora più importante, che il
+metodo borrowBook sulla LibraryFacade non venga mai invocato.
+
+Per componenti come \passthrough{\lstinline!LibraryFacade!}, i test sono
+stati sviluppati per verificare che le operazioni gestiscano
+correttamente le chiamate ai vari DAO. Infatti, in
+\passthrough{\lstinline!LibraryFacadeTest!} è presente
+\passthrough{\lstinline!returnBook\_whenLoanExists\_updatesLoanAndProcessesWaitingList!}:
+questo test simula lo scenario di restituzione di un libro per il quale
+esiste un altro utente in coda di attesa. Sempre facendo uso di Mockito,
+si configura il \passthrough{\lstinline!LoanDAO!} per restituire un
+oggetto \passthrough{\lstinline!Loan!} \emph{``attivo''} e il
+\passthrough{\lstinline!ReservationDAO!} per fornire una prenotazione in
+stato \passthrough{\lstinline!WAITING!}. Il test verifica quindi che la
+classe esegua correttamente l'intera sequenza di operazioni.
+
+\begin{lstlisting}
+```{#lst:test-username-taken .java language="Java" caption="Test unitario che verifica la gestione di un username duplicato." label="lst:test-username-taken"}
+  @Test
+  void changeUsername_whenUsernameIsTaken_throwsIllegalArgumentException() throws Exception {
+      // Given
+      String newUsername = "takenUser";
+      when(userDAO.findUserByUsername(newUsername)).thenReturn(Optional.of(new Librarian()));
+
+      // When & Then
+      assertThatThrownBy(() -> librarianAccountController.changeUsername(librarian, newUsername))
+              .isInstanceOf(IllegalArgumentException.class)
+              .hasMessage("Error: This username is already taken by another user.");
+
+      verify(userDAO, never()).updateUsername(anyLong(), anyString());
+  }
+```
+\end{lstlisting}
+
+\begin{lstlisting}[language=Java, language=Java, caption={Test che verifica la restituzione di un libro con utenti di attesa.}, label={lst:test-return-waitinglist}, label=lst:test-return-waitinglist]
+  @Test
+  void returnBook_whenLoanExists_updatesLoanAndProcessesWaitingList() {
+      // Given
+      availableCopy.loan(); // Manually set state to Loaned
+      Loan activeLoan = new Loan(availableCopy, member);
+      activeLoan.setId(50L);
+
+      Reservation waitingReservation = new Reservation(availableCopy, waitingMember);
+      waitingReservation.setId(99L);
+      waitingReservation.setStatus(ReservationStatus.WAITING);
+
+      when(bookCopiesDAO.getCopyById(101L)).thenReturn(Optional.of(availableCopy));
+      when(loanDAO.getLoanByBookCopyId(101L)).thenReturn(Optional.of(activeLoan));
+      when(reservationDAO.findCopyWaitingReservation(101L)).thenReturn(List.of(waitingReservation));
+
+      // When
+      boolean success = libraryFacade.returnBook(101L);
+
+      // Then
+      assertThat(success).isTrue();
+
+      // Verify loan is updated with a return date
+      ArgumentCaptor<Loan> loanCaptor = ArgumentCaptor.forClass(Loan.class);
+      verify(loanDAO).updateLoan(loanCaptor.capture());
+      assertThat(loanCaptor.getValue().getReturnDate()).isNotNull();
+
+      // Verify the waiting reservation is now PENDING
+      verify(reservationDAO).updateStatus(99L, ReservationStatus.PENDING);
+
+      // Verify the book copy is now RESERVED for the next person
+      assertThat(availableCopy.getState()).isInstanceOf(ReservedState.class);
+      verify(bookCopiesDAO).updateCopyStatus(availableCopy);
+
+      // Verify an email is sent to the waiting member
+      verify(emailService).sendEmail(eq("jane.doe@email.com"), anyString(), anyString());
+  }
+\end{lstlisting}
+
+\subsection{\texorpdfstring{package
+\texttt{util}}{package util}}\label{package-util-1}
+
+La classe \passthrough{\lstinline!PasswordHasherTest!} verifica il
+corretto funzionamento dell'utility di hashing delle password, basata su
+BCrypt. I test coprono gli scenari principali: la generazione di un hash
+valido, la verifica positiva con una password corretta e, soprattutto,
+la verifica negativa. Ad esempio, il test
+\passthrough{\lstinline!check\_withIncorrectPassword\_returnsFalse!} si
+assicura che il metodo di verifica restituisca
+\passthrough{\lstinline!false!} nel momento in cui viene fornita una
+password errata, confermando la robustezza del meccanismo di
+autenticazione.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Test unitario che verifica il fallimento del confronto con una password errata.}, label={lst:test-password-check}, label=lst:test-password-check]
+@Test
+void check_withIncorrectPassword_returnsFalse() {
+    String plainPassword = "correctPassword";
+    String wrongPassword = "wrongPassword";
+    String hashedPassword = PasswordHasher.hash(plainPassword);
+
+    boolean result = PasswordHasher.check(wrongPassword, hashedPassword);
+
+    assertThat(result).isFalse();
+}
+\end{lstlisting}
+
+\subsection{\texorpdfstring{package
+\texttt{service}}{package service}}\label{package-service-1}
+
+La classe \passthrough{\lstinline!EmailServiceTest!} si concentra sul
+comportamento del servizio di notifica tramite email. Come esempio
+prendiamo il test
+\passthrough{\lstinline!sendEmail\_whenDisabled\_doesNotCallMailSender!}:
+utilizzando un mock di \passthrough{\lstinline!JavaMailSender!}, si
+verifica che, quando la proprietà \passthrough{\lstinline!mail.enabled!}
+è impostata su \passthrough{\lstinline!false!}, nessun metodo di invio
+venga \textbf{mai invocato}, confermando che la logica di ``mocking''
+per l'ambiente di sviluppo funzioni come previsto.
+
+Per \passthrough{\lstinline!BookCopySearchService!}, i test convalidano
+la corretta implementazione del pattern Strategy. Il test
+\passthrough{\lstinline!smartSearch\_withIsbnLikeQuery\_usesIsbnStrategy!}
+simula l'input, da parte di un qualsiasi utente, di una stringa simile a
+un ISBN e verifica, tramite \passthrough{\lstinline!verify()!}, che il
+servizio selezioni e invochi correttamente la
+\passthrough{\lstinline!IsbnSearchStrategy!} appropriata, dimostrando la
+correttezza della logica di ``smart detection'' per la selezione
+automatica dell'algoritmo di ricerca.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Test unitario che verifica il non invio dell\textquotesingle email quando il servizio è disabilitato.}, label={lst:test-email-disabled}, label=lst:test-email-disabled]
+@Test
+void sendEmail_whenDisabled_doesNotCallMailSender() {
+    emailService.sendEmail("recipient@example.com", "Test Subject", "Test Body");
+
+    verify(mailSender, never()).createMimeMessage();
+    verify(mailSender, never()).send(any(MimeMessage.class));
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=Java, language=Java, caption={Test unitario che verifica la selezione della strategia di ricerca corretta.}, label={lst:test-smart-search}, label=lst:test-smart-search]
+@Test
+void smartSearch_withIsbnLikeQuery_usesIsbnStrategy() {
+    // Given
+    String query = "9780134685991";
+    when(bookCopiesDAO.searchByIsbn(query)).thenReturn(Collections.singletonList(testCopy));
+
+    // When
+    searchService.smartSearch(query);
+
+    // Then
+    verify(bookCopiesDAO).searchByIsbn(query);
+}
+\end{lstlisting}
+
+\section{Integration Testing}\label{integration-testing}
+
+I test di integrazione hanno lo scopo di \textbf{validare} l'interazione
+reale tra l'applicazione e il database. Per questo livello è stato
+utilizzato \textbf{Testcontainers}, una libreria che permette di avviare
+un'istanza di PostgreSQL all'interno di un container Docker per tutta la
+durata dei test. Questo approccio garantisce un ambiente di test
+\textbf{isolato e riproducibile} eliminando la dipendenza da un database
+``reale''.
+
+\subsection{\texorpdfstring{package
+\texttt{ORM}}{package ORM}}\label{package-orm}
+
+Per ogni classe DAO è stata creata una classe di test dedicata: abbiamo
+quindi \passthrough{\lstinline!UserDAOTest!},
+\passthrough{\lstinline!LibraryDAOTest!},
+\passthrough{\lstinline!BookDAOTest!},
+\passthrough{\lstinline!BookCopiesDAOTest!},
+\passthrough{\lstinline!LoanDAOTest!} e
+\passthrough{\lstinline!ReservationDAOTest!}. Ognuna di questa classi
+estende ``a cascata'' due interfaccie:
+\passthrough{\lstinline!OrmIntegrationTestBase!}, che a sua volta
+estende \passthrough{\lstinline!PostgresIntegrationTestBase!}.
+Quest'ultima rappresenta una classe ``Singleton'' utilizzata per
+separare il ciclo di vita del contenitore dal runner JUnit, avviandolo
+una sola volta e arrestandolo all'uscita dalla JVM. In questo modo è
+possibile riutilizzare/condividere il container Docker tra i test.
+Tornando invece a \passthrough{\lstinline!OrmIntegrationTestBase!}, esso
+si occupa di istanziare la base di tutte le classi di test di ORM: in
+questo modo tutte le classi sono annotate con
+\passthrough{\lstinline!@JdbcTest!}, con
+\passthrough{\lstinline!@Transactional!} e con
+\passthrough{\lstinline!@Testcontainers!}. Inoltre la classe si occupa
+di collegare tramite \passthrough{\lstinline!@Autowired!} tutti i DAO
+necessari ed il Datasource che sarà utilizzato con testcontainers.
+Infine si occupa anche della creazione ed istanziazione di oggetti di
+test, che alcune classi condividono.
+
+Viene definito anche un metodo
+\passthrough{\lstinline!executeSchemaScript()!} per caricare sul
+container lo schema del database, \textbf{identico} a quello del
+software ``in produzione''.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Metodo che si occupa di caricare sul database di test lo schema SQL.}, label={lst:schema script}, label=lst:schemascript]
+  protected void executeSchemaScript() throws SQLException {
+        try (Connection connection = dataSource.getConnection()) { 
+            ScriptUtils.executeSqlScript(connection, new ClassPathResource("sql/schema.sql"));
+            System.out.println("Schema loaded successfully using the main test DataSource.");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to execute schema script: " + e.getMessage(), e);
+        }
+    }
+\end{lstlisting}
+
+In generale queste classi di test si concentrano esclusivamente sul
+layer di persistenza. L'obiettivo di questi test è da un lato verificare
+la correttezza sintattica e semantica delle query SQL eseguite tramite
+JDBC, mentre dall'altro assicurare che il mapping tra le tabelle del
+database e gli oggetti Java funzioni correttamente in entrambe le
+direzioni. Prima di eseguire tutti i metodi di test, ogni classe ha un
+proprio metodo \passthrough{\lstinline!setUp()!} (preceduto da
+un'annotazione \passthrough{\lstinline!@BeforeEach!}) per preparare
+l'ambiente del test.
+
+In \passthrough{\lstinline!LibraryDAOTest!} prendiamo come esempio il
+test
+\passthrough{\lstinline!findLibrariesByName\_ShouldBeCaseInsensitive()!},
+il quale controlla che il metodo
+\passthrough{\lstinline!findLibrariesByName!} sfrutti correttamente
+l'operatore \passthrough{\lstinline!ILIKE!} di PostgreSQL per eseguire
+una ricerca case-insensitive.
+
+Facendo un altro esempio in \passthrough{\lstinline!LoanDAOTest!} il
+test
+\passthrough{\lstinline!findOverdueLoans\_ShouldReturnOnlyOverdueLoans()!}
+crea un prestito, ne modifica la data di scadenza per farlo scadere e
+infine invoca il metodo di ricerca. L'asserzione finale verifica che la
+query SQL filtri correttamente i risultati, restituendo solo il prestito
+che soddisfa le condizioni di ``prestito scaduto'', confermando così la
+corretta traduzione di una richiesta della business logic in una query
+per un database.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Test di integrazione che verifica la ricerca case-insensitive in LibraryDAO.}, label={lst:test-integration-ilike}, label=lst:test-integration-ilike]
+@Test
+void findLibrariesByName_ShouldBeCaseInsensitive() {
+    createTestLibrary(); // Crea una libreria con nome "Test Library"
+    List<Library> foundLibraries = libraryDAO.findLibrariesByName("test library");
+    assertThat(foundLibraries).hasSize(1);
+    assertThat(foundLibraries.get(0).getName()).isEqualTo("Test Library");
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=Java, language=Java, caption={Test di integrazione che valida la query per trovare i prestiti scaduti.}, label={lst:test-integration-overdue}, label=lst:test-integration-overdue]
+@Test
+void findOverdueLoans_ShouldReturnOnlyOverdueLoans() {
+ 
+    Loan loan = createTestLoan(testBookCopy, testMember);
+    LocalDate pastDueDate = LocalDate.now().minusDays(1);
+    loanDAO.updateDueDate(loan.getId(), pastDueDate);
+    
+    List<Loan> overdueLoans = loanDAO.findOverdueLoans();
+    
+    assertThat(overdueLoans).hasSize(1);
+    assertThat(overdueLoans.get(0).getId()).isEqualTo(loan.getId());
+    assertThat(overdueLoans.get(0).getDueDate()).isEqualTo(pastDueDate);
+}
+\end{lstlisting}
+
+\section{End-to-End Testing}\label{end-to-end-testing}
+
+Infine sono stati sviluppati dei test end-to-end (E2E), progettati con
+lo scopo di verificare l'intero funzionamento dell'applicazione dal
+punto di vista dell'utente finale. Attraverso la classe
+\passthrough{\lstinline!MainCLITest!}, viene simulata l'interazione di
+un utente con l'interfaccia a riga di comando, assicurando che i flussi
+completi, i quali coinvolgono tutti i layer dell'architettura,
+funzionino correttamente.
+
+Anche in questo caso, viene utilizzato Testcontainers per fornire un
+ambiente di database realistico e popolato con dati di default.
+L'approccio del test consiste nel reindirizzare gli stream di input e
+output standard di Java: \passthrough{\lstinline!System.in!} viene
+sostituito con metodo \passthrough{\lstinline!provideInput()!} che
+simulano la digitazione dell'utente, mentre
+\passthrough{\lstinline!System.out!} e
+\passthrough{\lstinline!System.err!} vengono catturati con un'altro
+metodo \passthrough{\lstinline!getOutput()!} per analizzare l'output
+della console, ritrasformandolo in stringa.
+
+È importante sottolineare come sia stato utilizzato un oggetto annotato
+con \passthrough{\lstinline!@MockitoBean!} per evitare che Spring
+utilizzasse subito \passthrough{\lstinline!CommandLineRunner!}, che
+altrimenti impediva la riuscita dei test.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Metodo per simulare l\textquotesingle input di un utente.}, label={lst:provide-input}, label=lst:provide-input]
+    private void provideInput(String data) {
+        ByteArrayInputStream testIn = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
+        System.setIn(testIn);
+    }
+\end{lstlisting}
+
+Prendendo come esempio il test
+\passthrough{\lstinline!cli\_adminViewBookDetails\_succeeds!}, esso
+verifica l'intero processo: il funzionamento del
+\passthrough{\lstinline!LoginController!} per l'autenticazione, la
+capacità della \passthrough{\lstinline!MainCLI!} di interpretare l'input
+e invocare l'\passthrough{\lstinline!AdminBookController!},
+l'interazione di quest'ultimo con il \passthrough{\lstinline!BookDAO!}
+ed infine la corretta formattazione dell'output sulla console. Questo
+garantisce che il sistema funzioni in modo coeso.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Test E2E che simula il login di un admin e la visualizzazione dei dettagli di un libro.}, label={lst:test-e2e-cli}, label=lst:test-e2e-cli]
+@Test
+void cli_adminViewBookDetails_succeeds() {
+    // Given: una sequenza di input che simula le azioni dell'utente
+    String input = "1\n" +         // 1. Login
+            ADMIN_EMAIL + "\n" +
+            PASSWORD + "\n" +
+            "8\n" +         // 8. View Book Details
+            GATSBY_ISBN + "\n" +
+            "17\n" +        // 17. Logout
+            "3\n";         // 3. Exit
+    provideInput(input);
+
+    // When: l'applicazione CLI viene eseguita
+    cliTestInstance.run();
+
+    // Then: si verifica che l'output contenga i messaggi chiave del flusso
+    String output = getOutput();
+    assertThat(output).contains("Login successful: welcome Admin One!");
+    assertThat(output).contains("--- Book Details ---");
+    assertThat(output).contains("The Great Gatsby");
+}
+\end{lstlisting}
+
+\chapter{Librerie di terze parti}\label{librerie-di-terze-parti}
+
+Di seguito è riportata la lista delle principali librerie di terze parti
+utilizzate per lo sviluppo dell'applicazione.
+
+\begin{itemize}
+\item
+  \textbf{Spring Boot} - Framework principale per la creazione, la
+  configurazione e l'esecuzione dell'applicazione stand-alone.
+
+  \url{https://spring.io/projects/spring-boot}
+\item
+  \textbf{Spring Framework} - Fornisce i moduli fondamentali per la
+  Dependency Injection (\passthrough{\lstinline!@Autowired!}), la
+  gestione delle transazioni (\passthrough{\lstinline!@Transactional!})
+  e la sicurezza (\passthrough{\lstinline!BCryptPasswordEncoder!}).
+
+  \url{https://spring.io/projects/spring-framework}
+\item
+  \textbf{Project Lombok} - Utilizzato per ridurre il codice boilerplate
+  nelle classi di dominio tramite annotazioni (es.
+  \passthrough{\lstinline!@Data!}, \passthrough{\lstinline!@Getter!},
+  \passthrough{\lstinline!@Setter!}).
+
+  \url{https://projectlombok.org/}
+\item
+  \textbf{PostgreSQL JDBC Driver} - Driver che implementa l'API JDBC per
+  consentire la comunicazione con il database PostgreSQL.
+
+  \url{https://jdbc.postgresql.org/}
+\item
+  \textbf{JUnit 5} - Framework per l'implementazione e l'esecuzione dei
+  test unitari e di integrazione del progetto.
+
+  \url{https://junit.org/junit5/}
+\item
+  \textbf{Mockito} - Framework utilizzato per la creazione di oggetti
+  mock e stub durante i test unitari, per isolare i componenti da
+  testare.
+
+  \url{https://site.mockito.org/}
+\item
+  \textbf{Testcontainers} - Libreria per la gestione di container Docker
+  (in questo caso, PostgreSQL) durante i test di integrazione,
+  garantendo un ambiente di test pulito e riproducibile.
+
+  \url{https://www.testcontainers.org/}
+\end{itemize}
+
+\section{Strumenti di Sviluppo}\label{strumenti-di-sviluppo}
+
+Oltre alle librerie software, per la progettazione, lo sviluppo e la
+gestione del progetto sono stati utilizzati i seguenti strumenti.
+
+\begin{itemize}
+\item
+  \textbf{IntelliJ IDEA} - Ambiente di Sviluppo Integrato (IDE)
+  utilizzato per la scrittura e il debug del codice Java.
+
+  \url{https://www.jetbrains.com/idea/}
+\item
+  \textbf{Visual Paradigm} - Software utilizzato per la modellazione
+  UML.
+
+  \url{https://www.visual-paradigm.com/}
+\item
+  \textbf{StarUML} - Altro software utilizzato per la modellazione degli
+  usecase e per la creazione dei diagrammi architetturali.
+
+  \url{https://www.staruml.com}
+\item
+  \textbf{DBeaver} - Strumento client per l'interazione e la gestione
+  del database PostgreSQL.
+
+  \url{https://dbeaver.io/}
+\item
+  \textbf{GitHub} - Piattaforma per il versioning e la gestione del
+  codice sorgente tramite Git.
+
+  \url{https://github.com/}
+\item
+  \textbf{dbdiagram-oss-wrep}: software per la creazione del diagramma
+  ER.
+
+  \url{https://github.com/NomadRazor/dbdiagram-oss-wrep}
+\item
+  \textbf{draw.io}: altro software utilizzato per la creazione di un
+  diagramma ER.
+
+  \url{https://draw.io}
+\end{itemize}
+
+\backmatter
+\end{document}

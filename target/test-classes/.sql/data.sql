@@ -10,11 +10,11 @@ INSERT INTO libraries (name, address, phone, email) VALUES
                                                         ('Maplewood Branch', '456 Oak St, Maplewood', '555-0102', 'maplewood@ccl.com');
 
 -- Create Users (Password for all is "password")
--- Hashed using BCrypt: $2a$10$Iz3kYRcmqPy45Dokr58hLug5GdIAxfWE2LwOocfLO0k5E/8sqLsr
+-- Hashed using BCrypt: $2a$10$Isg.gIqg8hJiquS3q4A0x.bA.f2ACIb3eBvj5JrhizFU.V2/f09fS
 INSERT INTO users (username, name, email, password, role, library_id) VALUES
-                                                                          ('admin', 'Admin User', 'admin@loanranger.com', '$2a$10$Iz3kYRcmqPy45Dokr58hLug5GdIAxfWE2LwOocfLO0k5E/8sqLsr', 'ADMIN', NULL),
-                                                                          ('librarian_jane', 'Jane Doe', 'jane.doe@ccl.com', '$2a$10$Iz3kYRcmqPy45Dokr58hLug5GdIAxfWE2LwOocfLO0k5E/8sqLsr', 'LIBRARIAN', 1),
-                                                                          ('member_john', 'John Smith', 'john.smith@email.com', '$2a$10$Iz3kYRcmqPy45Dokr58hLug5GdIAxfWE2LwOocfLO0k5E/8sqLsr', 'MEMBER', NULL);
+                                                                          ('admin', 'Admin User', 'admin@loanranger.com', '$2a$10$Isg.gIqg8hJiquS3q4A0x.bA.f2ACIb3eBvj5JrhizFU.V2/f09fS', 'ADMIN', NULL),
+                                                                          ('librarian_jane', 'Jane Doe', 'jane.doe@ccl.com', '$2a$10$Isg.gIqg8hJiquS3q4A0x.bA.f2ACIb3eBvj5JrhizFU.V2/f09fS', 'LIBRARIAN', 1),
+                                                                          ('member_john', 'John Smith', 'john.smith@email.com', '$2a$10$Isg.gIqg8hJiquS3q4A0x.bA.f2ACIb3eBvj5JrhizFU.V2/f09fS', 'MEMBER', NULL);
 
 -- Create Books
 INSERT INTO books (isbn, title, author, publication_year, genre) VALUES
