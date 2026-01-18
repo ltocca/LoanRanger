@@ -1070,7 +1070,67 @@ void check_withIncorrectPassword_returnsFalse() {
 
 La classe `EmailServiceTest` si concentra sul comportamento del servizio di notifica tramite email. Come esempio prendiamo il test `sendEmail_whenDisabled_doesNotCallMailSender`: utilizzando un mock di `JavaMailSender`, si verifica che, quando la proprietà `mail.enabled` è impostata su `false`, nessun metodo di invio venga **mai invocato**, confermando che la logica di "mocking" per l'ambiente di sviluppo funzioni come previsto.
 
-Per `BookCopySearchService`, i test convalidano la corretta implementazione del pattern Strategy. Il test `smartSearch_withIsbnLikeQuery_usesIsbnStrategy` simula l'input, da parte di un qualsiasi utente, di una stringa simile a un ISBN e verifica, tramite `verify()`, che il servizio selezioni e invochi correttamente la `IsbnSearchStrategy` appropriata, dimostrando la correttezza della logica di "smart detection" per la selezione automatica dell'algoritmo di ricerca.
+Il servizio di notifica via email rappresenta un componente infrastrutturale critico: per questo motivo, per testare il comportamento reale dell’`EmailService` senza introdurre un'ulteriore dipendenza da un server SMTP esterno, è stata adottata la libreria **GreenMail**[^greenmail].
+
+All'interno del progetto LoanRanger, GreenMail viene utilizzata per avviare un server SMTP locale basato sulla configurazione `ServerSetupTest.SMTP`. Il test configura quindi un’istanza reale di `JavaMailSender`, opportunamente puntata al server SMTP in-memory, e la inietta in un’istanza concreta di `EmailService`. In questo modo, il test verifica l'intera sequenza del messaggio,
+
+
+```{#lst:test-integration-overdue .java language="Java" caption="Test di integrazione che valida la query per trovare i prestiti scaduti." label="lst:test-integration-overdue"}
+@Test
+void sendEmail_shouldSendAndReceiveMessageSuccessfully() throws MessagingException, IOException {
+greenMail = new GreenMail(ServerSetupTest.SMTP); // creazione server SMTP
+greenMail.setUser("testuser", "testpass"); // configurazione di un utente SMTP di test;
+greenMail.start();
+
+try {
+    JavaMailSender realMailSender = createRealMailSender(); // JavaMailSender reale connesso al server GreenMail;
+    EmailService realEmailService =
+            new EmailService(realMailSender, true, "test@library.org");
+
+    String recipient = "recipient@example.com";
+    String subject = "Test Subject";
+    String body = "This is the test body.";
+
+    realEmailService.sendEmail(recipient, subject, body); // invio email tramite metodo `sendEmail`
+
+    // attesa e ricezione del messaggio lato server
+
+    assertThat(greenMail.waitForIncomingEmail(5000, 1)).isTrue();
+
+    MimeMessage[] receivedMessages = greenMail.getReceivedMessages();
+    assertThat(receivedMessages).hasSize(1);
+
+    // verifica dettagliata del contenuto e della struttura del messaggio ricevuto;
+
+    MimeMessage receivedMessage = receivedMessages[0];
+    assertThat(receivedMessage.getAllRecipients()[0].toString())
+            .isEqualTo(recipient);
+    assertThat(receivedMessage.getSubject()).isEqualTo(subject);
+
+    Object outerContent = receivedMessage.getContent();
+    assertThat(outerContent).isInstanceOf(MimeMultipart.class);
+
+    MimeMultipart outerMultipart = (MimeMultipart) outerContent;
+    Object innerContent = outerMultipart.getBodyPart(0).getContent();
+    assertThat(innerContent).isInstanceOf(MimeMultipart.class);
+
+    MimeMultipart innerMultipart = (MimeMultipart) innerContent;
+    Object textContentObject = innerMultipart.getBodyPart(0).getContent();
+    assertThat(textContentObject).isInstanceOf(String.class);
+
+    String textContent = (String) textContentObject;
+    assertThat(textContent.trim()).isEqualTo(body.trim());
+
+} finally {
+    if (greenMail != null) {
+        greenMail.stop(); // arresto server GreenMail, rilascio delle risorse.
+    }
+}
+```
+
+Oltre alla verifica di destinatario e oggetto, il test analizza esplicitamente la struttura MIME del messaggio ricevuto. In particolare, viene controllato che il contenuto sia costituito da una gerarchia di `MimeMultipart`, come previsto dall’implementazione dell’`EmailService`, e che il corpo testuale finale coincida esattamente con quello inviato. Questo livello di verifica consente di intercettare errori legati alla composizione del messaggio (ad esempio una struttura MIME non valida o contenuti malformati), che non sarebbero rilevabili tramite semplici test basati su *mock*.
+
+[^greenmail]: GreenMail è una suite di test per email che fornisce implementazioni in-memory di server SMTP, IMAP e POP3, progettate specificamente per il testing di applicazioni Java che inviano o ricevono email: [https://greenmail-mail-test.github.io/greenmail/](https://greenmail-mail-test.github.io/greenmail/)
 
 ```{#lst:test-email-disabled .java language="Java" caption="Test unitario che verifica il non invio dell'email quando il servizio è disabilitato." label="lst:test-email-disabled"}
 @Test
@@ -1081,6 +1141,8 @@ void sendEmail_whenDisabled_doesNotCallMailSender() {
     verify(mailSender, never()).send(any(MimeMessage.class));
 }
 ```
+
+Per `BookCopySearchService`, i test convalidano la corretta implementazione del pattern Strategy. Il test `smartSearch_withIsbnLikeQuery_usesIsbnStrategy` simula l'input, da parte di un qualsiasi utente, di una stringa simile a un ISBN e verifica, tramite `verify()`, che il servizio selezioni e invochi correttamente la `IsbnSearchStrategy` appropriata, dimostrando la correttezza della logica di "smart detection" per la selezione automatica dell'algoritmo di ricerca.
 
 ```{#lst:test-smart-search .java language="Java" caption="Test unitario che verifica la selezione della strategia di ricerca corretta." label="lst:test-smart-search"}
 @Test
@@ -1217,6 +1279,10 @@ Di seguito è riportata la lista delle principali librerie di terze parti utiliz
 - **Mockito** - Framework utilizzato per la creazione di oggetti mock e stub durante i test unitari, per isolare i componenti da testare.
 
   [https://site.mockito.org/](https://site.mockito.org/)
+
+-  **GreenMail (JUnit 5)** – Libreria utilizzata per il testing di integrazione dei servizi di invio email. Fornisce un server SMTP, IMAP o POP3: è progettato specificatamente per il testing di applicazioni Java che inviano o ricevono email. \\
+  [https://greenmail-mail-test.github.io/greenmail/](https://greenmail-mail-test.github.io/greenmail/)
+
 
 - **Testcontainers** - Libreria per la gestione di container Docker (in questo caso, PostgreSQL) durante i test di integrazione, garantendo un ambiente di test pulito e riproducibile.
 
