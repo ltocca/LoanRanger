@@ -1256,35 +1256,35 @@ void cli_adminViewBookDetails_succeeds() {
 
 Di seguito è riportata la lista delle principali librerie di terze parti utilizzate per lo sviluppo dell'applicazione.
 
-- **Spring Boot** - Framework principale per la creazione, la configurazione e l'esecuzione dell'applicazione stand-alone.
+- **Spring Boot**: Framework principale per la creazione, la configurazione e l'esecuzione dell'applicazione stand-alone.
 
   [https://spring.io/projects/spring-boot](https://spring.io/projects/spring-boot)
 
-- **Spring Framework** - Fornisce i moduli fondamentali per la Dependency Injection (`@Autowired`), la gestione delle transazioni (`@Transactional`) e la sicurezza (`BCryptPasswordEncoder`).
+- **Spring Framework**: Fornisce i moduli fondamentali per la Dependency Injection (`@Autowired`), la gestione delle transazioni (`@Transactional`) e la sicurezza (`BCryptPasswordEncoder`).
 
   [https://spring.io/projects/spring-framework](https://spring.io/projects/spring-framework)
 
-- **Project Lombok** - Utilizzato per ridurre il codice boilerplate nelle classi di dominio tramite annotazioni (es. `@Data`, `@Getter`, `@Setter`).
+- **Project Lombok**: Utilizzato per ridurre il codice boilerplate nelle classi di dominio tramite annotazioni (es. `@Data`, `@Getter`, `@Setter`).
 
   [https://projectlombok.org/](https://projectlombok.org/)
 
-- **PostgreSQL JDBC Driver** - Driver che implementa l'API JDBC per consentire la comunicazione con il database PostgreSQL.
+- **PostgreSQL JDBC Driver**: Driver che implementa l'API JDBC per consentire la comunicazione con il database PostgreSQL.
 
   [https://jdbc.postgresql.org/](https://jdbc.postgresql.org/)
 
-- **JUnit 5** - Framework per l'implementazione e l'esecuzione dei test unitari e di integrazione del progetto.
+- **JUnit 5**: Framework per l'implementazione e l'esecuzione dei test unitari e di integrazione del progetto.
 
   [https://junit.org/junit5/](https://junit.org/junit5/)
 
-- **Mockito** - Framework utilizzato per la creazione di oggetti mock e stub durante i test unitari, per isolare i componenti da testare.
+- **Mockito**: Framework utilizzato per la creazione di oggetti mock e stub durante i test unitari, per isolare i componenti da testare.
 
   [https://site.mockito.org/](https://site.mockito.org/)
 
--  **GreenMail (JUnit 5)** – Libreria utilizzata per il testing di integrazione dei servizi di invio email. Fornisce un server SMTP, IMAP o POP3: è progettato specificatamente per il testing di applicazioni Java che inviano o ricevono email. \\
+- **GreenMail (JUnit 5)**: Libreria utilizzata per il testing dei servizi di invio email. Fornisce un server SMTP, IMAP o POP3: è progettato specificatamente per il testing di applicazioni Java che inviano o ricevono email.
+
   [https://greenmail-mail-test.github.io/greenmail/](https://greenmail-mail-test.github.io/greenmail/)
 
-
-- **Testcontainers** - Libreria per la gestione di container Docker (in questo caso, PostgreSQL) durante i test di integrazione, garantendo un ambiente di test pulito e riproducibile.
+- **Testcontainers**: Libreria per la gestione di container Docker (in questo caso, PostgreSQL) durante i test di integrazione, garantendo un ambiente di test pulito e riproducibile.
 
   [https://www.testcontainers.org/](https://www.testcontainers.org/)
 
@@ -1292,23 +1292,23 @@ Di seguito è riportata la lista delle principali librerie di terze parti utiliz
 
 Oltre alle librerie software, per la progettazione, lo sviluppo e la gestione del progetto sono stati utilizzati i seguenti strumenti.
 
-- **IntelliJ IDEA** - Ambiente di Sviluppo Integrato (IDE) utilizzato per la scrittura e il debug del codice Java.
+- **IntelliJ IDEA**: Ambiente di Sviluppo Integrato (IDE) utilizzato per la scrittura e il debug del codice Java.
 
   [https://www.jetbrains.com/idea/](https://www.jetbrains.com/idea/)
 
-- **Visual Paradigm** - Software utilizzato per la modellazione UML.
+- **Visual Paradigm**: Software utilizzato per la modellazione UML.
 
   [https://www.visual-paradigm.com/](https://www.visual-paradigm.com/)
 
-- **StarUML** - Altro software utilizzato per la modellazione degli usecase e per la creazione dei diagrammi architetturali.
+- **StarUML**: Altro software utilizzato per la modellazione degli usecase e per la creazione dei diagrammi architetturali.
 
   [https://www.staruml.com](https://www.staruml.com)
 
-- **DBeaver** - Strumento client per l'interazione e la gestione del database PostgreSQL.
+- **DBeaver**: Strumento client per l'interazione e la gestione del database PostgreSQL.
 
   [https://dbeaver.io/](https://dbeaver.io/)
 
-- **GitHub** - Piattaforma per il versioning e la gestione del codice sorgente tramite Git.
+- **GitHub**: Piattaforma per il versioning e la gestione del codice sorgente tramite Git.
 
   [https://github.com/](https://github.com/)
 
