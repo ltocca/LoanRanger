@@ -57,7 +57,6 @@
 \setlength{\footskip}{0.9cm} % set space between footnote and page bottom
 \usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm]{geometry}
 \usepackage{amsmath,amssymb}
-
 \usepackage[export]{adjustbox}
 \usepackage{graphicx}
 
@@ -125,9 +124,9 @@
 \floatplacement{figure}{H}
 \makeatother
 \ifLuaTeX
-\usepackage[bidi=basic,shorthands=off,]{babel}
+\usepackage[bidi=basic,shorthands=off]{babel}
 \else
-\usepackage[bidi=default,shorthands=off,]{babel}
+\usepackage[bidi=default,shorthands=off]{babel}
 \fi
 \ifPDFTeX
 \else
@@ -465,7 +464,6 @@ Toccafondi} \vskip 0.6em \textsf{2025-11-14}}
 
 
 {
-\hypersetup{linkcolor=}
 \setcounter{tocdepth}{3}
 \tableofcontents
 \newpage
@@ -1083,8 +1081,8 @@ istanziare manualmente le dipendenze (ad esempio con
 del costruttore di una classe), le classi di servizio
 (\passthrough{\lstinline!@Service!}) e di persistenza
 (\passthrough{\lstinline!@Repository!}) dichiarano le dipendenze come
-campi e lasciano che il container di Spring le risolva e le fornisca al
-momento della creazione del bean. Ad esempio, un controller come
+campi e lasciano che Spring le risolva e le fornisca al momento della
+creazione del bean. Ad esempio, un controller come
 \passthrough{\lstinline!MemberBookController!} riceve direttamente
 tramite il suo costruttore tutte le istanze dei DAO e dei servizi di cui
 ha bisogno per funzionare. Questo approccio, noto come ``Inversion of
@@ -1110,9 +1108,9 @@ Il package \passthrough{\lstinline!domainModel!} contiene le
 gestione bibliotecaria. Le classi sono progettate come classici oggetti
 e seguono principi di incapsulamento, immutabilità logica e coerenza
 semantica. Molte di esse implementano pattern strutturali e
-comportamentali per gestire in modo chiaro le transizioni di stato e le
-notifiche. Inoltre, questa classi fanno uso delle annotazioni della
-libreria Lombok, che tramite \passthrough{\lstinline!@Getter!}
+comportamentali per gestire in \textbf{modo chiaro} le transizioni di
+stato e le notifiche. Inoltre, questa classi fanno uso della libreria
+Lombok, che tramite le annotazioni \passthrough{\lstinline!@Getter!}
 \passthrough{\lstinline!@Setter!} o \passthrough{\lstinline!@Data!}
 generano automaticamente i metodi getter e setter, oltre che i metodi
 \passthrough{\lstinline!toString()!} nel caso di
@@ -1121,11 +1119,12 @@ generano automaticamente i metodi getter e setter, oltre che i metodi
 \begin{itemize}
 \item
   \textbf{User}: classe astratta che rappresenta un generico utente del
-  sistema. Contiene attributi comuni come \passthrough{\lstinline!id!},
-  \passthrough{\lstinline!name!}, \passthrough{\lstinline!email!},
-  \passthrough{\lstinline!username!}, \passthrough{\lstinline!password!}
-  e \passthrough{\lstinline!role!}. Definisce i metodi base di accesso e
-  modifica dei dati e viene estesa da \passthrough{\lstinline!Member!},
+  sistema. Contiene attributi ``comuni'' come
+  \passthrough{\lstinline!id!}, \passthrough{\lstinline!name!},
+  \passthrough{\lstinline!email!}, \passthrough{\lstinline!username!},
+  \passthrough{\lstinline!password!} e \passthrough{\lstinline!role!}.
+  Definisce i metodi base di accesso e modifica dei dati e viene
+  \emph{estesa} da \passthrough{\lstinline!Member!},
   \passthrough{\lstinline!Librarian!} e \passthrough{\lstinline!Admin!}.
 
   \begin{itemize}
@@ -1154,7 +1153,8 @@ public void onBookCopyAvailable(BookCopy bookCopy) {
     \passthrough{\lstinline!User!} aggiungendo l'attributo
     \passthrough{\lstinline!private Library workLibrary!} per
     memorizzare la biblioteca di appartenenza, imponendo che tale
-    associazione sia sempre presente. La logica è rafforzata nel metodo
+    associazione sia \textbf{sempre presente}. La logica è rafforzata
+    nel metodo
     \passthrough{\lstinline!setWorkLibrary(Library workLibrary)!}, che
     contiene una clausola di guardia per lanciare
     un'\passthrough{\lstinline!IllegalArgumentException!} qualora si
@@ -1173,8 +1173,8 @@ public void onBookCopyAvailable(BookCopy bookCopy) {
   identificativi come \passthrough{\lstinline!id!} ed informativi come
   \passthrough{\lstinline!name!}, \passthrough{\lstinline!address!},
   \passthrough{\lstinline!phone!} e \passthrough{\lstinline!email!}. È
-  utilizzata per associare a una sede specifica e per organizzare
-  l'inventario dei libri, (per le singole copie).
+  utilizzata per associare a una sede specifica un bibliotecario e per
+  organizzare l'inventario dei libri, (per le singole copie).
 \item
   \textbf{Book}: rappresenta un'opera bibliografica. Specifica
   informazioni come \passthrough{\lstinline!isbn!},
@@ -1557,8 +1557,8 @@ per funzionalità le operazioni del software.
   salt generato casualmente. Invece
   \passthrough{\lstinline!check(String plainPassword, String hashedPassword)!}
   confronta una password in chiaro con un hash esistente in modo sicuro,
-  senza esporre l'hash, garantendo che le password non siano mai salvate
-  in chiaro nel database.
+  senza esporre l'hash, garantendo che le password non siano
+  \textbf{mai} salvate in chiaro nel database.
 \end{itemize}
 
 \section{\texorpdfstring{Package
@@ -1581,6 +1581,8 @@ per funzionalità le operazioni del software.
   \passthrough{\lstinline!sendEmail()!} stampa l'email sulla console,
   fornendo una simulazione (mock) utile per gli ambienti di sviluppo e
   test senza la necessità di configurare un server di posta.
+
+  \newpage
 
 \begin{lstlisting}[language=Java, language=Java, caption={In questo metodo viene specificato come sono inviate le notifiche agli utenti.}, label={lst:emailservice}, label=lst:emailservice]
   public void sendEmail(String to, String subject, String body) {
@@ -2076,19 +2078,88 @@ connette sulla porta \passthrough{\lstinline!587!} utilizzando STARTTLS.
 Boot}\label{implementazione-ed-utilizzo-del-framework-spring-boot}
 
 L'adozione del framework Spring Boot è stata fondamentale durante
-l'implementazione del progetto. Sebbene l'utilizzo sia stato previsto
-fin dall'inizio per creare più semplicemente l'ambiente di sviluppo con
-gli \passthrough{\lstinline!spring-boot-starters!}, al momento del
+l'implementazione del progetto. Sebbene all'inizio il suo utilizzo sia
+stato previsto per semplificare la creazione dell'ambiente di sviluppo
+con gli \passthrough{\lstinline!spring-boot-starters!}, al momento del
 testing è stato effettuato un refactoring della parte ORM. Questo perché
-applicare il pattern Inversion of Control era un passaggio necessario
+applicare il pattern Dependency Injection era un passaggio necessario
 per semplificare la costruzione dei test applicando le classi create con
 Mockito.
 
-Inoltre utilizzare una configurazione esterna in
-\passthrough{\lstinline!application.properties!} ha permesso di
-\emph{isolare} dal codice informazioni sensibili come le crendeziali del
-database PostgreSQL e quelle dell'account email utilizzato, senza
-intervenire sul codice sorgente poi pubblicato su Github.
+Ha reso possible utilizzare una configurazione esterna in
+\passthrough{\lstinline!application.properties!}, \emph{isolando} dal
+codice informazioni sensibili come le crendeziali del database
+PostgreSQL e quelle dell'account email utilizzato per mandare le
+notifiche. In questo modo non è necessario intervenire sul codice
+sorgente pubblicato su Github, mantenendo privati i ``segreti''.
+
+\begin{quote}
+È fondamentale sottolineare una caratteristica molto importante del
+framework Spring, ovvero i \textbf{bean}. Per bean s'intende un oggetto
+che viene istanziato, assemblato e gestito in altro modo da un
+contenitore Spring IoC (ovvero che implementa la dependency injection
+tramite l'annotazione \passthrough{\lstinline!@Autowired!}). Sono
+controllati dal cosiddetto ApplicationContext, che nasce quando viene
+avviato il software.
+\end{quote}
+
+Come già citato in vari punti della relazione, con Spring sono
+disponibili tutta una serie di annotazioni che sono state utilizzate
+all'interno del progetto, tra cui:
+
+\begin{itemize}
+\tightlist
+\item
+  \passthrough{\lstinline!@Autowired!}: annotazione che serve per
+  implementare il pattern Dependency Injection, in quanto viene delegato
+  il framework stesso a risolvere e ad iniettare le dipendenze al
+  momento dell'istanziazione dell'oggetto.
+\item
+  \passthrough{\lstinline!@Service!}: utilizzata per indicare quando
+  l'intera classe contiene della \emph{logica di business}. Serve anche
+  per indicare il punto in cui applicare le transazioni.
+\item
+  \passthrough{\lstinline!@Transactional!}: utilizzata nei metodi
+  all'interno delle classi annotate come
+  \passthrough{\lstinline!@Service!} per garantire che tutte le
+  operazioni sul database siano trattate come
+  atomiche\footnote{operazione indivisibile dal punto di vista logico, viene dai principi ACID o Atomicità, Consistenza, Isolamento e Durabilità (“Atomicity, Consistency, Isolation, and Durability”)}.
+  In questo modo, dovesse fallire una parte dell'operazione, viene
+  garantita la consistenza del database tramite un \textbf{rollback}.
+\item
+  \passthrough{\lstinline!@Repository!}: usata per segnalare (come
+  stereotipo\footnote{in Spring utilizzato per rilevare automaticamente e registrare i bean nel contesto dell’applicazione})
+  che la classe così annotata si occupa di accesso a dati.
+\end{itemize}
+
+Un'annotazione in particolare mi è stata utile per la parte di testing
+del codice, ovvero \passthrough{\lstinline!@ConditionalOnProperty!}. Dal
+momento che \passthrough{\lstinline!MainCLI!} implementa
+\passthrough{\lstinline!CommandLineRunner!}: per design Spring Boot
+esegue il metodo \passthrough{\lstinline!run()!} di tutti i bean
+CommandLineRunner \textbf{immediatamente} dopo che l'ApplicationContext
+è stato caricato completamente. Qundi al momento del test il programma
+si blocca perché il test si ferma sulla riga scanner.nextLine()
+aspettando un input dall'utente che non arriverà \textbf{mai}.
+
+\begin{lstlisting}[language=Java, language=Java, caption={Snipper per @ConditionalOnProperty.}, label={lst:conditional-annotation}, label=lst:conditional-annotation]
+@ConditionalOnProperty(
+        prefix = "app",
+        name = "cli.enabled",
+        havingValue = "true",
+        matchIfMissing = true 
+)
+@Component
+public class MainCLI ...
+\end{lstlisting}
+
+Utilizzando lo snippet di codice qua sopra, si presuppone che il
+programma sia lanciato normalmente e che si voglia utilizzare la CLI.
+Nel momento del testing, scrivendo
+\passthrough{\lstinline!app.cli.enabled=false!} nel file
+\passthrough{\lstinline!src/test/resources/application-test.properties!}
+non viene creato il Bean di MainCLI e si possono eseguire i test. Viene
+riattivato nel momento di testing di MainCLI stesso.
 
 \chapter{Testing}\label{testing}
 
@@ -2159,8 +2230,7 @@ oggetto \passthrough{\lstinline!Loan!} \emph{``attivo''} e il
 stato \passthrough{\lstinline!WAITING!}. Il test verifica quindi che la
 classe esegua correttamente l'intera sequenza di operazioni.
 
-\begin{lstlisting}
-```{#lst:test-username-taken .java language="Java" caption="Test unitario che verifica la gestione di un username duplicato." label="lst:test-username-taken"}
+\begin{lstlisting}[language=Java, language=Java, caption={Test unitario che verifica la gestione di un username duplicato.}, label={lst:test-username-taken}, label=lst:test-username-taken]
   @Test
   void changeUsername_whenUsernameIsTaken_throwsIllegalArgumentException() throws Exception {
       // Given
@@ -2174,7 +2244,6 @@ classe esegua correttamente l'intera sequenza di operazioni.
 
       verify(userDAO, never()).updateUsername(anyLong(), anyString());
   }
-```
 \end{lstlisting}
 
 \begin{lstlisting}[language=Java, language=Java, caption={Test che verifica la restituzione di un libro con utenti di attesa.}, label={lst:test-return-waitinglist}, label=lst:test-return-waitinglist]

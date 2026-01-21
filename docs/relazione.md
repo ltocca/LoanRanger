@@ -436,7 +436,7 @@ Questo pattern è stato implementato attraverso la classe `LibraryFacade`, che o
 
 La Dependency Injection è un pattern architetturale[^dao] in cui un oggetto riceve le altre istanze di oggetti di cui ha bisogno (le sue "dipendenze") da una fonte esterna, invece di crearle internamente. Il framework Spring Boot si basa massicciamente su questo principio, gestendo il ciclo di vita degli oggetti (chiamati "bean") e "iniettandoli" dove necessario.
 
-Nel progetto LoanRanger questo pattern viene sfruttato tramite l'annotazione `@Autowired` di Spring. Invece di istanziare manualmente le dipendenze (ad esempio con `UserDAO userDAO = new UserDAO()` all'interno del costruttore di una classe), le classi di servizio (`@Service`) e di persistenza (`@Repository`) dichiarano le dipendenze come campi e lasciano che il container di Spring le risolva e le fornisca al momento della creazione del bean. Ad esempio, un controller come `MemberBookController` riceve direttamente tramite il suo costruttore tutte le istanze dei DAO e dei servizi di cui ha bisogno per funzionare. Questo approccio, noto come "Inversion of Control" serve ad ottenere a un codice più disaccoppiato e più facile da testare. Durante la fase di unit testing, infatti, è possibile "iniettare" versioni mock delle dipendenze (utilizzando le annotazioni `@Mock` e `@InjectMocks` di Mockito) invece di quelle reali, permettendo di testare una classe nella maniera più "isolata" possibile.
+Nel progetto LoanRanger questo pattern viene sfruttato tramite l'annotazione `@Autowired` di Spring. Invece di istanziare manualmente le dipendenze (ad esempio con `UserDAO userDAO = new UserDAO()` all'interno del costruttore di una classe), le classi di servizio (`@Service`) e di persistenza (`@Repository`) dichiarano le dipendenze come campi e lasciano che Spring le risolva e le fornisca al momento della creazione del bean. Ad esempio, un controller come `MemberBookController` riceve direttamente tramite il suo costruttore tutte le istanze dei DAO e dei servizi di cui ha bisogno per funzionare. Questo approccio, noto come "Inversion of Control" serve ad ottenere a un codice più disaccoppiato e più facile da testare. Durante la fase di unit testing, infatti, è possibile "iniettare" versioni mock delle dipendenze (utilizzando le annotazioni `@Mock` e `@InjectMocks` di Mockito) invece di quelle reali, permettendo di testare una classe nella maniera più "isolata" possibile.
 
 [^comp]: Con pattern comportamentale ci si riferisce a tutti quei design pattern che si occupano di algoritmi o di assegnazione di responsabilità tra oggetti. In generale trattano dell'interazione tra oggetti.
 
@@ -452,13 +452,13 @@ Il package `domainModel` contiene le **entità** che descrivono i concetti
 fondamentali del sistema di gestione bibliotecaria. Le classi sono
 progettate come classici oggetti e seguono principi di
 incapsulamento, immutabilità logica e coerenza semantica. Molte di esse
-implementano pattern strutturali e comportamentali per gestire in modo
-chiaro le transizioni di stato e le notifiche. Inoltre, questa classi fanno uso delle annotazioni della libreria Lombok, che tramite `@Getter` `@Setter` o `@Data` generano automaticamente i metodi getter e setter, oltre che i metodi `toString()` nel caso di `@Data`.
+implementano pattern strutturali e comportamentali per gestire in **modo
+chiaro** le transizioni di stato e le notifiche. Inoltre, questa classi fanno uso della libreria Lombok, che tramite le annotazioni `@Getter` `@Setter` o `@Data` generano automaticamente i metodi getter e setter, oltre che i metodi `toString()` nel caso di `@Data`.
 
 - **User**: classe astratta che rappresenta un generico utente del
-  sistema. Contiene attributi comuni come `id`, `name`, `email`,
+  sistema. Contiene attributi "comuni" come `id`, `name`, `email`,
   `username`, `password` e `role`. Definisce i metodi base di accesso
-  e modifica dei dati e viene estesa da `Member`, `Librarian` e
+  e modifica dei dati e viene *estesa* da `Member`, `Librarian` e
   `Admin`.
 
   - **Member**: rappresenta un utente registrato come lettore.
@@ -478,7 +478,7 @@ chiaro le transizioni di stato e le notifiche. Inoltre, questa classi fanno uso 
     ```
 
   - **Librarian**: rappresenta il bibliotecario responsabile di una
-    specifica biblioteca. Specializza ed estende `User` aggiungendo l'attributo `private Library workLibrary` per memorizzare la biblioteca di appartenenza, imponendo che tale associazione sia sempre presente. La logica è rafforzata nel metodo `setWorkLibrary(Library workLibrary)`, che contiene una clausola di guardia per lanciare un'`IllegalArgumentException` qualora si tenti di associare una biblioteca nulla o priva di ID, garantendo così l'integrità dei dati.
+    specifica biblioteca. Specializza ed estende `User` aggiungendo l'attributo `private Library workLibrary` per memorizzare la biblioteca di appartenenza, imponendo che tale associazione sia **sempre presente**. La logica è rafforzata nel metodo `setWorkLibrary(Library workLibrary)`, che contiene una clausola di guardia per lanciare un'`IllegalArgumentException` qualora si tenti di associare una biblioteca nulla o priva di ID, garantendo così l'integrità dei dati.
 
   - **Admin**: rappresenta l'amministratore del sistema. Estende `User`
     e definisce costruttori semplificati per la creazione di account
@@ -488,7 +488,7 @@ chiaro le transizioni di stato e le notifiche. Inoltre, questa classi fanno uso 
 - **Library**: modella una biblioteca fisica. Contiene attributi
   identificativi come `id` ed informativi come `name`, `address`, `phone` e
   `email`. È utilizzata per associare a una sede
-  specifica e per organizzare l'inventario dei libri, (per le singole copie).
+  specifica un bibliotecario e per organizzare l'inventario dei libri, (per le singole copie).
 
 - **Book**: rappresenta un'opera bibliografica. Specifica informazioni
   come `isbn`, `title`, `author`, `publicationYear` e `genre` (questi ultimi due possono essere nulli). Ogni
@@ -697,7 +697,7 @@ Le classi denominate "controller" sono state pensate come pagine web indipendent
 
 - **PasswordHasher**: fornisce funzioni di _hashing e verifica_ delle
   password basate su algoritmi sicuri della libreria
-  `spring-security-crypto`, nel caso specifico sono criptate utilizzando BCrypt2, con un istanza statica di `BCryptPasswordEncoder`.Il metodo `hash(String plainPassword)` prende una password in chiaro e restituisce il suo hash BCrypt, che include un salt generato casualmente. Invece `check(String plainPassword, String hashedPassword)` confronta una password in chiaro con un hash esistente in modo sicuro, senza esporre l'hash, garantendo che le password non siano mai
+  `spring-security-crypto`, nel caso specifico sono criptate utilizzando BCrypt2, con un istanza statica di `BCryptPasswordEncoder`.Il metodo `hash(String plainPassword)` prende una password in chiaro e restituisce il suo hash BCrypt, che include un salt generato casualmente. Invece `check(String plainPassword, String hashedPassword)` confronta una password in chiaro con un hash esistente in modo sicuro, senza esporre l'hash, garantendo che le password non siano **mai**
   salvate in chiaro nel database.
 
 ## Package `service`
@@ -705,6 +705,8 @@ Le classi denominate "controller" sono state pensate come pagine web indipendent
 - **EmailService**: gestisce l'invio delle email di notifica agli
   utenti. È utilizzato principalmente da `LibraryFacade` per comunicare la disponibilità di una copia prenotata o altre variazioni di stato rilevanti.
   Il suo comportamento è condizionato dalla proprietà `mail.enabled` contenuta nel file `application.properties`. Se essa è `true`, utilizza un'istanza di `JavaMailSender` (iniettata da Spring) per inviare una vera email tramite un server SMTP [^mail]. Se `false`, il metodo `sendEmail()` stampa l'email sulla console, fornendo una simulazione (mock) utile per gli ambienti di sviluppo e test senza la necessità di configurare un server di posta.
+
+  \newpage
 
 
   ``` {#lst:emailservice .java language="Java" caption="In questo metodo viene specificato come sono inviate le notifiche agli utenti." label="lst:emailservice"}
@@ -968,11 +970,38 @@ La sicurezza della connessione tra l'applicazione e il server è garantita dalla
 
 ## Implementazione ed utilizzo del framework Spring Boot
 
-L'adozione del framework Spring Boot è stata fondamentale durante l'implementazione del progetto. Sebbene l'utilizzo sia stato previsto fin dall'inizio per creare più semplicemente l'ambiente di sviluppo con gli `spring-boot-starters`, al momento del testing è stato effettuato un refactoring della parte ORM.
-Questo perché applicare il pattern Inversion of Control era un passaggio necessario per semplificare la costruzione dei test applicando le classi create con Mockito.
+L'adozione del framework Spring Boot è stata fondamentale durante l'implementazione del progetto. Sebbene all'inizio il suo utilizzo sia stato previsto per semplificare la creazione dell'ambiente di sviluppo con gli `spring-boot-starters`, al momento del testing è stato effettuato un refactoring della parte ORM.
+Questo perché applicare il pattern Dependency Injection era un passaggio necessario per semplificare la costruzione dei test applicando le classi create con Mockito.
 
-Inoltre utilizzare una configurazione esterna in `application.properties` ha permesso di *isolare* dal codice informazioni sensibili come le crendeziali del database PostgreSQL e quelle dell'account email utilizzato, senza intervenire sul codice sorgente poi pubblicato su Github.
- 
+Ha reso possible utilizzare una configurazione esterna in `application.properties`, *isolando* dal codice informazioni sensibili come le crendeziali del database PostgreSQL e quelle dell'account email utilizzato per mandare le notifiche. In questo modo non è necessario intervenire sul codice sorgente pubblicato su Github, mantenendo privati i "segreti".
+
+> È fondamentale sottolineare una caratteristica molto importante del framework Spring, ovvero i **bean**. Per bean s'intende un oggetto che viene istanziato, assemblato e gestito in altro modo da un contenitore Spring IoC (ovvero che implementa la dependency injection tramite l'annotazione `@Autowired`). Sono controllati dal cosiddetto ApplicationContext, che nasce quando viene avviato il software.
+
+Come già citato in vari punti della relazione, con Spring sono disponibili tutta una serie di annotazioni che sono state utilizzate all'interno del progetto, tra cui:
+
+- `@Autowired`: annotazione che serve per implementare il pattern Dependency Injection, in quanto viene delegato il framework stesso a risolvere e ad iniettare le dipendenze al momento dell'istanziazione dell'oggetto. 
+- `@Service`: utilizzata per indicare quando l'intera classe contiene della *logica di business*. Serve anche per indicare il punto in cui applicare le transazioni.
+- `@Transactional`: utilizzata nei metodi all'interno delle classi annotate come `@Service` per garantire che tutte le operazioni sul database siano trattate come atomiche[^acid]. In questo modo, dovesse fallire una parte dell'operazione, viene garantita la consistenza del database tramite un **rollback**.
+- `@Repository`: usata per segnalare (come stereotipo[^stereotype]) che la classe così annotata si occupa di accesso a dati.
+
+Un'annotazione in particolare mi è stata utile per la parte di testing del codice, ovvero `@ConditionalOnProperty`. Dal momento che `MainCLI` implementa `CommandLineRunner`:  per design Spring Boot esegue il metodo `run()` di tutti i bean CommandLineRunner **immediatamente** dopo che l'ApplicationContext è stato caricato completamente. Qundi al momento del test il programma si blocca perché il test si ferma sulla riga scanner.nextLine() aspettando un input dall'utente che non arriverà **mai**. 
+
+```{#lst:conditional-annotation .java language="Java" caption="Snipper per @ConditionalOnProperty." label="lst:conditional-annotation"}
+@ConditionalOnProperty(
+        prefix = "app",
+        name = "cli.enabled",
+        havingValue = "true",
+        matchIfMissing = true 
+)
+@Component
+public class MainCLI ...
+```
+
+Utilizzando lo snippet di codice qua sopra, si presuppone che il programma sia lanciato normalmente e che si voglia utilizzare la CLI. Nel momento del testing, scrivendo `app.cli.enabled=false` nel file `src/test/resources/application-test.properties` non viene creato il Bean di MainCLI e si possono eseguire i test. Viene riattivato nel momento di testing di MainCLI stesso. 
+
+[^acid]: operazione indivisibile dal punto di vista logico, viene dai principi ACID o Atomicità, Consistenza, Isolamento e Durabilità ("Atomicity, Consistency, Isolation, and Durability")
+[^stereotype]: in Spring utilizzato per rilevare automaticamente e registrare i bean nel contesto dell'applicazione
+
 # Testing
 
 Per garantire la correttezza e la robustezza dell'applicazione sono stati
@@ -994,21 +1023,21 @@ Passando ad un altro esempio, contenuto nella classe `LibrarianBookController` (
 
 Per componenti come `LibraryFacade`, i test sono stati sviluppati per verificare che le operazioni gestiscano correttamente le chiamate ai vari DAO. Infatti, in `LibraryFacadeTest` è presente `returnBook_whenLoanExists_updatesLoanAndProcessesWaitingList`: questo test simula lo scenario di restituzione di un libro per il quale esiste un altro utente in coda di attesa. Sempre facendo uso di Mockito, si configura il `LoanDAO` per restituire un oggetto `Loan` _"attivo"_ e il `ReservationDAO` per fornire una prenotazione in stato `WAITING`. Il test verifica quindi che la classe esegua correttamente l'intera sequenza di operazioni.
 
-    ```{#lst:test-username-taken .java language="Java" caption="Test unitario che verifica la gestione di un username duplicato." label="lst:test-username-taken"}
-      @Test
-      void changeUsername_whenUsernameIsTaken_throwsIllegalArgumentException() throws Exception {
-          // Given
-          String newUsername = "takenUser";
-          when(userDAO.findUserByUsername(newUsername)).thenReturn(Optional.of(new Librarian()));
+  ```{#lst:test-username-taken .java language="Java" caption="Test unitario che verifica la gestione di un username duplicato." label="lst:test-username-taken"}
+    @Test
+    void changeUsername_whenUsernameIsTaken_throwsIllegalArgumentException() throws Exception {
+        // Given
+        String newUsername = "takenUser";
+        when(userDAO.findUserByUsername(newUsername)).thenReturn(Optional.of(new Librarian()));
 
-          // When & Then
-          assertThatThrownBy(() -> librarianAccountController.changeUsername(librarian, newUsername))
-                  .isInstanceOf(IllegalArgumentException.class)
-                  .hasMessage("Error: This username is already taken by another user.");
+        // When & Then
+        assertThatThrownBy(() -> librarianAccountController.changeUsername(librarian, newUsername))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Error: This username is already taken by another user.");
 
-          verify(userDAO, never()).updateUsername(anyLong(), anyString());
-      }
-    ```
+        verify(userDAO, never()).updateUsername(anyLong(), anyString());
+    }
+  ```
 
   ```{#lst:test-return-waitinglist .java language="Java" caption="Test che verifica la restituzione di un libro con utenti di attesa." label="lst:test-return-waitinglist"}
     @Test
